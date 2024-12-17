@@ -5,7 +5,7 @@ namespace App\Http\Requests\AuthController;
 use App\Rules\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
-class SendCodeRequest extends FormRequest
+class VerifyCodeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,7 +23,8 @@ class SendCodeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'max:255', 'unique:users,phone', new PhoneNumber],
+            'phone' => ['required', 'max:255', 'unique:users,phone', 'exists:phone_verifications,phone_number', new PhoneNumber],
+            'code'  => ['required', 'string'],
         ];
     }
 
@@ -32,7 +33,11 @@ class SendCodeRequest extends FormRequest
         return [
             'phone.required' => 'Укажите номер телефона',
             'phone.max'      => 'Поле номер телефона не должно превышать 255 символов',
+            'phone.exists'   => 'Пользователь с таким телефоном не найден',
             'phone.unique'   => 'Пользователь с таким телефоном уже существует',
+
+            'code.required' => 'Укажите код',
+            'code.string'   => 'Код должен быть строкой',
         ];
     }
 }

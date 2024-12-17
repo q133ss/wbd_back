@@ -27,7 +27,7 @@ class ImportCategories extends Command
      */
     public function handle()
     {
-        $url = 'https://static-basket-01.wbbasket.ru/vol0/data/main-menu-ru-ru-v3.json';
+        $url      = 'https://static-basket-01.wbbasket.ru/vol0/data/main-menu-ru-ru-v3.json';
         $response = Http::get($url);
 
         if ($response->successful()) {
@@ -45,7 +45,7 @@ class ImportCategories extends Command
             $newCategory = Category::updateOrCreate(
                 ['id' => $category['id']],
                 [
-                    'name' => $category['name'],
+                    'name'      => $category['name'],
                     'parent_id' => $parentId,
                 ]
             );

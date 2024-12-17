@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AuthController\CompleteRequest;
 use App\Http\Requests\AuthController\SendCodeRequest;
-use App\Models\User;
+use App\Http\Requests\AuthController\VerifyCodeRequest;
 use App\Services\AuthService;
-use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -23,22 +23,21 @@ class AuthController extends Controller
         return response()->json(['message' => 'Код успешно отправлен']);
     }
 
-    public function verifyCode($request)
+    public function verifyCode(VerifyCodeRequest $request)
     {
-        $isValid = $this->authService->verifyCode($request->phone_number, $request->verification_code);
+        return $this->authService->verifyCode($request->phone, $request->code);
+    }
 
-        if (!$isValid) {
-            return response()->json(['message' => 'Недействительный или истекший код'], 400);
-        }
+    public function completeRegistration(CompleteRequest $request)
+    {
+        $user                  = Auth('sanctum')->user();
+        $data                  = $request->validated();
+        $data['is_configured'] = true;
+        $updated               = $user->update($data);
 
-        // Создаём пользователя
-        $user = User::create([
-            'phone_number' => $request->phone_number,
-            'name' => $request->name,
-            'surname' => $request->surname,
-            // другие поля
+        return Response()->json([
+            'message' => 'true',
+            'user'    => $user,
         ]);
-
-        return response()->json(['message' => 'Registration completed successfully', 'user' => $user]);
     }
 }

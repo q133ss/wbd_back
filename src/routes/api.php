@@ -1,18 +1,14 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
 
-Route::group(['guest'],function(){
-    /*
-     * 1) Сначала юзер вводит номер телефона, затем ему отправляется код
-        2) Затем проверяем код, если все ок, то создаем юзера и указываем ему "is_configurated = 0"
-        3) Далее пользователь вводит логин, пароль и email и делаем ему is_configurated = 1 и завершаем регистрацию
-     */
+Route::middleware([GuestOnly::class])->group(function () {
     Route::post('register/send-code', [\App\Http\Controllers\AuthController::class, 'sendCode']);
-    Route::post('register/verify-code', [RegistrationController::class, 'verifyCode']);
-    Route::post('register/complete', [RegistrationController::class, 'completeRegistration']);
+    Route::post('register/verify-code', [\App\Http\Controllers\AuthController::class, 'verifyCode']);
+    // Делаем восстановление пароля и логин!
 });
+Route::post('register/complete', [\App\Http\Controllers\AuthController::class, 'completeRegistration']);
 
 // TODO на сегодня
 /*
