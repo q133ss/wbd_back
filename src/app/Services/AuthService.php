@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\PhoneVerification;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthService
 {
@@ -19,7 +21,7 @@ class AuthService
      *
      * @throws \Exception
      */
-    public function sendVerificationCode(string $phoneNumber)
+    public function sendVerificationCode(string $phoneNumber): JsonResponse
     {
         $verification = PhoneVerification::where('phone_number', $phoneNumber)->first();
         $code         = random_int(1000, 9999);
@@ -38,24 +40,34 @@ class AuthService
         }
 
         $smsService = new SmsService;
-        $send       = $smsService->send($phoneNumber, $code);
-
-        if (! $send) {
-            return Response()->json([
-                'message' => 'При отправке СМС произошла ошибка',
-            ], 500);
-        }
+//        $send       = $smsService->send($phoneNumber, $code);
+//
+//        if (! $send) {
+//            return Response()->json([
+//                'message' => 'При отправке СМС произошла ошибка',
+//            ], 500);
+//        }
 
         return Response()->json([
             'message' => 'Код успешно отправлен',
         ]);
     }
 
-    public function verifyCode(string $phone, string $code)
+    /**
+     * @param $phone
+     * @param $code
+     * @return mixed
+     */
+    private function checkCode($phone, $code): mixed
     {
-        $verification = PhoneVerification::where('phone_number', $phone)
-            ->where('verification_code', $code)->exists();
-        if ($verification) {
+        return PhoneVerification::where('phone_number', $phone)
+            ->where('verification_code', $code);
+    }
+
+    public function verifyCode(string $phone, string $code): JsonResponse|array
+    {
+        $verification = $this->checkCode($phone, $code);
+        if ($verification->exists()) {
             $verification->delete();
 
             $user = User::create([
@@ -71,6 +83,30 @@ class AuthService
                 'token' => $token->plainTextToken,
             ];
         } else {
+            return Response()->json(['message' => 'Неверный код'], 401);
+        }
+    }
+
+    /**
+     * Восстановление пароля
+     * @param string $phone
+     * @param string $code
+     * @return JsonResponse
+     */
+    public function reset(string $phone, string $code): JsonResponse
+    {
+        $verification = $this->checkCode($phone, $code);
+        if($verification->exists())
+        {
+            $verification->delete();
+            $user = User::where('phone', $phone)->first();
+            $password = Str::random(8);
+            $update = $user->update(['password' => Hash::make($password)]);
+            return Response()->json([
+                'message' => 'Пароль успешно сброшен',
+                'password' => $password
+            ]);
+        }else{
             return Response()->json(['message' => 'Неверный код'], 401);
         }
     }
