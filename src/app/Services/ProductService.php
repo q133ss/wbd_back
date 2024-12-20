@@ -23,7 +23,8 @@ class ProductService
             'supplier_rating',
             'is_archived',
             'shop_id',
-            'wb_id'
+            'wb_id',
+            'category_id'
         ];
     }
 

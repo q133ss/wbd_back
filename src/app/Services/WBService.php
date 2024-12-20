@@ -2,13 +2,25 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\Shop;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class WBService
+class WBService extends BaseService
 {
+    public function productCheck(string $id): array
+    {
+        $check = Product::where('wb_id', $id)->exists();
+
+        if ($check) {
+            return $this->formatResponse('false', 'Товар уже добавлен', 403);
+        }
+        return $this->formatResponse('true', 'Товар еще не создан', 200);
+    }
+
     public function getSupplier($supplier_id)
     {
         try {
@@ -21,140 +33,38 @@ class WBService
         }
     }
 
-    public function productCheck(string $id)
-    {
-        $check = Product::where('wb_id', $id)->exists();
-
-        if ($check) {
-            return [
-                'status' => 'false',
-                'message' => 'Товар уже добавлен',
-                'code' => 403
-            ];
-        }
-        return [
-            'status' => 'true',
-            'message' => 'Товар еще не создан',
-            'code' => 200
-        ];
-    }
-
-    private function getShop(mixed $user, mixed $product): array
-    {
-        $shopArr = [];
-        if($user->shop){
-            if($product['supplierId'] != $user->shop?->supplier_id)
+    private function checkShop($user, $supplier_id){
+        if($user->shop?->supplier_id != null){
+            if($supplier_id != $user->shop?->supplier_id)
             {
-                return [
-                    'status' => 'false',
-                    'message' => 'Данный товар принадлежит другому продавцу',
-                    'code' => 403
-                ];
+                return $this->formatResponse('false', 'Данный товар принадлежит другому продавцу', 403);
             }
-
-            $shopArr['supplier_id'] = $user->shop?->supplier_id;
-            $shopArr['inn'] = $user->shop?->inn;
-            $shopArr['legal_name'] = $user->shop?->legal_name;
-            $shopArr['wb_name'] = $user->shop?->wb_name;
+            return $this->formatResponse('true', $user->shop, 200);
         }else{
-            $supplier = $this->getSupplier($product['supplierId']);
-
-            if($supplier)
-            {
-                $shopArr['supplier_id'] = $product['supplierId'];
-                $shopArr['inn'] = $supplier['inn'];
-                $shopArr['legal_name'] = $supplier['supplierName'];
-                $shopArr['wb_name'] = $supplier['trademark'];
-                $user->shop()->create($shopArr);
+            $supplier = $this->getSupplier($supplier_id);
+            if(!$supplier){
+                return $this->formatResponse('false', 'Компания не найдена', 404);
             }
+            $shop = Shop::create([
+                'user_id' => $user->id,
+                'supplier_id' => $supplier_id,
+                'inn' => $supplier['inn'],
+                'legal_name' => $supplier['supplierName'],
+                'wb_name' => $supplier['trademark']
+            ]);
+            return $this->formatResponse('true', $shop, 200);
         }
-        return $shopArr;
-    }
-
-    private function formatProductData(array $product): array
-    {
-        if(!isset($product['wb_id'])){
-            $product['wb_id'] = $product['id'];
-        }
-        return [
-            'wb_id' => $product['id'],
-            'title' => $product['name'],
-            'price' => $product['salePriceU'] / 100,
-            'brand' => $product['brand'] ?? null,
-            'discount' => $product['sale'] ?? 0,
-            'rating' => $product['rating'] ?? 0,
-            'quantity_available' => $product['volume'] ?? 0,
-            'supplier_id' => $product['supplierId'] ?? null,
-            'images' => $this->generateImageUrls($product),
-            'description' => $this->fetchDescription($product['id']),
-            'supplier_rating' => $product['supplierRating'] ?? 0,
-        ];
+        return true;
     }
 
     /**
-     * Принимает в артикул wb, отдает массив с товаром
-     * @param string $product_id
-     * @return array|null
+     * Принимает в себя товар из АПИ ВБ
+     * Возвращает массив с фото
+     *
+     * @param $product
+     * @return array
      */
-    public function fetchProduct(string $product_id)
-    {
-        $url = "https://card.wb.ru/cards/v1/detail?appType=1&curr=rub&dest=-1257786&spp=30&nm={$product_id}";
-
-        try {
-            $response = Http::get($url);
-
-            if ($response->ok()) {
-                $data = $response->json();
-
-                if (isset($data['data']['products']) && count($data['data']['products']) > 0) {
-                    $product = $data['data']['products'][0];
-
-                    if($product['supplierId'] == null)
-                    {
-                        Log::error('Магазин у товара '.$product_id.' не найден');
-                        return [
-                            'status' => 'false',
-                            'message' => 'Магазин не найден',
-                            'code' => 404
-                        ];
-                    }
-
-                    $check = $this->productCheck($product['id']);
-                    if($check['status'] == 'false'){
-                        return $check;
-                    }
-
-                    $user = Auth('sanctum')->user();
-
-                    $shop_arr = $this->getShop($user, $product);
-                    $product_arr = $this->formatProductData($product);
-
-                    Cache::put('wb_product_'.$product_id, ['product' => $product_arr, 'shop' => $shop_arr]);
-                    return [
-                        'status' => 'true',
-                        'message' => ['product' => $product_arr, 'shop' => $shop_arr],
-                        'code' => 200
-                    ];
-                }
-            }
-        } catch (\Exception $e) {
-            Log::error("ОШИБКА ПРИ ЗАГРУЗКЕ ТОВАРОВ ИЗ WB: " . $e->getMessage());
-            return [
-                'status' => 'false',
-                'message' => 'Произошла ошибка при загрузке товара',
-                'code' => 500
-            ];
-        }
-
-        // Тут имеет смысл вызывать какой нибудь другой метод, что бы попробовать еще раз получить его!
-        return [
-            'status' => 'false',
-            'message' => 'Товар не найден',
-            'code' => 404
-        ];
-    }
-
-    private function generateImageUrls($product)
+    private function generateImageUrls($product): array
     {
         $images = [];
         $picsCount = $product['pics'] ?? 0;
@@ -174,67 +84,72 @@ class WBService
         return null;
     }
 
-    private function createProduct($productArr){
-        try {
-            $productService = new ProductService();
-            if(isset($productArr['product'])) {
-                $product = $productArr['product'];
-            }else{
-                $product = $productArr['message']['product'];
-            }
-            $check = $this->productCheck($product['wb_id']);
-            if($check['status'] == 'false'){
-                return $check;
-            }
-            $data = [
-                'name' => $product['title'] ?? 'Без названия',
-                'price' => $product['price'] ?? 0,
-                'cashback_percent' => 0,
-                'discount' => $product['discount'] ?? 0,
-                'rating' => $product['rating'] ?? 0,
-                'images' => $product['images'],
-                'quantity_available' => $product['quantity_available'] ?? 0,
-                'supplier_id' => $product['supplier_id'] ?? null,
-                'supplier_rating' => $product['supplier_rating'] ?? 0,
-                'is_archived' => false,
-                'wb_id' => $product['wb_id'],
-                'shop_id' => Auth('sanctum')->user()->shop?->id
-            ];
-            $createdProduct = $productService->create($data);
-            if($createdProduct['status'] == 'false'){
-                return $createdProduct;
-            }
-            return ['status' => 'true', 'product' => $createdProduct['product']];
-        } catch (\Exception $e) {
-            Log::error("Ошибка при создании товара: ". $e->getMessage());
-            return [
-                'status' => 'false',
-                'message' => 'Произошла ошибка при создании товара',
-                'code' => 500
-            ];
-        }
+    /**
+     * Принимает в себя товар полученный от АПИ WB
+     * Далее форматирует его для нашей БД
+     *
+     * @param array $product
+     * @return array
+     */
+    private function formatProductData(array $product): array
+    {
+        $product['wb_id'] = $product['id'];
+        return [
+            'title' => $product['name'],
+            'price' => $product['salePriceU'] / 100,
+            'brand' => $product['brand'] ?? null,
+            'discount' => $product['sale'] ?? 0,
+            'rating' => $product['rating'] ?? 0,
+            'quantity_available' => $product['volume'] ?? 0,
+            'supplier_id' => $product['supplierId'] ?? null,
+            'images' => $this->generateImageUrls($product),
+            'description' => $this->fetchDescription($product['id']),
+            'supplier_rating' => $product['supplierRating'] ?? 0,
+        ];
     }
 
-    public function addProduct(string $product_id)
+    public function fetchProduct(string $product_id)
     {
-        // Проверяем кеш
-        if (Cache::has('wb_product_'.$product_id)) {
-            $product = Cache::get('wb_product_' . $product_id);
-        }else{
-            $product = $this->fetchProduct($product_id);
-            if($product == null) {
-                return Response()->json(['message' => 'Товар не найден'], 404);
+        $check = $this->productCheck($product_id);
+        if($check['status'] == 'false'){
+            return $check;
+        }
+
+        $url = "https://card.wb.ru/cards/v1/detail?appType=1&curr=rub&dest=-1257786&spp=30&nm={$product_id}";
+        try{
+            $response = Http::get($url);
+
+            if ($response->ok()) {
+                $data = $response->json();
+
+                if (isset($data['data']['products']) && count($data['data']['products']) > 0) {
+                    $product = $data['data']['products'][0];
+
+                    // Проверяем, существует-ли магазин
+                    if($product['supplierId'] == null)
+                    {
+                        Log::error('Магазин у товара '.$product_id.' не найден');
+                        return $this->formatResponse('false', 'Магазин не найден', 404);
+                    }
+
+                    $getSupplier = $this->getSupplier($product['supplierId']);
+                    $shop = [
+                        'supplier_id' => $product['supplierId'],
+                        'inn' => $getSupplier['inn'],
+                        'legal_name' => $getSupplier['supplierName'],
+                        'wb_name' => $getSupplier['trademark']
+                    ];
+
+                    $product = $this->formatProductData($product);
+
+                    $response = $this->formatResponse('true', ['product' => $product, 'shop' => $shop], 200);
+                    return $this->sendResponse($response);
+                }
             }
+        }catch (\Exception $e){
+            Log::error('Ошибка при получении товара: '.$e->getMessage());
+            $response = $this->formatResponse('false', 'Ошибка при получении товара', 500);
+            return $this->sendResponse($response);
         }
-
-        $createdProduct = $this->createProduct($product);
-
-
-        if ($createdProduct['status'] == 'true') {
-            return Response()->json(['message' => 'true','product' => $createdProduct['product']], 201);
-        }
-
-        return Response()->json(['message' => $createdProduct['message']], $createdProduct['code']);
-
     }
 }

@@ -23,7 +23,6 @@ return new class extends Migration
             $table->unsignedInteger('quantity_available')->default(0);
             $table->unsignedBigInteger('supplier_id');
             $table->unsignedBigInteger('category_id')->nullable();
-            $table->unsignedBigInteger('subcategory_id')->nullable();
             $table->text('description')->nullable();
             $table->decimal('supplier_rating', 3, 2)->unsigned()->default(0);
             $table->boolean('is_archived')->default(false);

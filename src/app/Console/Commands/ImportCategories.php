@@ -54,5 +54,9 @@ class ImportCategories extends Command
                 $this->importCategories($category['childs'], $newCategory->id);
             }
         }
+        Category::create([
+            'name'      => 'Без категории',
+            'parent_id' => $parentId
+        ]);
     }
 }

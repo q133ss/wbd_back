@@ -17,8 +17,7 @@ class ProductController extends Controller
 
     public function fetchProduct(string $id)
     {
-        $product = $this->service->fetchProduct($id);
-        return response()->json($product);
+        return $this->service->fetchProduct($id);
     }
 
     public function addProduct(string $id)
