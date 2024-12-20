@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Product;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -18,6 +19,24 @@ class WBService
             \Log::error('Ошибка при получении юо лица. '.$e->getMessage);
             return false;
         }
+    }
+
+    public function productCheck(string $id)
+    {
+        $check = Product::where('wb_id', $id)->exists();
+
+        if ($check) {
+            return [
+                'status' => 'false',
+                'message' => 'Товар уже добавлен',
+                'code' => 403
+            ];
+        }
+        return [
+            'status' => 'true',
+            'message' => 'Товар еще не создан',
+            'code' => 200
+        ];
     }
 
     private function getShop(mixed $user, mixed $product): array
@@ -55,7 +74,7 @@ class WBService
     private function formatProductData(array $product): array
     {
         return [
-            'product_id' => $product['id'],
+            'wb_id' => $product['id'],
             'title' => $product['name'],
             'price' => $product['salePriceU'] / 100,
             'brand' => $product['brand'] ?? null,
@@ -97,6 +116,11 @@ class WBService
                         ];
                     }
 
+                    $check = $this->productCheck($product['id']);
+                    if($check['status'] == 'false'){
+                        return $check;
+                    }
+
                     $user = Auth('sanctum')->user();
 
                     $shopArr = $this->getShop($user, $product);
@@ -131,7 +155,7 @@ class WBService
     {
         $images = [];
         $picsCount = $product['pics'] ?? 0;
-        $shortId = floor($product['id'] / 100000);
+        $shortId = floor($product['wb_id'] / 100000);
         $basket = floor($shortId / 144);
 
         for ($i = 1; $i <= $picsCount; $i++) {
@@ -143,44 +167,43 @@ class WBService
 
     private function fetchDescription($product_id)
     {
-        $part = floor($product_id/1000);
-        $basket = $padded = str_pad($finalBasket, 2, '0', STR_PAD_LEFT);
-        $url = "https://basket-{$basket}.wbbasket.ru/vol{$short_id}/part{$part}/{$product_id}/info/ru/card.json";
-
-        try {
-            $response = Http::get($url);
-
-            if ($response->ok()) {
-                $data = $response->json();
-                return $data['description'] ?? '';
-            }
-        } catch (\Exception $e) {
-            \Log::error("Error fetching description: " . $e->getMessage());
-        }
-
+        // Нужно найти способ получить описание!
         return null;
     }
 
     private function createProduct($productArr){
-        $productService = new ProductService();
-        $product = $productArr['product'];
-        $data = [
-            'name' => $product->title ?? 'Без названия',
-            'price' => $product->price ?? 0,
-            'cashback_percent' => 0,
-            'discount' => $product->discount ?? 0,
-            'rating' => $product->rating ?? 0,
-            'images' => $this->generateImageUrls($product),
-            'quantity_available' => $product->quantity_available ?? 0,
-            'supplier_id' => $product->supplier_id ?? null,
-            'supplier_rating' => $product->supplier_rating ?? 0,
-            'is_archived' => false,
-        ];
-        $createdProduct = $productService->create($data);
-        return Response()->json([
-            'product' => $createdProduct,
-            'shop' => $productArr['shop']
-        ], 201);
+        try {
+            $productService = new ProductService();
+            $product = $productArr['product'];
+
+            $check = $this->productCheck($product['wb_id']);
+            if($check['status'] == 'false'){
+                return $check;
+            }
+            $data = [
+                'name' => $product['title'] ?? 'Без названия',
+                'price' => $product['price'] ?? 0,
+                'cashback_percent' => 0,
+                'discount' => $product['discount'] ?? 0,
+                'rating' => $product['rating'] ?? 0,
+                'images' => $product['images'],
+                'quantity_available' => $product['quantity_available'] ?? 0,
+                'supplier_id' => $product['supplier_id'] ?? null,
+                'supplier_rating' => $product['supplier_rating'] ?? 0,
+                'is_archived' => false,
+                'wb_id' => $product['wb_id'],
+                'shop_id' => Auth('sanctum')->user()->shop?->id
+            ];
+            $createdProduct = $productService->create($data);
+            return $createdProduct;
+        } catch (\Exception $e) {
+            Log::error("Ошибка при создании товара: ". $e->getMessage());
+            return [
+                'status' => 'false',
+                'message' => 'Произошла ошибка при создании товара',
+                'code' => 500
+            ];
+        }
     }
 
     public function addProduct(string $product_id)
@@ -196,9 +219,10 @@ class WBService
         }
 
         $createdProduct = $this->createProduct($product);
-        if ($createdProduct['status'] == 'success') {
-            return Response()->json(['message' => 'true','product' => $createdProduct], 201);
+        if ($createdProduct['status'] == 'true') {
+            return Response()->json(['message' => 'true','product' => $createdProduct['product']], 201);
         }
+
         return Response()->json(['message' => $createdProduct['message']], $createdProduct['code']);
 
     }

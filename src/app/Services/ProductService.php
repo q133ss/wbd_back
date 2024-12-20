@@ -21,7 +21,9 @@ class ProductService
             'quantity_available',
             'supplier_id',
             'supplier_rating',
-            'is_archived'
+            'is_archived',
+            'shop_id',
+            'wb_id'
         ];
     }
 
@@ -38,7 +40,7 @@ class ProductService
             \Log::error("Ошибка создания товара: отсутствуют поля: " . implode(', ', $missingFields));
 
             return [
-                'status' => 'error',
+                'status' => 'false',
                 'message' => 'Отсутствуют обязательные поля',
                 'missing_fields' => $missingFields,
                 'code' => 422
@@ -46,19 +48,16 @@ class ProductService
         }
 
         try{
-            if(!isset($data['user_id'])){
-                $data['user_id'] = auth('sanctum')->id();
-            }
             $product = Product::create($data);
             return [
-                'status' => 'success',
+                'status' => 'true',
                 'product' => $product,
                 'code' => 201
             ];
         }catch (\Exception $e){
             \Log::error("Ошибка создания товара: " . $e->getMessage());
             return [
-                'status' => 'error',
+                'status' => 'false',
                 'message' => 'Ошибка создания товара',
                 'code' => 500
             ];
