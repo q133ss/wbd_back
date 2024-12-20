@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Exceptions\JsonException;
+
 abstract class BaseService
 {
     /**
@@ -12,18 +14,18 @@ abstract class BaseService
      * @param string $code
      * @return string[]
      */
-    public function formatResponse(string $status, mixed $message, int $code): array
+    public function formatResponse(string $status, mixed $message, int $code, string $messageText = 'message'): array
     {
         return [
             'status' => $status,
-            'message' => $message,
+            $messageText => $message,
             'code' => $code
         ];
     }
 
     public function sendResponse(array $formattedResponse)
     {
-        foreach (['status', 'message', 'code'] as $key) {
+        foreach (['status', 'code'] as $key) {
             if (!isset($formattedResponse[$key])) {
                 throw new \InvalidArgumentException("Поле \"{$key}\" является обязательным.");
             }
@@ -34,5 +36,18 @@ abstract class BaseService
             }
         }
         return response()->json($formattedResponse, $formattedResponse['code']);
+    }
+
+    /**
+     * Возвращает юзеру ошибку
+     *
+     * @param string $message
+     * @param int $code
+     * @return mixed
+     * @throws JsonException
+     */
+    public function sendError(string $message, int $code = 500): mixed
+    {
+        throw new \App\Exceptions\JsonException($message, $code);
     }
 }

@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('price', 8, 2);
             $table->string('brand')->nullable();
-            $table->decimal('cashback_percent', 5, 2)->unsigned();
             $table->decimal('discount', 5, 2)->unsigned()->default(0);
             $table->decimal('rating', 3, 2)->unsigned()->default(0);
             $table->unsignedInteger('quantity_available')->default(0);

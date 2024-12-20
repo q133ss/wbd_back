@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
 
-        //Artisan::call('categories:import');
-
+        Artisan::call('categories:import');
     }
 }

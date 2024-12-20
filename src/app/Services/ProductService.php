@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\Shop;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
-class ProductService
+class ProductService extends BaseService
 {
     private array $requiredFields;
 
@@ -15,7 +18,6 @@ class ProductService
         $this->requiredFields = [
             'name',
             'price',
-            'cashback_percent',
             'discount',
             'rating',
             'quantity_available',
@@ -28,40 +30,31 @@ class ProductService
         ];
     }
 
-    /**
-     * @param array $data
-     * @return array
-     */
-    public function create(array $data): array
+    public function create(array $data)
     {
         // Проверяем наличие всех ключей
         $missingFields = array_diff($this->requiredFields, array_keys($data));
 
         if (!empty($missingFields)) {
-            \Log::error("Ошибка создания товара: отсутствуют поля: " . implode(', ', $missingFields));
-
-            return [
-                'status' => 'false',
-                'message' => 'Отсутствуют обязательные поля',
-                'missing_fields' => $missingFields,
-                'code' => 422
-            ];
+            Log::error("Ошибка создания товара: отсутствуют поля: " . implode(', ', $missingFields));
+            return $this->formatResponse('false', 'Отсутствуют обязательные поля', 422);
         }
 
         try{
+            if($data['shop_id'] == null)
+            {
+                $data['shop_id'] = Shop::where('user_id', Auth('sanctum')->id())->pluck('id')->first();
+            }
+//            if($data['category_id'] == null)
+//            {
+//                $data['category_id'] = (new Category())->getDefaultCategory();
+//            }
             $product = Product::create($data);
-            return [
-                'status' => 'true',
-                'product' => $product,
-                'code' => 201
-            ];
+
+            return $this->formatResponse('true', $product, 201, 'product');
         }catch (\Exception $e){
-            \Log::error("Ошибка создания товара: " . $e->getMessage());
-            return [
-                'status' => 'false',
-                'message' => 'Ошибка создания товара',
-                'code' => 500
-            ];
+            Log::error("Ошибка создания товара: " . $e->getMessage());
+            return $this->formatResponse('false', 'Ошибка создания товара', 500);
         }
     }
 }
