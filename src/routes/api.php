@@ -12,11 +12,17 @@ Route::middleware([GuestOnly::class])->group(function () {
 });
 Route::post('register/complete', [\App\Http\Controllers\AuthController::class, 'completeRegistration']);
 
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
+    Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
+});
+
 // TODO на сегодня
 /*
+ * // Все проверяем с фигмой!
  * 1. Установить Pint+
  * 2. Сделать регистрацию и авторицию+
- * 3. Сделать товары и категории
+ * 3. Сделать товары и категории -+
  * 4. Сделать объявления
  * 5. Сделать подгрузку магазина и товаров из ВБ
  * 6. Сделать импорт категорий из ВБ +

@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -25,6 +26,8 @@ class User extends Authenticatable
         'phone',
         'is_configured',
     ];
+
+    protected $with = ['shop'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -57,6 +60,16 @@ class User extends Authenticatable
             'name'          => $this->name,
             'created_at'    => $this->created_at,
             'is_configured' => $this->is_configured,
+            'shop'          => $this->shop
         ];
+    }
+
+    /**
+     * Возвращает магазин юзера
+     * @return HasOne
+     */
+    public function shop(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Shop::class, 'user_id', 'id');
     }
 }

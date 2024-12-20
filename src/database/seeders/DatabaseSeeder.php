@@ -14,15 +14,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
 
         User::factory()->create([
-            'name'     => 'Admin',
-            'email'    => 'admin@email.net',
+            'name'     => 'Алексей',
+            'email'    => 'alexey@email.net',
+            'phone'    => '+7(951)867-70-86',
             'password' => bcrypt('password'),
         ]);
 
-        Artisan::call('categories:import');
+        //Artisan::call('categories:import');
 
     }
 }

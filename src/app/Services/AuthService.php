@@ -40,13 +40,13 @@ class AuthService
         }
 
         $smsService = new SmsService;
-//        $send       = $smsService->send($phoneNumber, $code);
-//
-//        if (! $send) {
-//            return Response()->json([
-//                'message' => 'При отправке СМС произошла ошибка',
-//            ], 500);
-//        }
+        $send       = $smsService->send($phoneNumber, $code);
+
+        if (! $send) {
+            return Response()->json([
+                'message' => 'При отправке СМС произошла ошибка',
+            ], 500);
+        }
 
         return Response()->json([
             'message' => 'Код успешно отправлен',
