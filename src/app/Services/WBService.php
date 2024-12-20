@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Shop;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -263,16 +264,24 @@ class WBService extends BaseService
      */
     public function addProduct(string $product_id): JsonResponse
     {
-        // todo try catch + transaction
-        $prepareData = $this->prepareProductData($product_id);
-        $shop = $prepareData['shop'];
-        $product = $prepareData['product'];
-        $this->productCheck($product_id);
-        $this->checkShop($shop, $product);
-        $productService = new ProductService();
-        $createData = $this->getProductFieldsArray($product);
-        $createProduct = $productService->create($createData);
-        $response = $this->formatResponse('true', $createProduct['product'], 201, 'product');
-        return $this->sendResponse($response);
+        try {
+            DB::beginTransaction();
+            $prepareData = $this->prepareProductData($product_id);
+            $shop = $prepareData['shop'];
+            $product = $prepareData['product'];
+            $this->productCheck($product_id);
+            $this->checkShop($shop, $product);
+            $productService = new ProductService();
+            $createData = $this->getProductFieldsArray($product);
+            $createProduct = $productService->create($createData);
+            $response = $this->formatResponse('true', $createProduct['product'], 201, 'product');
+            DB::commit();
+            return $this->sendResponse($response);
+        } catch (\Exception $e) {
+            Log::error('Error adding product: ' . $e->getMessage(), ['exception' => $e]);
+            $response = $this->formatResponse('false', $e->getMessage(), $e->getCode());
+            return $this->sendResponse($response);
+            DB::rollBack();
+        }
     }
 }
