@@ -73,6 +73,9 @@ class WBService
 
     private function formatProductData(array $product): array
     {
+        if(!isset($product['wb_id'])){
+            $product['wb_id'] = $product['id'];
+        }
         return [
             'wb_id' => $product['id'],
             'title' => $product['name'],
@@ -123,13 +126,13 @@ class WBService
 
                     $user = Auth('sanctum')->user();
 
-                    $shopArr = $this->getShop($user, $product);
+                    $shop_arr = $this->getShop($user, $product);
                     $product_arr = $this->formatProductData($product);
 
-                    Cache::put('wb_product_'.$product_id, ['product' => $product_arr, 'shop' => $shopArr]);
+                    Cache::put('wb_product_'.$product_id, ['product' => $product_arr, 'shop' => $shop_arr]);
                     return [
                         'status' => 'true',
-                        'message' => ['product' => $product_arr, 'shop' => $shopArr],
+                        'message' => ['product' => $product_arr, 'shop' => $shop_arr],
                         'code' => 200
                     ];
                 }
@@ -174,8 +177,11 @@ class WBService
     private function createProduct($productArr){
         try {
             $productService = new ProductService();
-            $product = $productArr['product'];
-
+            if(isset($productArr['product'])) {
+                $product = $productArr['product'];
+            }else{
+                $product = $productArr['message']['product'];
+            }
             $check = $this->productCheck($product['wb_id']);
             if($check['status'] == 'false'){
                 return $check;
@@ -195,7 +201,10 @@ class WBService
                 'shop_id' => Auth('sanctum')->user()->shop?->id
             ];
             $createdProduct = $productService->create($data);
-            return $createdProduct;
+            if($createdProduct['status'] == 'false'){
+                return $createdProduct;
+            }
+            return ['status' => 'true', 'product' => $createdProduct['product']];
         } catch (\Exception $e) {
             Log::error("Ошибка при создании товара: ". $e->getMessage());
             return [
@@ -219,6 +228,8 @@ class WBService
         }
 
         $createdProduct = $this->createProduct($product);
+
+
         if ($createdProduct['status'] == 'true') {
             return Response()->json(['message' => 'true','product' => $createdProduct['product']], 201);
         }

@@ -31,7 +31,7 @@ class ProductService
      * @param array $data
      * @return array
      */
-    public function create(array $data)
+    public function create(array $data): array
     {
         // Проверяем наличие всех ключей
         $missingFields = array_diff($this->requiredFields, array_keys($data));
