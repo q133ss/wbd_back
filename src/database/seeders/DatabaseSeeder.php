@@ -61,6 +61,14 @@ class DatabaseSeeder extends Seeder
         $this->call(AdvSeed::class);
 
         $this->command->info('Импорт категорий..');
-        Artisan::call('categories:import');
+        //Artisan::call('categories:import');
+
+        User::create([
+            'name'     => 'admin',
+            'email'    => 'admin@email.net',
+            'phone'    => '+7(999)999-99-99',
+            'password' => bcrypt('password'),
+            'role_id'  => Role::where('slug', 'admin')->pluck('id')->first()
+        ]);
     }
 }
