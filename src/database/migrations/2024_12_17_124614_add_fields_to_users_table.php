@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('phone', 20)->unique();
+            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->boolean('is_configured')->default(false)->comment('Проверка, завершил-ли юзер настройку профиля после регистрации');
         });
     }

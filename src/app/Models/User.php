@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'is_configured',
+        'role_id'
     ];
 
     protected $with = ['shop'];
@@ -52,6 +53,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function role(): HasOne
+    {
+        return $this->hasOne(Role::class, 'id', 'role_id');
+    }
+
     public function toArray(): array
     {
         return [
@@ -60,7 +66,8 @@ class User extends Authenticatable
             'name'          => $this->name,
             'created_at'    => $this->created_at,
             'is_configured' => $this->is_configured,
-            'shop'          => $this->shop
+            'shop'          => $this->shop,
+            'role'         => $this->role
         ];
     }
 

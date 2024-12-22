@@ -8,6 +8,7 @@ use App\Http\Requests\AuthController\ResetRequest;
 use App\Http\Requests\AuthController\ResetSendCodeRequest;
 use App\Http\Requests\AuthController\SendCodeRequest;
 use App\Http\Requests\AuthController\VerifyCodeRequest;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\AuthService;
 
@@ -29,7 +30,7 @@ class AuthController extends Controller
 
     public function verifyCode(VerifyCodeRequest $request)
     {
-        return $this->authService->verifyCode($request->phone, $request->code);
+        return $this->authService->verifyCode($request->phone, $request->code, $request->role_id);
     }
 
     public function completeRegistration(CompleteRequest $request)
@@ -65,5 +66,10 @@ class AuthController extends Controller
     {
         $this->authService->sendVerificationCode($request->phone);
         return response()->json(['message' => 'Код успешно отправлен']);
+    }
+
+    public function roles()
+    {
+        return Role::where('slug', '!=', 'admin')->get();
     }
 }

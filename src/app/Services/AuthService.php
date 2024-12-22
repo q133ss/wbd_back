@@ -39,14 +39,14 @@ class AuthService
             ]);
         }
 
-        $smsService = new SmsService;
-        $send       = $smsService->send($phoneNumber, $code);
-
-        if (! $send) {
-            return Response()->json([
-                'message' => 'При отправке СМС произошла ошибка',
-            ], 500);
-        }
+//        $smsService = new SmsService;
+//        $send       = $smsService->send($phoneNumber, $code);
+//
+//        if (! $send) {
+//            return Response()->json([
+//                'message' => 'При отправке СМС произошла ошибка',
+//            ], 500);
+//        }
 
         return Response()->json([
             'message' => 'Код успешно отправлен',
@@ -64,16 +64,15 @@ class AuthService
             ->where('verification_code', $code);
     }
 
-    public function verifyCode(string $phone, string $code): JsonResponse|array
+    public function verifyCode(string $phone, string $code, int $role_id): JsonResponse|array
     {
         $verification = $this->checkCode($phone, $code);
         if ($verification->exists()) {
-            $verification->delete();
-
             $user = User::create([
                 'phone'    => $phone,
                 'password' => '-',
                 'name'     => '-',
+                'role_id' => $role_id
             ]);
 
             $token = $user->createToken('web');

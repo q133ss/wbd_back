@@ -10,11 +10,17 @@ Route::middleware([GuestOnly::class])->group(function () {
     Route::post('password/reset', [\App\Http\Controllers\AuthController::class, 'reset']);
     Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
 });
+Route::get('/roles', [\App\Http\Controllers\AuthController::class, 'roles']);
 Route::post('register/complete', [\App\Http\Controllers\AuthController::class, 'completeRegistration']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
+
+    Route::prefix('seller')->group(function (){
+        Route::apiResource('product', \App\Http\Controllers\Seller\ProductController::class)->except('store');
+
+    });
 });
 
 // TODO на сегодня
@@ -22,9 +28,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
  * // Все проверяем с фигмой!
  * 1. Установить Pint+
  * 2. Сделать регистрацию и авторицию+
- * 3. Сделать товары и категории -+
+ * 3. Сделать товары и категории ++
  * 4. Сделать объявления
- * 5. Сделать подгрузку магазина и товаров из ВБ
+ * 5. Сделать подгрузку магазина и товаров из ВБ+
  * 6. Сделать импорт категорий из ВБ +
  * 7. Тесты обязательно
  */
