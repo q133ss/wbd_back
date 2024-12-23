@@ -9,6 +9,6 @@ Route::post('/login', [\App\Http\Controllers\Admin\LoginController::class, 'logi
 
 Route::middleware(['auth','is.admin'])->group(function () {
     Route::get('/', function (){
-        return 'Ты в админке!';
+        return view('admin.index');
     })->name('index');
 });
