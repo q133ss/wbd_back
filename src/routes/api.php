@@ -17,9 +17,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
 
-    Route::prefix('seller')->group(function (){
+    Route::prefix('seller')->group(function () {
         Route::apiResource('product', \App\Http\Controllers\Seller\ProductController::class)->except('store');
-
+        Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
+        Route::get('/buybacks/process', [\App\Http\Controllers\Seller\AdsController::class, 'process']); // Выкупы в процессе
     });
 });
 

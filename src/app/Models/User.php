@@ -25,7 +25,9 @@ class User extends Authenticatable
         'password',
         'phone',
         'is_configured',
-        'role_id'
+        'role_id',
+        'redemption_count',
+        'balance'
     ];
 
     protected $with = ['shop'];
@@ -67,16 +69,28 @@ class User extends Authenticatable
             'created_at'    => $this->created_at,
             'is_configured' => $this->is_configured,
             'shop'          => $this->shop,
-            'role'         => $this->role
+            'role'          => $this->role,
         ];
     }
 
     /**
      * Возвращает магазин юзера
-     * @return HasOne
      */
     public function shop(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(Shop::class, 'user_id', 'id');
+    }
+
+    public function checkProduct(int $productId): bool
+    {
+        $id = $this->id;
+        return Product::where('id', $productId)
+            ->where('shop_id', function ($query) use ($id){
+                return $query
+                    ->select('id')
+                    ->from('shops')
+                    ->where('user_id', $id);
+            })
+            ->exists();
     }
 }

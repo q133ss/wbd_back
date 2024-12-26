@@ -53,7 +53,7 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $user = User::where('phone', $request->phone)->first();
+        $user  = User::where('phone', $request->phone)->first();
         $token = $user->createToken('web');
 
         return [
@@ -65,6 +65,7 @@ class AuthController extends Controller
     public function resetSendCode(ResetSendCodeRequest $request)
     {
         $this->authService->sendVerificationCode($request->phone);
+
         return response()->json(['message' => 'Код успешно отправлен']);
     }
 

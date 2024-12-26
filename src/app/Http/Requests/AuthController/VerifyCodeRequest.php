@@ -25,19 +25,18 @@ class VerifyCodeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'max:255', 'unique:users,phone', 'exists:phone_verifications,phone_number', new PhoneNumber],
-            'code'  => ['required', 'string'],
+            'phone'   => ['required', 'max:255', 'unique:users,phone', 'exists:phone_verifications,phone_number', new PhoneNumber],
+            'code'    => ['required', 'string'],
             'role_id' => [
                 'required',
                 'integer',
-                function(string $attribute, mixed $value, Closure $fail): void
-                {
+                function (string $attribute, mixed $value, Closure $fail): void {
                     $role = Role::find($value);
-                    if(!$role || $role->slug == 'admin'){
+                    if (! $role || $role->slug == 'admin') {
                         $fail('Указана неверная роль');
                     }
-                }
-            ]
+                },
+            ],
         ];
     }
 

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->string('name');
             $table->decimal('cashback_percentage', 5, 2)->comment('Процент кешбека');
-            $table->decimal('price_with_cashback',10, 2)->comment('Цена с учетом кешбека');
+            $table->decimal('price_with_cashback', 10, 2)->comment('Цена с учетом кешбека');
             $table->text('order_conditions')->comment('Условия заказа');
             $table->text('redemption_instructions')->comment('Инструкции выкупа для покупателя');
             $table->text('review_criteria')->comment('Критерии отзыва');

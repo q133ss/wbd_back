@@ -21,14 +21,13 @@ class Category extends Model
 
     /**
      * Возвращает ид "Без категории"
-     * @return mixed
      */
     public function getDefaultCategory(): mixed
     {
         // Проверяем, есть ли категория в кеше
         $defaultCategory = Cache::get('default_category');
 
-        if (!$defaultCategory) {
+        if (! $defaultCategory) {
             $defaultCategory = Category::where('name', 'Без категории')->pluck('id')->first();
             // Если категория найдена, кешируем её на 10 минут
             if ($defaultCategory) {

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->string('phone', 20)->unique();
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->boolean('is_configured')->default(false)->comment('Проверка, завершил-ли юзер настройку профиля после регистрации');
+            $table->decimal('balance', 10, 2)->default(0)->comment('Баланс пользователя');
+            $table->unsignedSmallInteger('redemption_count')->default(0)->comment('Количество выкупов');
         });
     }
 

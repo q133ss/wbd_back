@@ -9,24 +9,23 @@ abstract class BaseService
     /**
      * Возвращает сообщение в контроллер
      *
-     * @param string $status
-     * @param string $message
-     * @param string $code
+     * @param  string  $message
+     * @param  string  $code
      * @return string[]
      */
     public function formatResponse(string $status, mixed $message, int $code, string $messageText = 'message'): array
     {
         return [
-            'status' => $status,
+            'status'     => $status,
             $messageText => $message,
-            'code' => $code
+            'code'       => $code,
         ];
     }
 
     public function sendResponse(array $formattedResponse)
     {
         foreach (['status', 'code'] as $key) {
-            if (!isset($formattedResponse[$key])) {
+            if (! isset($formattedResponse[$key])) {
                 throw new \InvalidArgumentException("Поле \"{$key}\" является обязательным.");
             }
 
@@ -35,15 +34,13 @@ abstract class BaseService
                 throw new \InvalidArgumentException("Поле \"{$key}\" не может быть пустым.");
             }
         }
+
         return response()->json($formattedResponse, $formattedResponse['code']);
     }
 
     /**
      * Возвращает юзеру ошибку
      *
-     * @param string $message
-     * @param int $code
-     * @return mixed
      * @throws JsonException
      */
     public function sendError(string $message, int $code = 500): mixed

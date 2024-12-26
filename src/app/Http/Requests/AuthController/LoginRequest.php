@@ -26,20 +26,19 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'max:255', 'exists:users,phone', new PhoneNumber],
+            'phone'    => ['required', 'max:255', 'exists:users,phone', new PhoneNumber],
             'password' => [
                 'required',
                 'max:255',
                 'string',
-                function(string $attribute, mixed $value, Closure $fail): void
-                {
+                function (string $attribute, mixed $value, Closure $fail): void {
                     $user = User::where('phone', $this->phone)->first();
-                    if(!$user || !Hash::check($value, $user->password)){
+                    if (! $user || ! Hash::check($value, $user->password)) {
                         $fail('Неправильный номер телефона или пароль');
                     }
-                }
+                },
             ],
-            'remember' => 'nullable|boolean'
+            'remember' => 'nullable|boolean',
         ];
     }
 
@@ -54,7 +53,7 @@ class LoginRequest extends FormRequest
             'password.max'      => 'Поле пароль не должно превышать 255 символов',
             'password.string'   => 'Пароль должен быть строкой',
 
-            'remember.boolean' => 'Поле запомнить меня должно быть булевым значением'
+            'remember.boolean' => 'Поле запомнить меня должно быть булевым значением',
         ];
     }
 }

@@ -17,7 +17,6 @@ class AuthService
     /**
      * Отправляет код подтверждения регистрации
      *
-     * @return JsonResponse
      *
      * @throws \Exception
      */
@@ -39,25 +38,20 @@ class AuthService
             ]);
         }
 
-//        $smsService = new SmsService;
-//        $send       = $smsService->send($phoneNumber, $code);
-//
-//        if (! $send) {
-//            return Response()->json([
-//                'message' => 'При отправке СМС произошла ошибка',
-//            ], 500);
-//        }
+        //        $smsService = new SmsService;
+        //        $send       = $smsService->send($phoneNumber, $code);
+        //
+        //        if (! $send) {
+        //            return Response()->json([
+        //                'message' => 'При отправке СМС произошла ошибка',
+        //            ], 500);
+        //        }
 
         return Response()->json([
             'message' => 'Код успешно отправлен',
         ]);
     }
 
-    /**
-     * @param $phone
-     * @param $code
-     * @return mixed
-     */
     private function checkCode($phone, $code): mixed
     {
         return PhoneVerification::where('phone_number', $phone)
@@ -72,7 +66,7 @@ class AuthService
                 'phone'    => $phone,
                 'password' => '-',
                 'name'     => '-',
-                'role_id' => $role_id
+                'role_id'  => $role_id,
             ]);
 
             $token = $user->createToken('web');
@@ -88,24 +82,21 @@ class AuthService
 
     /**
      * Восстановление пароля
-     * @param string $phone
-     * @param string $code
-     * @return JsonResponse
      */
     public function reset(string $phone, string $code): JsonResponse
     {
         $verification = $this->checkCode($phone, $code);
-        if($verification->exists())
-        {
+        if ($verification->exists()) {
             $verification->delete();
-            $user = User::where('phone', $phone)->first();
+            $user     = User::where('phone', $phone)->first();
             $password = Str::random(8);
-            $update = $user->update(['password' => Hash::make($password)]);
+            $update   = $user->update(['password' => Hash::make($password)]);
+
             return Response()->json([
-                'message' => 'Пароль успешно сброшен',
-                'password' => $password
+                'message'  => 'Пароль успешно сброшен',
+                'password' => $password,
             ]);
-        }else{
+        } else {
             return Response()->json(['message' => 'Неверный код'], 401);
         }
     }

@@ -56,7 +56,7 @@ class ImportCategories extends Command
         }
         Category::create([
             'name'      => 'Без категории',
-            'parent_id' => $parentId
+            'parent_id' => $parentId,
         ]);
     }
 }

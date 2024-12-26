@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\LoginController\LoginRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
@@ -14,6 +13,7 @@ class LoginController extends Controller
     {
         $user = User::where('email', $request->email)->first();
         Auth::login($user);
+
         return to_route('index');
     }
 }

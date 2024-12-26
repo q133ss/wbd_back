@@ -7,8 +7,8 @@ Route::get('/login', function () {
 })->name('login');
 Route::post('/login', [\App\Http\Controllers\Admin\LoginController::class, 'login']);
 
-Route::middleware(['auth','is.admin'])->group(function () {
-    Route::get('/', function (){
+Route::middleware(['auth', 'is.admin'])->group(function () {
+    Route::get('/', function () {
         return view('admin.index');
     })->name('index');
 

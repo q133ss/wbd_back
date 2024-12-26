@@ -4,7 +4,6 @@ namespace App\Http\Controllers\WB;
 
 use App\Http\Controllers\Controller;
 use App\Services\WBService;
-use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {

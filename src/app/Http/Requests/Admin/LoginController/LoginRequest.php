@@ -26,27 +26,25 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => [
                 'required',
                 'string',
-                function(string $attribute, mixed $value, Closure $fail): void
-                {
+                function (string $attribute, mixed $value, Closure $fail): void {
                     $user = User::where('email', $this->email);
 
-                    if($user->exists()){
-                        if(!Hash::check($value, $user->pluck('password')->first()))
-                        {
+                    if ($user->exists()) {
+                        if (! Hash::check($value, $user->pluck('password')->first())) {
                             $fail('Неверный email или пароль');
                         }
 
-                        if($user->pluck('role_id')->first() != Role::where('slug','admin')->pluck('id')->first()){
+                        if ($user->pluck('role_id')->first() != Role::where('slug', 'admin')->pluck('id')->first()) {
                             $fail('Вы не являетесь администратором');
                         }
-                    }else{
+                    } else {
                         $fail('Неверный email или пароль');
                     }
-                }
+                },
             ],
         ];
     }
@@ -54,8 +52,8 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Введите email',
-            'email.email' => 'Неверный формат email',
+            'email.required'    => 'Введите email',
+            'email.email'       => 'Неверный формат email',
             'password.required' => 'Введите пароль',
         ];
     }

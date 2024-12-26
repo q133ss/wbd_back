@@ -24,7 +24,7 @@ class IsAdmin
             return Role::where('slug', 'admin')->pluck('id')->first();
         });
 
-        if (!$user || $user->role_id != $adminRoleId) {
+        if (! $user || $user->role_id != $adminRoleId) {
             abort(403, 'У вас нет прав');
         }
 
