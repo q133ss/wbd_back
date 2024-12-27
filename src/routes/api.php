@@ -20,7 +20,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('seller')->group(function () {
         Route::apiResource('product', \App\Http\Controllers\Seller\ProductController::class)->except('store');
         Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
+        Route::get('/archive/ads', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
         Route::get('/buybacks/process', [\App\Http\Controllers\Seller\AdsController::class, 'process']); // Выкупы в процессе
+        Route::get('/tariff', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
+        Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
     });
 });
 
@@ -30,10 +33,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
  * 1. Установить Pint+
  * 2. Сделать регистрацию и авторицию+
  * 3. Сделать товары и категории ++
- * 4. Сделать объявления
+ * 4. Сделать объявления ++
  * 5. Сделать подгрузку магазина и товаров из ВБ+
  * 6. Сделать импорт категорий из ВБ +
  * 7. Тесты обязательно
+ * 8. Промокоды (Название, дата начала и конца, кол-во выкупов, кол-во активаций, список, кто воспользовался)
  */
 
 //todo НА ЗАВТРА

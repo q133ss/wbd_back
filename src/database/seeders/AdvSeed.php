@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Ad;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class AdvSeed extends Seeder
@@ -45,7 +46,7 @@ class AdvSeed extends Seeder
                     'views_count'             => 50,
                     'one_per_user'            => true,
                     'is_archived'             => false,
-                    'status'                  => true,
+                    'status'                  => false,
                 ],
                 [
                     'product_id'              => $product->id,
@@ -59,12 +60,15 @@ class AdvSeed extends Seeder
                     'views_count'             => 30,
                     'one_per_user'            => false,
                     'is_archived'             => false,
-                    'status'                  => true,
+                    'status'                  => false,
                 ],
             ];
 
             // Создаем объявления
             foreach ($advertisements as $ad) {
+                $ad['user_id'] = User::where('email', 'alexey@email.net')
+                    ->pluck('id')
+                    ->first();
                 Ad::create($ad);
             }
         } else {

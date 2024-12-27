@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\Shop;
+use App\Models\Tariff;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -28,6 +29,8 @@ class DatabaseSeeder extends Seeder
             'name'     => 'Алексей',
             'email'    => 'alexey@email.net',
             'phone'    => '+7(951)867-70-86',
+            'redemption_count' => 100,
+            'balance' => 10000,
             'password' => bcrypt('password'),
             'role_id'  => Role::where('slug', 'seller')->pluck('id')->first(),
         ]);
@@ -65,9 +68,31 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name'     => 'admin',
             'email'    => 'admin@email.net',
+            'redemption_count' => 100,
+            'balance' => 10000,
             'phone'    => '+7(999)999-99-99',
             'password' => bcrypt('password'),
             'role_id'  => Role::where('slug', 'admin')->pluck('id')->first(),
+        ]);
+
+        $this->command->info('Создаем тарифы');
+
+        Tariff::create([
+            'name' => 'Тариф 1',
+            'price' => 900,
+            'buybacks_count' => 10
+        ]);
+
+        Tariff::create([
+            'name' => 'Тариф 2',
+            'price' => 1600,
+            'buybacks_count' => 20
+        ]);
+
+        Tariff::create([
+            'name' => 'Тариф 3',
+            'price' => 2000,
+            'buybacks_count' => 30
         ]);
     }
 }

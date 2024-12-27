@@ -25,6 +25,7 @@ return new class extends Migration
             $table->boolean('one_per_user')->default(false)->comment('Один товар для одного покупателя!');
             $table->boolean('is_archived')->default(false);
             $table->boolean('status')->default(false);
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
