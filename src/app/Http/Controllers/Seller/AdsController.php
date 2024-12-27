@@ -8,6 +8,7 @@ use App\Http\Requests\Seller\AdsController\UpdateRequest;
 use App\Models\Ad;
 use App\Services\Seller\AdsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdsController extends Controller
 {
@@ -16,8 +17,23 @@ class AdsController extends Controller
      */
     public function index()
     {
-        return Ad::where('user_id', auth('sanctum')->id())
-            ->get();
+        $ads = Ad::where('user_id', auth('sanctum')->id())
+            ->withCount(['buybacks' => function ($query) {
+                $query->where('status', 'completed');
+            }])
+            ->paginate();
+
+        $ads->getCollection()->transform(function ($ad) {
+            $ad->completed_buybacks_count = $ad->buybacks_count; // Кол-во завершённых выкупов
+            unset($ad->buybacks_count);
+            $ad->balance = '???';
+            $ad->in_deal = '???'; // В сделках
+            $cr = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1)); // Защита от деления на 0
+            $ad->cr = $cr;
+            return $ad;
+        });
+
+        return response()->json($ads);
     }
 
     /**
@@ -52,13 +68,32 @@ class AdsController extends Controller
      */
     public function destroy(string $id)
     {
-        $ad = Ad::where('user_id', auth('sanctum')->id())
-            ->findOrFail($id);
-        $update = $ad->update(['is_archived' => true]);
-        return Response()->json([
-            'status' => 'true',
-            'message' => 'Объявление архивировано'
-        ]);
+        try {
+            DB::beginTransaction();
+            $ad = Ad::where('user_id', auth('sanctum')->id())
+                ->findOrFail($id);
+
+            $user = auth('sanctum')->user();
+            $user->update([
+                'redemption_count' => $user->redemption_count + $ad->redemption_count
+            ]);
+
+            $update = $ad->update([
+                'is_archived' => true,
+                'redemption_count' => 0
+            ]);
+            DB::commit();
+            return Response()->json([
+                'status' => 'true',
+                'message' => 'Объявление архивировано'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Произошла ошибка, попробуйте еще раз'
+            ]);
+        }
     }
 
     public function archive()

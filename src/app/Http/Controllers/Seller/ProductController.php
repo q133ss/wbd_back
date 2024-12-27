@@ -19,6 +19,7 @@ class ProductController extends Controller
 
         // todo Сделать фильтры и дейсвия (архивировать товар,(если у товара есть активные выкупы, сделать архивацию нельзя))
         // todo при архивации возвращаем на баланс деньги
+
         return auth()->user()->shop?->products()->with('buybacks', 'ads')->paginate();
     }
 
