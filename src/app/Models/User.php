@@ -27,7 +27,7 @@ class User extends Authenticatable
         'is_configured',
         'role_id',
         'redemption_count',
-        'balance'
+        'balance',
     ];
 
     protected $with = ['shop'];
@@ -83,15 +83,13 @@ class User extends Authenticatable
 
     /**
      * Проверяет, принадлежит-ли товар юзеру
-     *
-     * @param int $productId
-     * @return bool
      */
     public function checkProduct(int $productId): bool
     {
         $id = $this->id;
+
         return Product::where('id', $productId)
-            ->where('shop_id', function ($query) use ($id){
+            ->where('shop_id', function ($query) use ($id) {
                 return $query
                     ->select('id')
                     ->from('shops')
@@ -103,17 +101,17 @@ class User extends Authenticatable
     /**
      * Проверяет массив товаров
      *
-     * @param array $productIds
      * @return mixed
      */
     public function checkProducts(array $productIds): bool
     {
-        $userId = $this->id;
+        $userId     = $this->id;
         $foundCount = Product::whereIn('id', $productIds)
             ->whereHas('shop', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             })
             ->count();
+
         return $foundCount === count($productIds);
     }
 }

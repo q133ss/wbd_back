@@ -26,15 +26,14 @@ class StopRequest extends FormRequest
             'product_ids' => [
                 'required',
                 'array',
-                function(string $attribute, mixed $value, Closure $fail): void
-                {
+                function (string $attribute, mixed $value, Closure $fail): void {
                     $check = auth('sanctum')->user()->checkProducts($value);
-                    if(!$check){
+                    if (! $check) {
                         $fail('Указаны неверные товары');
-                    };
-                }
+                    }
+                },
             ],
-            'product_ids.*' => 'required|integer'
+            'product_ids.*' => 'required|integer',
         ];
     }
 
@@ -42,10 +41,10 @@ class StopRequest extends FormRequest
     {
         return [
             'product_ids.required' => 'Выберите товары',
-            'product_ids.array' => 'Товары должны быть массивом',
+            'product_ids.array'    => 'Товары должны быть массивом',
 
             'product_ids.*.required' => 'Укажите товар',
-            'product_ids.*.integer' => 'Товар должен быть числом'
+            'product_ids.*.integer'  => 'Товар должен быть числом',
         ];
     }
 }

@@ -22,7 +22,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
         Route::post('/products/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
         Route::post('/products/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
-        // todo Добавить дублирование и возможность остановить объявление!
+        // todo Добавить как у PRODUCT дублирование, архивацию и возможность остановить объявление!
+        // todo ПРИ АРХИВАЦИИ ВЕРТАЕМ БАЛАНС
+        // todo ФИЛЬТРЫ НЕ РАБОТАЮТ!!!
         // todo Добавить скоп, ВСЕ объявления, активные, остановленные, архивные (удалить доп метод)
         Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
         Route::get('/archive/ads', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
@@ -43,8 +45,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
  * 6. Сделать импорт категорий из ВБ +
  * 7. Тесты обязательно
  * 8. Промокоды (Название, дата начала и конца, кол-во выкупов, кол-во активаций, список, кто воспользовался)
- * 9. Поддержка
- * 10. Список выкупов вывести для продавца
+ * 10. Список выкупов вывести для продавца! (Buybacks) и можно потом чат делать
  */
 
 //todo НА ЗАВТРА

@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\NotArchiveScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Http\Request;
 
 class Product extends Model
 {
@@ -38,12 +41,11 @@ class Product extends Model
                 $product->category_id = (new Category)->getDefaultCategory();
             }
         });
+        static::addGlobalScope(new NotArchiveScope);
     }
 
     /**
      * Объявления
-     *
-     * @return HasMany
      */
     public function ads(): HasMany
     {
@@ -53,6 +55,29 @@ class Product extends Model
     public function shop(): HasOne
     {
         return $this->hasOne(Shop::class, 'id', 'shop_id');
+    }
+
+    // Метод для отключения глобального скоупа
+    public static function withoutArchived()
+    {
+        return static::withoutGlobalScope(NotArchiveScope::class);
+    }
+
+    public function scopeWithFilter($query, Request $request)
+    {
+        return $query
+            ->when(
+                $request->query('status'),
+                function (Builder $query, $status) {
+                    return $query->where('status', $status);
+                }
+            )
+            ->when(
+                $request->query('is_archived'),
+                function (Builder $query, $isArchived) {
+                    return static::withoutArchived()->where('is_archived', true);
+                }
+            );
     }
 
     public function toArray(): array

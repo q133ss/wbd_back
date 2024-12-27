@@ -16,35 +16,34 @@ class AdsService extends BaseService
         try {
             DB::beginTransaction();
 
-            $productPrice = Product::find($data['product_id'])->pluck('price')->first();
+            $productPrice       = Product::find($data['product_id'])->pluck('price')->first();
             $cashbackPercentage = $data['cashback_percentage'];
 
-            $cashbackAmount = ($productPrice * $cashbackPercentage) / 100;
+            $cashbackAmount              = ($productPrice * $cashbackPercentage) / 100;
             $data['price_with_cashback'] = $productPrice - $cashbackAmount;
 
             $user = Auth('sanctum')->user();
 
-            $data['status'] = true;
+            $data['status']  = true;
             $data['user_id'] = $user->id;
 
-            if($data['redemption_count'] > $user->redemption_count)
-            {
+            if ($data['redemption_count'] > $user->redemption_count) {
                 $tariff = Tariff::where('buybacks_count', '>=', $data['redemption_count'])
                     ->orderBy('buybacks_count', 'desc')
                     ->first();
 
-                $userData = [];
+                $userData            = [];
                 $userData['balance'] = $user->balance - $tariff->price;
 
-                if($tariff->buybacks_count > $data['redemption_count']){
-                    $difference = $tariff->buybacks_count - $data['redemption_count'];
+                if ($tariff->buybacks_count > $data['redemption_count']) {
+                    $difference                   = $tariff->buybacks_count - $data['redemption_count'];
                     $userData['redemption_count'] = $user->redemption_count + $difference;
-                    $depositTransaction = Transaction::create([
-                        'amount' => $tariff->buybacks_count,
+                    $depositTransaction           = Transaction::create([
+                        'amount'           => $tariff->buybacks_count,
                         'transaction_type' => 'deposit',
-                        'currency_type' => 'buyback',
-                        'description' => 'Начисление пакета выкупов (оплата балансом): '.$tariff->buybacks_count.' выкупов',
-                        'user_id' => $user->id
+                        'currency_type'    => 'buyback',
+                        'description'      => 'Начисление пакета выкупов (оплата балансом): '.$tariff->buybacks_count.' выкупов',
+                        'user_id'          => $user->id,
                     ]);
 
                 }
@@ -52,40 +51,43 @@ class AdsService extends BaseService
                 $user->update($userData);
 
                 $withdrawTransaction = Transaction::create([
-                    'amount' => $tariff->price,
+                    'amount'           => $tariff->price,
                     'transaction_type' => 'withdraw',
-                    'currency_type' => 'buyback',
-                    'description' => 'Создание объявления: '.$data['redemption_count'].' выкупов',
-                    'user_id' => $user->id
+                    'currency_type'    => 'buyback',
+                    'description'      => 'Создание объявления: '.$data['redemption_count'].' выкупов',
+                    'user_id'          => $user->id,
                 ]);
-            }else{
+            } else {
                 $redemption = $user->redemption_count - $data['redemption_count'];
                 $user->update(['redemption_count' => $redemption]);
                 $withdrawTransaction = Transaction::create([
-                    'amount' => $data['redemption_count'],
+                    'amount'           => $data['redemption_count'],
                     'transaction_type' => 'withdraw',
-                    'currency_type' => 'buyback',
-                    'description' => 'Создание объявления: '.$data['redemption_count'].' выкупов',
-                    'user_id' => $user->id
+                    'currency_type'    => 'buyback',
+                    'description'      => 'Создание объявления: '.$data['redemption_count'].' выкупов',
+                    'user_id'          => $user->id,
                 ]);
             }
 
             $ad = Ad::create($data);
 
-            $depositTransaction->update(['ads_id' => $ad->id]);
+            if (isset($depositTransaction)) {
+                $depositTransaction->update(['ads_id' => $ad->id]);
+            }
             $withdrawTransaction->update(['ads_id' => $ad->id]);
 
             DB::commit();
+
             return Response()->json([
-                'ads' => $ad,
+                'ads'  => $ad,
                 'user' => [
-                    'balance' => $user->balance,
-                    'redemption_count' => $user->redemption_count
-                ]
+                    'balance'          => $user->balance,
+                    'redemption_count' => $user->redemption_count,
+                ],
             ], 201);
-        }catch (\Exception $e){
-            return $e;
+        } catch (\Exception $e) {
             DB::rollBack();
+
             return $this->sendError('Произошла ошибка, попробуйте еще раз', 500);
         }
     }

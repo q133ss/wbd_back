@@ -15,9 +15,10 @@ class AdsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $ads = Ad::where('user_id', auth('sanctum')->id())
+            ->withFilter($request)
             ->withCount(['buybacks' => function ($query) {
                 $query->where('status', 'completed');
             }])
@@ -28,8 +29,9 @@ class AdsController extends Controller
             unset($ad->buybacks_count);
             $ad->balance = '???';
             $ad->in_deal = '???'; // В сделках
-            $cr = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1)); // Защита от деления на 0
-            $ad->cr = $cr;
+            $cr          = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1)); // Защита от деления на 0
+            $ad->cr      = $cr;
+
             return $ad;
         });
 
@@ -41,7 +43,7 @@ class AdsController extends Controller
      */
     public function store(StoreRequest $request)
     {
-        return (new AdsService())->create($request->validated());
+        return (new AdsService)->create($request->validated());
     }
 
     /**
@@ -60,6 +62,7 @@ class AdsController extends Controller
         $ad = Ad::where('user_id', auth('sanctum')->id())
             ->findOrFail($id);
         $update = $ad->update($request->validated());
+
         return $ad;
     }
 
@@ -75,23 +78,25 @@ class AdsController extends Controller
 
             $user = auth('sanctum')->user();
             $user->update([
-                'redemption_count' => $user->redemption_count + $ad->redemption_count
+                'redemption_count' => $user->redemption_count + $ad->redemption_count,
             ]);
 
             $update = $ad->update([
-                'is_archived' => true,
-                'redemption_count' => 0
+                'is_archived'      => true,
+                'redemption_count' => 0,
             ]);
             DB::commit();
+
             return Response()->json([
-                'status' => 'true',
-                'message' => 'Объявление архивировано'
+                'status'  => 'true',
+                'message' => 'Объявление архивировано',
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
-                'status' => 'false',
-                'message' => 'Произошла ошибка, попробуйте еще раз'
+                'status'  => 'false',
+                'message' => 'Произошла ошибка, попробуйте еще раз',
             ]);
         }
     }
@@ -106,13 +111,15 @@ class AdsController extends Controller
 
     /**
      * Выкупы в процессе
+     *
      * @return mixed
      */
     public function process()
     {
         $buybacks = Ad::where('user_id', auth('sanctum')->id())->sum('redemption_count');
+
         return response()->json([
-            'buybacks' => $buybacks
+            'buybacks' => $buybacks,
         ]);
     }
 }

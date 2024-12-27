@@ -26,13 +26,13 @@ class DatabaseSeeder extends Seeder
         Role::insert($roles);
 
         User::factory()->create([
-            'name'     => 'Алексей',
-            'email'    => 'alexey@email.net',
-            'phone'    => '+7(951)867-70-86',
+            'name'             => 'Алексей',
+            'email'            => 'alexey@email.net',
+            'phone'            => '+7(951)867-70-86',
             'redemption_count' => 100,
-            'balance' => 10000,
-            'password' => bcrypt('password'),
-            'role_id'  => Role::where('slug', 'seller')->pluck('id')->first(),
+            'balance'          => 10000,
+            'password'         => bcrypt('password'),
+            'role_id'          => Role::where('slug', 'seller')->pluck('id')->first(),
         ]);
 
         Shop::create([
@@ -66,33 +66,33 @@ class DatabaseSeeder extends Seeder
         //Artisan::call('categories:import');
 
         User::create([
-            'name'     => 'admin',
-            'email'    => 'admin@email.net',
+            'name'             => 'admin',
+            'email'            => 'admin@email.net',
             'redemption_count' => 100,
-            'balance' => 10000,
-            'phone'    => '+7(999)999-99-99',
-            'password' => bcrypt('password'),
-            'role_id'  => Role::where('slug', 'admin')->pluck('id')->first(),
+            'balance'          => 10000,
+            'phone'            => '+7(999)999-99-99',
+            'password'         => bcrypt('password'),
+            'role_id'          => Role::where('slug', 'admin')->pluck('id')->first(),
         ]);
 
         $this->command->info('Создаем тарифы');
 
         Tariff::create([
-            'name' => 'Тариф 1',
-            'price' => 900,
-            'buybacks_count' => 10
+            'name'           => 'Тариф 1',
+            'price'          => 900,
+            'buybacks_count' => 10,
         ]);
 
         Tariff::create([
-            'name' => 'Тариф 2',
-            'price' => 1600,
-            'buybacks_count' => 20
+            'name'           => 'Тариф 2',
+            'price'          => 1600,
+            'buybacks_count' => 20,
         ]);
 
         Tariff::create([
-            'name' => 'Тариф 3',
-            'price' => 2000,
-            'buybacks_count' => 30
+            'name'           => 'Тариф 3',
+            'price'          => 2000,
+            'buybacks_count' => 30,
         ]);
     }
 }
