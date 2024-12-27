@@ -98,6 +98,7 @@ class AdsController extends Controller
 
     public function archive()
     {
+        // todo Сделать фильтры и дейсвия (архивировать товар,(если у товара есть активные выкупы, сделать архивацию нельзя))
         return Ad::withoutArchived()
             ->where('user_id', auth('sanctum')->id())
             ->get();

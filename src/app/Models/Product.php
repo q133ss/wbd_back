@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Product extends Model
 {
@@ -36,6 +38,21 @@ class Product extends Model
                 $product->category_id = (new Category)->getDefaultCategory();
             }
         });
+    }
+
+    /**
+     * Объявления
+     *
+     * @return HasMany
+     */
+    public function ads(): HasMany
+    {
+        return $this->hasMany(Ad::class, 'product_id', 'id');
+    }
+
+    public function shop(): HasOne
+    {
+        return $this->hasOne(Shop::class, 'id', 'shop_id');
     }
 
     public function toArray(): array

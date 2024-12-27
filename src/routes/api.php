@@ -19,6 +19,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::prefix('seller')->group(function () {
         Route::apiResource('product', \App\Http\Controllers\Seller\ProductController::class)->except('store');
+        Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
+        Route::post('/products/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
+        Route::post('/products/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
+        // todo Добавить дублирование и возможность остановить объявление!
+        // todo Добавить скоп, ВСЕ объявления, активные, остановленные, архивные (удалить доп метод)
         Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
         Route::get('/archive/ads', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
         Route::get('/buybacks/process', [\App\Http\Controllers\Seller\AdsController::class, 'process']); // Выкупы в процессе
@@ -43,6 +48,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
  */
 
 //todo НА ЗАВТРА
+// todo ПРИ СОЗДАНИИ ВЫКУПА РЕЗЕРВИРУЕМ БАЛАНС У ЮЕЗРА!
+// ПОЛЕ balance В ОБЪЯВЛЕНИИ1!!!!1!
 /*
  * Сделать сторону покупателя (создание заказа и тд)
  * сделать счетчик просмотров (через мидлвар)

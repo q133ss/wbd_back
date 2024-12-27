@@ -69,6 +69,7 @@ class AdvSeed extends Seeder
                 $ad['user_id'] = User::where('email', 'alexey@email.net')
                     ->pluck('id')
                     ->first();
+                $ad['balance'] = 1000;
                 Ad::create($ad);
             }
         } else {

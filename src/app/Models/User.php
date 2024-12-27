@@ -81,6 +81,12 @@ class User extends Authenticatable
         return $this->hasOne(Shop::class, 'user_id', 'id');
     }
 
+    /**
+     * Проверяет, принадлежит-ли товар юзеру
+     *
+     * @param int $productId
+     * @return bool
+     */
     public function checkProduct(int $productId): bool
     {
         $id = $this->id;
@@ -92,5 +98,22 @@ class User extends Authenticatable
                     ->where('user_id', $id);
             })
             ->exists();
+    }
+
+    /**
+     * Проверяет массив товаров
+     *
+     * @param array $productIds
+     * @return mixed
+     */
+    public function checkProducts(array $productIds): bool
+    {
+        $userId = $this->id;
+        $foundCount = Product::whereIn('id', $productIds)
+            ->whereHas('shop', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->count();
+        return $foundCount === count($productIds);
     }
 }
