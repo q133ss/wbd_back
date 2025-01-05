@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Ad;
 use App\Models\Product;
 use App\Models\Promocode;
+use App\Models\Review;
 use App\Models\Role;
 use App\Models\Shop;
 use App\Models\Tariff;
@@ -103,6 +105,44 @@ class DatabaseSeeder extends Seeder
             'end_date' => now()->addDays(30),
             'buybacks_count' => 10,
             'max_usage' => 5
+        ]);
+
+
+        $buyer = User::create([
+            'name'             => 'Покупатель',
+            'email'            => 'buyer@email.net',
+            'redemption_count' => 0,
+            'balance'          => 0,
+            'phone'            => '+7(222)222-22-22',
+            'password'         => bcrypt('password'),
+            'role_id'          => Role::where('slug', 'buyer')->pluck('id')->first(),
+        ]);
+
+        Review::create([
+            'user_id' => $buyer->id,
+            'ads_id'  => Ad::pluck('id')->first(),
+            'rating'  => 5,
+            'text'    => 'Отличный продукт!',
+            'reviewable_id' => Ad::pluck('id')->first(),
+            'reviewable_type' => 'App\Models\Ad'
+        ]);
+
+        Review::create([
+            'user_id' => $buyer->id,
+            'ads_id'  => Ad::pluck('id')->first(),
+            'rating'  => 1,
+            'text'    => 'Плохой продукт!',
+            'reviewable_id' => Ad::pluck('id')->first(),
+            'reviewable_type' => 'App\Models\Ad'
+        ]);
+
+        Review::create([
+            'user_id' => $buyer->id,
+            'ads_id'  => Ad::pluck('id')->first(),
+            'rating'  => 5,
+            'text'    => 'Средний продукт!!!!',
+            'reviewable_id' => Ad::pluck('id')->first(),
+            'reviewable_type' => 'App\Models\Ad'
         ]);
     }
 }

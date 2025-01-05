@@ -67,12 +67,33 @@ class User extends Authenticatable
             ->where('category', 'avatar');
     }
 
+    public function ads()
+    {
+        return $this->hasMany(Ad::class, 'user_id', 'id');
+    }
+
+    public function getRating()
+    {
+        $totalRating = 0;
+        $adCount = 0;
+        foreach ($this->ads()->get() as $ad){
+            $totalRating += $ad->getAvgRating();
+            $adCount++;
+        }
+
+        if ($adCount === 0) {
+            return 0;
+        }
+
+        return round($totalRating, 1);
+    }
+
     public function toArray(): array
     {
         return [
             'id'            => $this->id,
             'avatar'        => $this->avatar?->src,
-            'rating'        => '555', # todo!!
+            'rating'        => $this->getRating(),
             'name'          => $this->name,
             'phone'         => $this->phone,
             'email'         => $this->email,

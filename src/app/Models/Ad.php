@@ -62,4 +62,14 @@ class Ad extends Model
     {
         return $this->hasOne(User::class, 'id', 'user_id');
     }
+
+    public function reviews(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
+    public function getAvgRating()
+    {
+        return $this->reviews()->avg('rating');
+    }
 }
