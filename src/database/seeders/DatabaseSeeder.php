@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
+use App\Models\Promocode;
 use App\Models\Role;
 use App\Models\Shop;
 use App\Models\Tariff;
@@ -93,6 +94,15 @@ class DatabaseSeeder extends Seeder
             'name'           => 'Тариф 3',
             'price'          => 2000,
             'buybacks_count' => 30,
+        ]);
+
+        Promocode::create([
+            'name' => 'Тестовый промокод',
+            'promocode' => 'test2025',
+            'start_date' => now(),
+            'end_date' => now()->addDays(30),
+            'buybacks_count' => 10,
+            'max_usage' => 5
         ]);
     }
 }

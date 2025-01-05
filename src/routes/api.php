@@ -28,6 +28,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/ads/duplicate', [\App\Http\Controllers\Seller\AdsController::class, 'duplicate']);
         Route::get('/tariff', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
         Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
+        Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
     });
 });
 

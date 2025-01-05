@@ -134,4 +134,9 @@ class User extends Authenticatable
 
         return $foundCount === count($adsIds);
     }
+
+    public function promocodes()
+    {
+        return $this->belongsToMany(Promocode::class, 'promocode_user')->withTimestamps();
+    }
 }
