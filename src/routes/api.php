@@ -17,6 +17,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
 
+    Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'index']);
+    Route::post('profile', [\App\Http\Controllers\ProfileController::class, 'update']);
+
     Route::prefix('seller')->group(function () {
         Route::apiResource('product', \App\Http\Controllers\Seller\ProductController::class)->except('store');
         Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
@@ -35,6 +38,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 // TODO на сегодня
 /*
+ * // ОТЗЫВЫ!!! (Пока что фейковые!! чисто модель и все)
  * // Все проверяем с фигмой!
  * 7. Тесты обязательно
  */

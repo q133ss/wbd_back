@@ -61,12 +61,21 @@ class User extends Authenticatable
         return $this->hasOne(Role::class, 'id', 'role_id');
     }
 
+    public function avatar()
+    {
+        return $this->morphOne(File::class, 'fileable')
+            ->where('category', 'avatar');
+    }
+
     public function toArray(): array
     {
         return [
             'id'            => $this->id,
-            'phone'         => $this->phone,
+            'avatar'        => $this->avatar?->src,
+            'rating'        => '555', # todo!!
             'name'          => $this->name,
+            'phone'         => $this->phone,
+            'email'         => $this->email,
             'created_at'    => $this->created_at,
             'is_configured' => $this->is_configured,
             'shop'          => $this->shop,
