@@ -64,10 +64,10 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // update cachce
         // price
         // status,
-        //
+        // is archived!!
+        // !!! TODO добавить обновление статуса цены и архивации
     }
 
     public function stop(StopRequest $request)
@@ -133,21 +133,25 @@ class ProductController extends Controller
                 ]
             );
 
-            Transaction::create([
-                'amount'           => $totalBalance,
-                'transaction_type' => 'deposit',
-                'currency_type'    => 'cash',
-                'description'      => 'Возврат средств при архивации: '.$totalBalance.' ₽',
-                'user_id'          => $user->id,
-            ]);
+            if($totalBalance != 0) {
+                Transaction::create([
+                    'amount' => $totalBalance,
+                    'transaction_type' => 'deposit',
+                    'currency_type' => 'cash',
+                    'description' => 'Возврат средств при архивации: ' . $totalBalance . ' ₽',
+                    'user_id' => $user->id,
+                ]);
+            }
 
-            Transaction::create([
-                'amount'           => $totalRedemptionCount,
-                'transaction_type' => 'deposit',
-                'currency_type'    => 'buyback',
-                'description'      => 'Возврат выкупов при архивации: '.$totalRedemptionCount.' выкупов',
-                'user_id'          => $user->id,
-            ]);
+            if($totalRedemptionCount != 0) {
+                Transaction::create([
+                    'amount' => $totalRedemptionCount,
+                    'transaction_type' => 'deposit',
+                    'currency_type' => 'buyback',
+                    'description' => 'Возврат выкупов при архивации: ' . $totalRedemptionCount . ' выкупов',
+                    'user_id' => $user->id,
+                ]);
+            }
 
             $ads->update([
                 'is_archived'      => true,
@@ -163,8 +167,6 @@ class ProductController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return $e;
 
             return response()->json([
                 'status'  => 'false',

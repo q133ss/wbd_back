@@ -13,6 +13,7 @@ class NotArchiveScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
-        $builder->where('is_archived', false);
+        $table = $model->getTable();
+        $builder->where("{$table}.is_archived", false);
     }
 }

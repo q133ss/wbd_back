@@ -114,4 +114,24 @@ class User extends Authenticatable
 
         return $foundCount === count($productIds);
     }
+
+    /**
+     * Проверяет массив объявлений
+     * @param array $adsIds
+     * @return bool
+     */
+    public function checkAd(array $adsIds): bool
+    {
+        $userId = $this->id;
+
+        $foundCount = Ad::select('ads.id')
+            ->leftJoin('products', 'ads.product_id', '=', 'products.id')
+            ->leftJoin('shops', 'products.shop_id', '=', 'shops.id')
+            ->leftJoin('users', 'shops.user_id', '=', 'users.id')
+            ->where('users.id', $userId)
+            ->whereIn('ads.id', $adsIds)
+            ->count();
+
+        return $foundCount === count($adsIds);
+    }
 }

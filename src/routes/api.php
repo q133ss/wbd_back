@@ -22,13 +22,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
         Route::post('/products/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
         Route::post('/products/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
-        // todo Добавить как у PRODUCT дублирование, архивацию и возможность остановить объявление!
-        // todo ПРИ АРХИВАЦИИ ВЕРТАЕМ БАЛАНС
-        // todo ФИЛЬТРЫ НЕ РАБОТАЮТ!!!
-        // todo Добавить скоп, ВСЕ объявления, активные, остановленные, архивные (удалить доп метод)
         Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
-        Route::get('/archive/ads', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
-        Route::get('/buybacks/process', [\App\Http\Controllers\Seller\AdsController::class, 'process']); // Выкупы в процессе
+        Route::post('/ads/stop', [\App\Http\Controllers\Seller\AdsController::class, 'stop']);
+        Route::post('/ads/archive', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
+        Route::post('/ads/duplicate', [\App\Http\Controllers\Seller\AdsController::class, 'duplicate']);
         Route::get('/tariff', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
         Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
     });

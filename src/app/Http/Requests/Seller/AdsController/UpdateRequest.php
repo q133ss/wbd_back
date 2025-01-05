@@ -30,6 +30,7 @@ class UpdateRequest extends FormRequest
             'redemption_instructions' => 'required|string',
             'review_criteria'         => 'required|string',
             'one_per_user'            => 'nullable|boolean',
+            'is_archived'             => 'nullable|min:0|max:1',
         ];
     }
 
@@ -50,6 +51,8 @@ class UpdateRequest extends FormRequest
             'review_criteria.string'           => 'Критерии отзыва должны быть строкой.',
             'redemption_count.min'             => 'Количество выкупов должно быть не менее 1.',
             'one_per_user.boolean'             => 'Поле "Один на товар на покупателя" неверное.',
+            'is_archived.min'                  => 'Поле "архивный" должно быть не меньше 0',
+            'is_archived.max'                  => 'Поле "архивный" должно быть не больше 1',
         ];
     }
 }
