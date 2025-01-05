@@ -57,4 +57,9 @@ class Ad extends Model
     {
         return $this->hasMany(Buyback::class, 'ads_id', 'id');
     }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'id', 'user_id');
+    }
 }

@@ -29,21 +29,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/tariff', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
         Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
         Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
+        Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
     });
 });
 
 // TODO на сегодня
 /*
  * // Все проверяем с фигмой!
- * 1. Установить Pint+
- * 2. Сделать регистрацию и авторицию+
- * 3. Сделать товары и категории ++
- * 4. Сделать объявления ++
- * 5. Сделать подгрузку магазина и товаров из ВБ+
- * 6. Сделать импорт категорий из ВБ +
  * 7. Тесты обязательно
- * 8. Промокоды (Название, дата начала и конца, кол-во выкупов, кол-во активаций, список, кто воспользовался)
- * 10. Список выкупов вывести для продавца! (Buybacks) и можно потом чат делать
  */
 
 //todo НА ЗАВТРА

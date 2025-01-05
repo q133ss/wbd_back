@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -138,5 +139,22 @@ class User extends Authenticatable
     public function promocodes()
     {
         return $this->belongsToMany(Promocode::class, 'promocode_user')->withTimestamps();
+    }
+
+    /**
+     * Список выкупов юзера
+     *
+     * @return HasManyThrough
+     */
+    public function buybacks(): HasManyThrough
+    {
+        return $this->hasManyThrough(Buyback::class, Ad::class, 'user_id', 'ads_id', 'id', 'id')
+            ->orWhere('buybacks.user_id', $this->id)
+            ->with([
+                'ad' => function ($query) {
+                    $query->with(['user']);
+                },
+                'user'
+            ]);
     }
 }
