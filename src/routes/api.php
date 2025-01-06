@@ -34,6 +34,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
         Route::post('/products/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
         Route::post('/products/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
+        // ПОЛЕ balance В ОБЪЯВЛЕНИИ1!!!!1!
+        // todo ПРОДАВЕЦ СОЗДАЕТ ОБЪЯВЛЕНИЕ ЗНАЧИТ ДЕНЬГИ БУДУТ ЗАРЕЗЕРВИРОВАННЫ У НЕГО!
         Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
         Route::post('/ads/stop', [\App\Http\Controllers\Seller\AdsController::class, 'stop']);
         Route::post('/ads/archive', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
@@ -51,14 +53,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/remove-from-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'remove']);
 
     Route::prefix('buyer')->group(function () {
-        // делаем:
-        // создание заказа
-        // просмотр заказов
-        // Сообщения через сокеты
-        // и уведомления через ссе
+        // todo при запуске  art websocket:serve ошибка!!!
+        // todo проверить отправку сообщения при создании заказа и обычную отправку сообщения
+        // todo ПРИ СОЗДАНИИ ВЫКУПА РЕЗЕРВИРУЕМ БАЛАНС У ЮЕЗРА!
         Route::post('/create-order/{ad_id}', [\App\Http\Controllers\Buyer\OrderController::class, 'store']);
+        Route::get('/orders', [\App\Http\Controllers\Buyer\OrderController::class, 'index']);
+        Route::get('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'show']);
+        Route::post('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'send']);
     });
 });
+
+// SSE route
+Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 'stream']);
 
 // TODO на сегодня
 /*
@@ -67,17 +73,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
  */
 
 //todo НА СЕГОДНЯ!!!!
-// todo ПРИ СОЗДАНИИ ВЫКУПА РЕЗЕРВИРУЕМ БАЛАНС У ЮЕЗРА!
-// todo ПРОДАВЕЦ СОЗДАЕТ ОБЪЯВЛЕНИЕ ЗНАЧИТ ДЕНЬГИ БУДУТ ЗАРЕЗЕРВИРОВАННЫ У НЕГО!
-// ПОЛЕ balance В ОБЪЯВЛЕНИИ1!!!!1!
 /*
  * Сделать ИЗБРАНООЕ И КОРЗИНУ!!!!!!!!+++++
- * Сделать сторону покупателя (создание заказа и тд)
+ * Сделать сторону покупателя (создание заказа и тд)+
  * сделать счетчик просмотров (через мидлвар)
  * СДЕЛАТЬ БАЛАНС (ДОСТУПНО К ВЫВОДУ И НАПОТВЕРЖДЕНИИ!!!!) у юзера и продавца
  * СДЕЛАТЬ СПИСОК ТРАНЗАКЦИЙ В ПРОФИЛЕ У ЮЗЕРА + ПРОВЕРИТЬ ФИГМУ ПРОДАВЦА ПРОФИЛЬ!
- * Чат
- * Уведомления
  * Платежка
  * Бот
  */

@@ -17,4 +17,9 @@ class Buyback extends Model
     {
         return $this->hasOne(User::class, 'id', 'user_id');
     }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'buyback_id','id')->orderBy('created_at', 'desc');
+    }
 }

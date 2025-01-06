@@ -7,6 +7,7 @@ use App\Models\Ad;
 use App\Models\Buyback;
 use App\Models\Message;
 use App\Services\BaseService;
+use App\Services\SocketService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -14,6 +15,7 @@ class OrderService extends BaseService
 {
     public function createOrder(string $ad_id)
     {
+        #todo проверка, что бы самому себе не делали заказы!!!
         DB::beginTransaction();
         $ad = Ad::findOrFail($ad_id);
         try {
@@ -24,13 +26,16 @@ class OrderService extends BaseService
             ]);
 
             // Отправляем автоматическое сообщение от продавца
-            Message::create([
+            $message = Message::create([
                 'text' => $ad->redemption_instructions,
                 'sender_id' => $ad->user_id,
                 'buyback_id' => $buyback->id,
-                'type' => 'system',
+                'type' => 'text',
                 'color' => Message::VIOLET_COLOR
             ]);
+
+            // Отправляем сообщение по веб сокетам
+            (new SocketService())->send($message, $buyback);
 
             // Таймер
             OrderPendingCheck::dispatch($buyback->id)->delay(Carbon::now()->addMinutes(30));
