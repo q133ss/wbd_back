@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Shop extends Model
 {
     protected $guarded = [];
+    protected $hidden = [
+        'laravel_through_key',
+    ];
 
     public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
     {

@@ -35,7 +35,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
     });
 
+    // Товары
     Route::get('/products', [\App\Http\Controllers\Front\ProductController::class, 'index']);
+    Route::get('/product/{id}', [\App\Http\Controllers\Front\ProductController::class, 'show']);
+    Route::get('/product/related/{id}', [\App\Http\Controllers\Front\ProductController::class, 'related']);
+
+    // Корзина и избранное
+    Route::post('/add-to-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'add']);
+    Route::get('/cart', [\App\Http\Controllers\CartFavoriteController::class, 'viewCart']);
+    Route::get('/favorites', [\App\Http\Controllers\CartFavoriteController::class, 'viewFavorites']);
+    Route::post('/remove-from-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'remove']);
 
     Route::prefix('buyer')->group(function () {
         //
@@ -48,11 +57,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
  * 7. Тесты обязательно
  */
 
-//todo НА ЗАВТРА
+//todo НА СЕГОДНЯ!!!!
 // todo ПРИ СОЗДАНИИ ВЫКУПА РЕЗЕРВИРУЕМ БАЛАНС У ЮЕЗРА!
 // todo ПРОДАВЕЦ СОЗДАЕТ ОБЪЯВЛЕНИЕ ЗНАЧИТ ДЕНЬГИ БУДУТ ЗАРЕЗЕРВИРОВАННЫ У НЕГО!
 // ПОЛЕ balance В ОБЪЯВЛЕНИИ1!!!!1!
 /*
+ * Сделать ИЗБРАНООЕ И КОРЗИНУ!!!!!!!!
  * Сделать сторону покупателя (создание заказа и тд)
  * сделать счетчик просмотров (через мидлвар)
  * Чат

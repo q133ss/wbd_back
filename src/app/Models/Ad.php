@@ -12,7 +12,7 @@ class Ad extends Model
 {
     protected $guarded = [];
 
-    protected $with = ['product'];
+    protected $with = ['product', 'shop', 'reviews'];
 
     // Указываем глобальный скоуп в методе `booted`
     protected static function booted()
@@ -214,5 +214,25 @@ class Ad extends Model
     public function getAvgRating()
     {
         return $this->reviews()->avg('rating');
+    }
+
+    public function shop()
+    {
+        return $this->hasOneThrough(Shop::class, User::class, 'id', 'user_id', 'user_id', 'id');
+    }
+
+    public function getPriceWithoutCashback()
+    {
+        if ($this->cashback_percentage && $this->price_with_cashback) {
+            return round($this->price_with_cashback / (1 - $this->cashback_percentage / 100), 2);
+        }
+        return null;
+    }
+
+    public function toArray()
+    {
+        $data = parent::toArray();
+        $data['price_without_cashback'] = $this->getPriceWithoutCashback();
+        return $data;
     }
 }
