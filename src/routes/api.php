@@ -34,6 +34,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
         Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
     });
+
+    Route::get('/products', [\App\Http\Controllers\Front\ProductController::class, 'index']);
+
+    Route::prefix('buyer')->group(function () {
+        //
+    });
 });
 
 // TODO на сегодня
@@ -44,6 +50,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 //todo НА ЗАВТРА
 // todo ПРИ СОЗДАНИИ ВЫКУПА РЕЗЕРВИРУЕМ БАЛАНС У ЮЕЗРА!
+// todo ПРОДАВЕЦ СОЗДАЕТ ОБЪЯВЛЕНИЕ ЗНАЧИТ ДЕНЬГИ БУДУТ ЗАРЕЗЕРВИРОВАННЫ У НЕГО!
 // ПОЛЕ balance В ОБЪЯВЛЕНИИ1!!!!1!
 /*
  * Сделать сторону покупателя (создание заказа и тд)
