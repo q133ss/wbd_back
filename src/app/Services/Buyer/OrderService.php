@@ -34,8 +34,9 @@ class OrderService extends BaseService
 
             // Таймер
             OrderPendingCheck::dispatch($buyback->id)->delay(Carbon::now()->addMinutes(30));
-
             DB::commit();
+            $response = $this->formatResponse('true', 'Заказ создан', '201');
+            return $this->sendResponse($response);
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->sendError('Произошла ошибка, попробуйте еще раз', 500);
