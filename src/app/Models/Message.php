@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
-    //
+    const VIOLET_COLOR = '#6941C6';
 }

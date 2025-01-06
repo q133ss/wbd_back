@@ -13,6 +13,15 @@ Route::middleware([GuestOnly::class])->group(function () {
 Route::get('/roles', [\App\Http\Controllers\AuthController::class, 'roles']);
 Route::post('register/complete', [\App\Http\Controllers\AuthController::class, 'completeRegistration']);
 
+// Товары
+Route::get('/products', [\App\Http\Controllers\Front\ProductController::class, 'index']);
+Route::get('/product/{id}', [\App\Http\Controllers\Front\ProductController::class, 'show']);
+Route::get('/product/related/{id}', [\App\Http\Controllers\Front\ProductController::class, 'related']);
+
+// Категории
+Route::get('/category', [\App\Http\Controllers\CategoryController::class, 'index']);
+Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::class, 'indexSubCategory']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
@@ -35,23 +44,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
     });
 
-    // Товары
-    Route::get('/products', [\App\Http\Controllers\Front\ProductController::class, 'index']);
-    Route::get('/product/{id}', [\App\Http\Controllers\Front\ProductController::class, 'show']);
-    Route::get('/product/related/{id}', [\App\Http\Controllers\Front\ProductController::class, 'related']);
-
     // Корзина и избранное
     Route::post('/add-to-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'add']);
     Route::get('/cart', [\App\Http\Controllers\CartFavoriteController::class, 'viewCart']);
     Route::get('/favorites', [\App\Http\Controllers\CartFavoriteController::class, 'viewFavorites']);
     Route::post('/remove-from-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'remove']);
 
-    // Категории
-    Route::get('/category', [\App\Http\Controllers\CategoryController::class, 'index']);
-    Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::class, 'indexSubCategory']);
-
     Route::prefix('buyer')->group(function () {
-        //
+        // делаем:
+        // создание заказа
+        // просмотр заказов
+        // Сообщения через сокеты
+        // и уведомления через ссе
+        Route::post('/create-order/{ad_id}', [\App\Http\Controllers\Buyer\OrderController::class, 'store']);
     });
 });
 

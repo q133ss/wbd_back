@@ -15,9 +15,16 @@ return new class extends Migration
             $table->id();
             $table->foreignId('ads_id')->constrained('ads')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->enum('status', ['cancelled', 'pending', 'on_confirmation', 'completed'])
-                ->default('pending')
-                ->comment('Отменен, Ожидание получения товара, На подтверждении, Завершен');
+            $table->enum('status', [
+                'cancelled',       // Отменен
+                'pending',         // Ожидание заказа
+                'awaiting_receipt',// Ожидание получения
+                'on_confirmation', // Подтверждение
+                'cashback_received', // Кешбек получен
+                'completed',       // Завершено
+                'archive'          // Архив
+            ])->default('pending')->change();
+            $table->boolean('is_archived')->default(false);
             $table->timestamps();
         });
     }
