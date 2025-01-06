@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileController\UpdateRequest;
+use App\Models\Buyback;
 use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -52,5 +53,26 @@ class ProfileController extends Controller
                'message' => 'Произошла ошибка, попробуйте еще раз',
             ]);
         }
+    }
+
+    public function transactions()
+    {
+        return auth('sanctum')->user()->transactions;
+    }
+
+    public function balance()
+    {
+        $user = auth('sanctum')->user();
+        $accessBalance = $user->balance;
+        // Это те, которые в выкупах!
+        // Типо потенциальный заработок
+
+        $onConfirmation = $user->buybacks()
+            ->whereIn('buybacks.status', ['pending', 'awaiting_receipt', 'on_confirmation'])
+            ->sum('ads.balance');
+        return response()->json([
+            'accessBalance' => $accessBalance,
+            'onConfirmation' => $onConfirmation
+        ]);
     }
 }

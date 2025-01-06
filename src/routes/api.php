@@ -28,6 +28,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'index']);
     Route::post('profile', [\App\Http\Controllers\ProfileController::class, 'update']);
+    Route::get('transactions', [\App\Http\Controllers\ProfileController::class, 'transactions']);
+    #todo надо разобраться как хранится баланс! Потому что если у нас 2 выкупа на 1 объявление, то мы получаем дубли!
+    // Баланс надо держать в выкупах!
+    Route::get('/balance', [\App\Http\Controllers\ProfileController::class, 'balance']);
 
     Route::prefix('seller')->group(function () {
         Route::apiResource('product', \App\Http\Controllers\Seller\ProductController::class)->except('store');
@@ -74,11 +78,7 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 
 //todo НА СЕГОДНЯ!!!!
 /*
- * Сделать ИЗБРАНООЕ И КОРЗИНУ!!!!!!!!+++++
- * Сделать сторону покупателя (создание заказа и тд)+
  * сделать счетчик просмотров (через мидлвар)
- * СДЕЛАТЬ БАЛАНС (ДОСТУПНО К ВЫВОДУ И НАПОТВЕРЖДЕНИИ!!!!) у юзера и продавца
- * СДЕЛАТЬ СПИСОК ТРАНЗАКЦИЙ В ПРОФИЛЕ У ЮЗЕРА + ПРОВЕРИТЬ ФИГМУ ПРОДАВЦА ПРОФИЛЬ!
  * Платежка
  * Бот
  */
