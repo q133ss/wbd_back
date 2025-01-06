@@ -46,6 +46,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/favorites', [\App\Http\Controllers\CartFavoriteController::class, 'viewFavorites']);
     Route::post('/remove-from-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'remove']);
 
+    // Категории
+    Route::get('/category', [\App\Http\Controllers\CategoryController::class, 'index']);
+    Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::class, 'indexSubCategory']);
+
     Route::prefix('buyer')->group(function () {
         //
     });
@@ -62,9 +66,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 // todo ПРОДАВЕЦ СОЗДАЕТ ОБЪЯВЛЕНИЕ ЗНАЧИТ ДЕНЬГИ БУДУТ ЗАРЕЗЕРВИРОВАННЫ У НЕГО!
 // ПОЛЕ balance В ОБЪЯВЛЕНИИ1!!!!1!
 /*
- * Сделать ИЗБРАНООЕ И КОРЗИНУ!!!!!!!!
+ * Сделать ИЗБРАНООЕ И КОРЗИНУ!!!!!!!!+++++
  * Сделать сторону покупателя (создание заказа и тд)
  * сделать счетчик просмотров (через мидлвар)
+ * СДЕЛАТЬ БАЛАНС (ДОСТУПНО К ВЫВОДУ И НАПОТВЕРЖДЕНИИ!!!!) у юзера и продавца
+ * СДЕЛАТЬ СПИСОК ТРАНЗАКЦИЙ В ПРОФИЛЕ У ЮЗЕРА + ПРОВЕРИТЬ ФИГМУ ПРОДАВЦА ПРОФИЛЬ!
  * Чат
  * Уведомления
  * Платежка
