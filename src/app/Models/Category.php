@@ -42,4 +42,10 @@ class Category extends Model
 
         return $defaultCategory;
     }
+
+    public function img()
+    {
+        return $this->morphOne(File::class, 'fileable')
+            ->where('category', 'img');
+    }
 }

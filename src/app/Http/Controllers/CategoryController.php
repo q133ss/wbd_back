@@ -16,14 +16,15 @@ class CategoryController extends Controller
             $categoryProductCounts[] = [
                 'category_id' => $category->id,
                 'category_name' => $category->name,
-                'product_count' => $this->countProductsInCategory($category)
+                'product_count' => $this->countProductsInCategory($category),
+                'img' => $category->img
             ];
         }
         return $categoryProductCounts;
     }
     public function index()
     {
-        $categories = Category::where('parent_id', null)->get();
+        $categories = Category::with('img')->where('parent_id', null)->get();
         $categoryProductCounts = $this->getProductsCount($categories);
 
         return response()->json($categoryProductCounts);

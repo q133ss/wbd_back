@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Buyback extends Model
@@ -21,5 +22,16 @@ class Buyback extends Model
     public function messages()
     {
         return $this->hasMany(Message::class, 'buyback_id','id')->orderBy('created_at', 'desc');
+    }
+
+    public function scopeWithFilter($query, $request)
+    {
+        return $query
+            ->when(
+                $request->query('status'),
+                function (Builder $query, $status) {
+                    return $query->where('buybacks.status', $status);
+                }
+            );
     }
 }

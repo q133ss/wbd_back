@@ -19,9 +19,10 @@ class OrderController extends Controller
         return (new OrderService())->createOrder($ad_id);
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $buybacks = auth('sanctum')->user()->buybacks()
+            ->withFilter($request)
             ->with(['messages' => function ($query) {
                 $query->latest()->first();
             }])
@@ -32,7 +33,13 @@ class OrderController extends Controller
 
     public function show(string $id)
     {
-        return Buyback::with('messages','ad')->where('user_id', auth('sanctum')->id())->findOrFail($id);
+        return Buyback::with([
+                'messages',
+                'ad' => function ($query) {
+                        $query->without('reviews');
+                    }
+                ]
+            )->where('user_id', auth('sanctum')->id())->findOrFail($id);
     }
 
     public function send(SendRequest $request, string $id): \Illuminate\Http\JsonResponse
