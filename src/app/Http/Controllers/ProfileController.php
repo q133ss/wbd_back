@@ -9,6 +9,7 @@ use App\Models\Cashout;
 use App\Models\File;
 use App\Models\Role;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -73,6 +74,12 @@ class ProfileController extends Controller
         $user = auth('sanctum')->user();
         $accessBalance = $user->balance;
         $role = auth('sanctum')->user()->role;
+
+        $data = [
+            'accessBalance' => $accessBalance,
+            'onConfirmation' => 0 // На подтверждении, либо заморожено
+        ];
+
         if($role->slug == 'buyer')
         {
             // Покупатель
@@ -83,13 +90,23 @@ class ProfileController extends Controller
             ])->sum('buybacks.price');
         }else{
             // Продавец
+            $today = Carbon::today();
+            $yesterday = Carbon::yesterday();
+            $last7Days = Carbon::now()->subDays(7);
+            $transactionData = Transaction::where('user_id', $user->id)
+                ->where('transaction_type', 'withdraw')
+                ->where('currency_type', 'cash')
+                ->select([
+                    DB::raw("SUM(CASE WHEN DATE(created_at) = '{$today}' THEN amount ELSE 0 END) as today"),
+                    DB::raw("SUM(CASE WHEN DATE(created_at) = '{$yesterday}' THEN amount ELSE 0 END) as yesterday"),
+                    DB::raw("SUM(CASE WHEN created_at >= '{$last7Days}' THEN amount ELSE 0 END) as last_7_days"),
+                ])
+                ->first();
             $onConfirmation = $user->frozenBalance()->where('status','reserved')->sum('amount');
+            $data['transactionData'] = $transactionData;
         }
-
-        return response()->json([
-            'accessBalance' => $accessBalance,
-            'onConfirmation' => $onConfirmation // На подтверждении, либо заморожено
-        ]);
+        $data['onConfirmation'] = $onConfirmation;
+        return response()->json($data);
     }
 
     public function withdraw(WithdrawRequest $request)
