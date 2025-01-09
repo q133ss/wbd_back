@@ -71,11 +71,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 // SSE route
 Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 'stream']);
 
-// TODO на сегодня
-/*
- * // Все проверяем с фигмой!
- * 7. Тесты обязательно
- */
 
 //todo НА СЕГОДНЯ!!!!
 /*

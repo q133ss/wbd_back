@@ -15,7 +15,6 @@ class OrderController extends Controller
 {
     public function store(string $ad_id)
     {
-        #todo РЕЗЕРВ БАЛАНСА
         return (new OrderService())->createOrder($ad_id);
     }
 

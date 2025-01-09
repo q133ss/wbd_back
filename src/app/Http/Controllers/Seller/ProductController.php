@@ -64,10 +64,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // price
-        // status,
-        // is archived!!
-        // !!! TODO добавить обновление статуса цены и архивации
+        // Можно сделать обновление данных товара с ВБ
     }
 
     public function stop(StopRequest $request)

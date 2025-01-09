@@ -18,7 +18,7 @@ class IsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         // Кешируем текущего пользователя на 1 час
-        $user = Cache::remember('auth_user_'.Auth()->id(), 3600, function () {
+        $user = Cache::remember('auth_user_'.Auth('sanctum')->id(), 3600, function () {
             return Auth('sanctum')->user();
         });
 

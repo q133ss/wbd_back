@@ -15,9 +15,12 @@ class OrderService extends BaseService
 {
     public function createOrder(string $ad_id)
     {
-        #todo проверка, что бы самому себе не делали заказы!!!
         DB::beginTransaction();
         $ad = Ad::findOrFail($ad_id);
+        if($ad->user_id == auth('sanctum')->id())
+        {
+            abort(403, 'Вы не можете купить товар у самого себя');
+        }
         try {
             $buyback = Buyback::create([
                 'ads_id' => $ad_id,
