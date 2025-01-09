@@ -190,7 +190,7 @@ class User extends Authenticatable
 
     public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(Transaction::class, 'user_id', 'id')->orderBy('created_at', 'desc');
+        return $this->hasMany(Transaction::class, 'user_id', 'id')->orderBy('transactions.created_at', 'desc');
     }
 
     public function isSeller(): bool

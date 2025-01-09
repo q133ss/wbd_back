@@ -56,9 +56,13 @@ class ProfileController extends Controller
         }
     }
 
-    public function transactions()
+    public function transactions(Request $request)
     {
-        return auth('sanctum')->user()->transactions;
+        return auth('sanctum')
+            ->user()
+            ->transactions()
+            ->withFilter($request)
+            ->get();
     }
 
     public function balance()
