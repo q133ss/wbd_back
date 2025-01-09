@@ -9,6 +9,6 @@ class BuybackController extends Controller
 {
     public function index()
     {
-        return auth()->user()->buybacks;
+        return auth('sanctum')->user()->buybacks;
     }
 }

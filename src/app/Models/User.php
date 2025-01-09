@@ -208,4 +208,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(FrozenBalance::class, 'user_id', 'id');
     }
+
+    public function withdraws()
+    {
+        return $this->hasMany(Cashout::class,'user_id', 'id');
+    }
 }

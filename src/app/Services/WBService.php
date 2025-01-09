@@ -226,7 +226,7 @@ class WBService extends BaseService
         return [
             'name'               => $product['title'],
             'is_archived'        => false,
-            'shop_id'            => Auth()->user()->shop?->id,
+            'shop_id'            => auth('sanctum')->user()->shop?->id,
             'wb_id'              => $product['wb_id'],
             'category_id'        => $product['category_id'],
             'price'              => $product['price'],

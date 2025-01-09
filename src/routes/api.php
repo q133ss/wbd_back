@@ -33,6 +33,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('profile', [\App\Http\Controllers\ProfileController::class, 'update']);
     Route::get('transactions', [\App\Http\Controllers\ProfileController::class, 'transactions']);
     Route::get('/balance', [\App\Http\Controllers\ProfileController::class, 'balance']);
+    Route::post('/withdraw', [\App\Http\Controllers\ProfileController::class, 'withdraw']);
+    Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);
+    Route::post('/withdraw/{id}', [\App\Http\Controllers\ProfileController::class, 'withdrawCancel']);
 
     Route::prefix('seller')->group(function () {
         Route::apiResource('product', \App\Http\Controllers\Seller\ProductController::class)->except('store');
@@ -58,7 +61,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('buyer')->group(function () {
         // todo при запуске  art websocket:serve ошибка!!!
         // todo проверить отправку сообщения при создании заказа и обычную отправку сообщения
-        // todo ПРИ СОЗДАНИИ ВЫКУПА РЕЗЕРВИРУЕМ БАЛАНС У ЮЕЗРА!
         Route::post('/create-order/{ad_id}', [\App\Http\Controllers\Buyer\OrderController::class, 'store']);
         Route::get('/orders', [\App\Http\Controllers\Buyer\OrderController::class, 'index']);
         Route::get('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'show']);
@@ -73,10 +75,7 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 /*
  * // Все проверяем с фигмой!
  * 7. Тесты обязательно
- * // TODO
-    // Может заказать выплату!
-    // Делаем модель заявок! Просто морозим баланс и все!
-    // А админ потом выводит
+ * // TODO Так же у продавца есть статистика! Потраченно, вчера, сегодня неделю назад
  */
 
 //todo НА СЕГОДНЯ!!!!

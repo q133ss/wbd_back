@@ -144,7 +144,7 @@ class AdsController extends Controller
                 ], 403);
             }
 
-            $user = auth()->user();
+            $user = auth('sanctum')->user();
 
             $totalBalance         = 0;
             $totalRedemptionCount = 0;

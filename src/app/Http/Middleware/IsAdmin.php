@@ -19,7 +19,7 @@ class IsAdmin
     {
         // Кешируем текущего пользователя на 1 час
         $user = Cache::remember('auth_user_'.Auth()->id(), 3600, function () {
-            return Auth()->user();
+            return Auth('sanctum')->user();
         });
 
         // Кешируем роль "admin" на 1 час

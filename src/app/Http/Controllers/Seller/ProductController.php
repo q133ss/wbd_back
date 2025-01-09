@@ -18,7 +18,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $ads = auth()->user()->shop?->products()?->with('ads')->withFilter($request)->paginate();
+        $ads = auth('sanctum')->user()->shop?->products()?->with('ads')->withFilter($request)->paginate();
 
         $ads->getCollection()->transform(function ($product) {
             // Трансформируем объявления внутри каждого товара
@@ -113,7 +113,7 @@ class ProductController extends Controller
                 ], 403);
             }
 
-            $user = auth()->user();
+            $user = auth('sanctum')->user();
 
             $totalBalance         = 0;
             $totalRedemptionCount = 0;

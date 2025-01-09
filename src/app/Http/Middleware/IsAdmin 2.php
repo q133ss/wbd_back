@@ -17,7 +17,7 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth()->user();
+        $user = auth('sanctum')->user();
 
         // Кешируем роль "admin" на 1 час
         $adminRoleId = Cache::remember('admin_role_id', 3600, function () {

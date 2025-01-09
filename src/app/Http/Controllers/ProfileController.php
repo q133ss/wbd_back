@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileController\UpdateRequest;
+use App\Http\Requests\ProfileController\WithdrawRequest;
 use App\Models\Buyback;
+use App\Models\Cashout;
 use App\Models\File;
 use App\Models\Role;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -52,7 +55,7 @@ class ProfileController extends Controller
             return response()->json([
                'status'  => 'false',
                'message' => 'Произошла ошибка, попробуйте еще раз',
-            ]);
+            ], 500);
         }
     }
 
@@ -69,20 +72,7 @@ class ProfileController extends Controller
     {
         $user = auth('sanctum')->user();
         $accessBalance = $user->balance;
-        // Доступно к выводу
-        // На подтверждении
-        // Это у покупателя
-
-        // У продавца - досуптно и замороженно в объявлениях
-        // Так же у продавца есть статистика! Потраченно, вчера, сегодня неделю назад
-        // Есть поиск по транзациям по ID объявления
-        // И фильтрация: пополнения, списания и товар
-        // Транзакции идут с пагинацией! под них отдельный метод!
-
-
-        // У поекпателя есть только поиск по ид выкупа и фильтр по пополенеиям и списаниям
-
-        $role = auth()->user()->role;
+        $role = auth('sanctum')->user()->role;
         if($role->slug == 'buyer')
         {
             // Покупатель
@@ -100,5 +90,65 @@ class ProfileController extends Controller
             'accessBalance' => $accessBalance,
             'onConfirmation' => $onConfirmation // На подтверждении, либо заморожено
         ]);
+    }
+
+    public function withdraw(WithdrawRequest $request)
+    {
+        try{
+            DB::beginTransaction();
+            $user = auth('sanctum')->user();
+            $user->update([
+                'balance' => $user->balance -= $request->amount
+            ]);
+            $cashout = Cashout::create([
+                'user_id' => $user->id,
+                'amount' => $request->amount,
+                'card_number' => $request->card_number
+            ]);
+            \Log::channel('paylog')->info('Юзер ID:'.$user->id.' Заказал вывод денег. CashoutID'.$cashout->id);
+            DB::commit();
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Заявка на вывод успешно создана!',
+                'user_balance' => $user->balance
+            ]);
+        }catch (\Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'status'  => 'false',
+                'message' => 'Произошла ошибка, попробуйте еще раз',
+            ], 500);
+        }
+    }
+
+    public function withdraws()
+    {
+        return auth('sanctum')->user()->withdraws;
+    }
+
+    public function withdrawCancel(string $id)
+    {
+        $cashout = Cashout::where('user_id', auth('sanctum')->id())->findOrFail($id);
+        try{
+            DB::beginTransaction();
+            $user = auth('sanctum')->user();
+            $user->update([
+                'balance' => $user->balance += $cashout->amount
+            ]);
+            $cashout->update(['is_archived' => true]);
+            DB::commit();
+            \Log::channel('paylog')->info('Юзер ID:'.$user->id.' Отменил вывод денег. CashoutID:'.$cashout->id);
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Заявка на вывод успешно отменена!',
+                'user_balance' => $user->balance
+            ]);
+        }catch (\Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'status'  => 'false',
+                'message' => 'Произошла ошибка, попробуйте еще раз',
+            ], 500);
+        }
     }
 }
