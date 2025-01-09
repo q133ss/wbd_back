@@ -34,7 +34,6 @@ class Category extends Model
 
         if (! $defaultCategory) {
             $defaultCategory = Category::where('name', 'Без категории')->pluck('id')->first();
-            // Если категория найдена, кешируем её на 10 минут
             if ($defaultCategory) {
                 Cache::put('default_category', $defaultCategory, now()->addDays(15));
             }

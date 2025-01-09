@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileController\UpdateRequest;
 use App\Models\Buyback;
 use App\Models\File;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -64,15 +65,36 @@ class ProfileController extends Controller
     {
         $user = auth('sanctum')->user();
         $accessBalance = $user->balance;
-        // Это те, которые в выкупах!
-        // Типо потенциальный заработок
+        // Доступно к выводу
+        // На подтверждении
+        // Это у покупателя
 
-        $onConfirmation = $user->buybacks()
-            ->whereIn('buybacks.status', ['pending', 'awaiting_receipt', 'on_confirmation'])
-            ->sum('ads.balance');
+        // У продавца - досуптно и замороженно в объявлениях
+        // Так же у продавца есть статистика! Потраченно, вчера, сегодня неделю назад
+        // Есть поиск по транзациям по ID объявления
+        // И фильтрация: пополнения, списания и товар
+        // Транзакции идут с пагинацией! под них отдельный метод!
+
+
+        // У поекпателя есть только поиск по ид выкупа и фильтр по пополенеиям и списаниям
+
+        $role = auth()->user()->role;
+        if($role->slug == 'buyer')
+        {
+            // Покупатель
+            $onConfirmation = $user->buybacks()->whereIn('buybacks.status', [
+                'pending',
+                'awaiting_receipt',
+                'on_confirmation'
+            ])->sum('buybacks.price');
+        }else{
+            // Продавец
+            $onConfirmation = $user->frozenBalance()->where('status','reserved')->sum('amount');
+        }
+
         return response()->json([
             'accessBalance' => $accessBalance,
-            'onConfirmation' => $onConfirmation
+            'onConfirmation' => $onConfirmation // На подтверждении, либо заморожено
         ]);
     }
 }

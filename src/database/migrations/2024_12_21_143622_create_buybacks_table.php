@@ -23,7 +23,8 @@ return new class extends Migration
                 'cashback_received', // Кешбек получен
                 'completed',       // Завершено
                 'archive'          // Архив
-            ])->default('pending')->change();
+            ])->default('pending');
+            $table->double('price');
             $table->boolean('is_archived')->default(false);
             $table->timestamps();
         });

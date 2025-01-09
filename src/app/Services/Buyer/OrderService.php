@@ -22,7 +22,8 @@ class OrderService extends BaseService
             $buyback = Buyback::create([
                 'ads_id' => $ad_id,
                 'user_id' => auth('sanctum')->id(),
-                'status' => 'pending'
+                'status' => 'pending',
+                'price' => $ad->product?->price
             ]);
 
             // Отправляем автоматическое сообщение от продавца

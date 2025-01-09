@@ -22,6 +22,9 @@ Route::get('/product/related/{id}', [\App\Http\Controllers\Front\ProductControll
 Route::get('/category', [\App\Http\Controllers\CategoryController::class, 'index']);
 Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::class, 'indexSubCategory']);
 
+// Профиль продавца
+Route::get('/seller/{id}', [\App\Http\Controllers\Front\SellerController::class, 'show']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
@@ -29,8 +32,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'index']);
     Route::post('profile', [\App\Http\Controllers\ProfileController::class, 'update']);
     Route::get('transactions', [\App\Http\Controllers\ProfileController::class, 'transactions']);
-    #todo надо разобраться как хранится баланс! Потому что если у нас 2 выкупа на 1 объявление, то мы получаем дубли!
-    // Баланс надо держать в выкупах!
     Route::get('/balance', [\App\Http\Controllers\ProfileController::class, 'balance']);
 
     Route::prefix('seller')->group(function () {
@@ -38,8 +39,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
         Route::post('/products/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
         Route::post('/products/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
-        // ПОЛЕ balance В ОБЪЯВЛЕНИИ1!!!!1!
-        // todo ПРОДАВЕЦ СОЗДАЕТ ОБЪЯВЛЕНИЕ ЗНАЧИТ ДЕНЬГИ БУДУТ ЗАРЕЗЕРВИРОВАННЫ У НЕГО!
         Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
         Route::post('/ads/stop', [\App\Http\Controllers\Seller\AdsController::class, 'stop']);
         Route::post('/ads/archive', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
@@ -74,11 +73,18 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 /*
  * // Все проверяем с фигмой!
  * 7. Тесты обязательно
+ * // TODO
+            // Может заказать выплату!
+            // Делаем модель заявок! Просто морозим баланс и все!
+            // А админ потом выводит
  */
 
 //todo НА СЕГОДНЯ!!!!
 /*
+ * todo У НАС ЕСТЬ ЗАМОРОЖЕННЫЙ БАЛАНС, юзеру деньги за выкуп даем от туда!!!
+ * // БУДЕМ СОЗДАВАТЬ ДЛЯ ЭТОГО ТРАНЗАКЦИИ, что было списание с замороженного баланса!
  * сделать счетчик просмотров (через мидлвар)
+ * Чат + отзыв о продавце
  * Платежка
  * Бот
  */

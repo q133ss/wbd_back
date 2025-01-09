@@ -3,6 +3,7 @@
 namespace App\Services\Seller;
 
 use App\Models\Ad;
+use App\Models\FrozenBalance;
 use App\Models\Product;
 use App\Models\Tariff;
 use App\Models\Transaction;
@@ -45,7 +46,6 @@ class AdsService extends BaseService
                         'description'      => 'Начисление пакета выкупов (оплата балансом): '.$tariff->buybacks_count.' выкупов',
                         'user_id'          => $user->id,
                     ]);
-
                 }
 
                 $user->update($userData);
@@ -69,7 +69,24 @@ class AdsService extends BaseService
                 ]);
             }
 
+            // Заморозка баланса
+            // цену для юзера умножаем ее на кол-во выкупов
+            $priceForUser = $data['price_with_cashback'] * $data['redemption_count'];
+            $newBalance = $user->balance - $priceForUser;
+            if($newBalance <= 0)
+            {
+                $this->sendError('У вас недостаточно средств', 400);
+            }
+            $user->update(['balance' => $newBalance]);
+
             $ad = Ad::create($data);
+
+            FrozenBalance::create([
+                'user_id' => $user->id,
+                'ad_id' => $ad->id,
+                'amount' => $priceForUser,
+                'reason' => 'Создание объявления #'.$ad->id,
+            ]);
 
             if (isset($depositTransaction)) {
                 $depositTransaction->update(['ads_id' => $ad->id]);

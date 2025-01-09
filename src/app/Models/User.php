@@ -192,4 +192,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaction::class, 'user_id', 'id')->orderBy('created_at', 'desc');
     }
+
+    public function isSeller(): bool
+    {
+        $seller = Role::where('slug', 'seller')->first();
+        return $this->role()->is($seller);
+    }
+
+    public function reviews(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
+    public function frozenBalance()
+    {
+        return $this->hasMany(FrozenBalance::class, 'user_id', 'id');
+    }
 }

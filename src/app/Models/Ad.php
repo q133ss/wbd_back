@@ -77,6 +77,15 @@ class Ad extends Model
                 function (Builder $query, $cashbackTo) {
                     return $query->where('cashback_percentage', '<=', $cashbackTo);
                 }
+            )
+            ->when(
+                $request->query('category_id'),
+                function (Builder $query, $categoryId) {
+                    if (!$this->joined($query, 'products')) {
+                        $query->join('products', 'products.id', '=', 'ads.product_id');
+                    }
+                    return $query->where('products.category_id', '=', $categoryId);
+                }
             );
     }
 
