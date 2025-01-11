@@ -62,8 +62,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/remove-from-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'remove']);
 
     Route::prefix('buyer')->group(function () {
-        // todo при запуске  art websocket:serve ошибка!!! НАДО МЕНЯТЬ БИБЛИОТЕКУ!!!
-        // https://www.freecodecamp.org/news/laravel-reverb-realtime-chat-app/
+        // TODO https://www.freecodecamp.org/news/laravel-reverb-realtime-chat-app/
+        // TODO сделать npm project и проверить!
         Route::post('/create-order/{ad_id}', [\App\Http\Controllers\Buyer\OrderController::class, 'store']);
         Route::get('/orders', [\App\Http\Controllers\Buyer\OrderController::class, 'index']);
         Route::get('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'show']);
@@ -76,7 +76,6 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 
 
 //todo НА СЕГОДНЯ!!!!
-// ЧААААААт!!!
 /*
  * todo У НАС ЕСТЬ ЗАМОРОЖЕННЫЙ БАЛАНС, юзеру деньги за выкуп даем от туда!!!
  * // БУДЕМ СОЗДАВАТЬ ДЛЯ ЭТОГО ТРАНЗАКЦИИ, что было списание с замороженного баланса!
