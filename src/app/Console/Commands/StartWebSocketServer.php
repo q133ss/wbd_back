@@ -26,8 +26,8 @@ class StartWebSocketServer extends Command
      */
     public function handle()
     {
-        require base_path('WebSocket/Server.php');
-        Worker::runAll();
-        $this->alert('WebSocket is running');
+        $command = 'php ' . base_path('websocket/server.php') . ' start';
+        $output = shell_exec($command);
+        $this->info("WebSocket server started successfully: \n" . $output);
     }
 }

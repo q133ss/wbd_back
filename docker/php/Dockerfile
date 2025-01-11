@@ -23,6 +23,10 @@ RUN pecl install redis && docker-php-ext-enable redis
 # Установка Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Устанавливаем и активируем расширение pcntl
+RUN docker-php-ext-configure pcntl --enable-pcntl \
+    && docker-php-ext-install pcntl
+
 # Настройка рабочего каталога
 WORKDIR /var/www/html
 

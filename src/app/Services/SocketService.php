@@ -20,8 +20,18 @@ class SocketService
         ]);
 
         // WebSocket-сообщение
-        $ws_url = "ws://127.0.0.1:8080";
+        $ws_url = "ws://wbd_websocket:8088";
         $ws_connection = new AsyncTcpConnection($ws_url);
+
+        if ($ws_connection->getStatus() !== 0) {
+            \Log::error('WebSocket connection is not in a valid state');
+            return false;
+        }
+        \Log::info('WebSocket status: ' . $ws_connection->getStatus());
+
+        $ws_connection->onError = function ($connection, $code, $msg) {
+            \Log::error('WebSocket error: ' . $code . ' - ' . $msg);
+        };
 
         $ws_connection->onConnect = function ($connection) use ($message, $buyback, $sendNotification) {
             if ($connection !== null) {

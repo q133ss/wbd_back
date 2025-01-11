@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем и активируем расширение pcntl
-RUN docker-php-ext-install pcntl
+RUN docker-php-ext-configure pcntl --enable-pcntl \
+    && docker-php-ext-install pcntl
 
 # Копируем проект в контейнер
 WORKDIR /var/www/html

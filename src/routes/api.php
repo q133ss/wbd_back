@@ -29,13 +29,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
 
+    // Профиль
     Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'index']);
     Route::post('profile', [\App\Http\Controllers\ProfileController::class, 'update']);
+    Route::post('/profile/avatar', [\App\Http\Controllers\ProfileController::class, 'avatar']);
     Route::get('transactions', [\App\Http\Controllers\ProfileController::class, 'transactions']);
     Route::get('/balance', [\App\Http\Controllers\ProfileController::class, 'balance']);
     Route::post('/withdraw', [\App\Http\Controllers\ProfileController::class, 'withdraw']);
     Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);
     Route::post('/withdraw/{id}', [\App\Http\Controllers\ProfileController::class, 'withdrawCancel']);
+    Route::get('/profile/statistic', [\App\Http\Controllers\ProfileController::class, 'statistic']);
 
     Route::prefix('seller')->group(function () {
         Route::apiResource('product', \App\Http\Controllers\Seller\ProductController::class)->except('store');
@@ -59,8 +62,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/remove-from-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'remove']);
 
     Route::prefix('buyer')->group(function () {
-        // todo при запуске  art websocket:serve ошибка!!!
-        // todo проверить отправку сообщения при создании заказа и обычную отправку сообщения
+        // todo при запуске  art websocket:serve ошибка!!! НАДО МЕНЯТЬ БИБЛИОТЕКУ!!!
+        // https://www.freecodecamp.org/news/laravel-reverb-realtime-chat-app/
         Route::post('/create-order/{ad_id}', [\App\Http\Controllers\Buyer\OrderController::class, 'store']);
         Route::get('/orders', [\App\Http\Controllers\Buyer\OrderController::class, 'index']);
         Route::get('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'show']);
@@ -73,6 +76,7 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 
 
 //todo НА СЕГОДНЯ!!!!
+// ЧААААААт!!!
 /*
  * todo У НАС ЕСТЬ ЗАМОРОЖЕННЫЙ БАЛАНС, юзеру деньги за выкуп даем от туда!!!
  * // БУДЕМ СОЗДАВАТЬ ДЛЯ ЭТОГО ТРАНЗАКЦИИ, что было списание с замороженного баланса!

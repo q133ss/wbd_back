@@ -19,7 +19,8 @@ class OrderService extends BaseService
         $ad = Ad::findOrFail($ad_id);
         if($ad->user_id == auth('sanctum')->id())
         {
-            abort(403, 'Вы не можете купить товар у самого себя');
+            // TODO
+            //abort(403, 'Вы не можете купить товар у самого себя');
         }
         try {
             $buyback = Buyback::create([

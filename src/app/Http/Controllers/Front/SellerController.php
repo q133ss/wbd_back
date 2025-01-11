@@ -40,10 +40,8 @@ class SellerController extends Controller
             })
             ->where('reviews.reviewable_type', 'App\Models\Product');
 
-        // Процентов успешных выкупов
-
         $userData = $user->toArray();
-        $userData['success_buybacks'] = round($successBuybacks->percentage, 1); // РПроцент успешных выкупов
+        $userData['success_buybacks'] = round($successBuybacks->percentage, 1); // Процент успешных выкупов
         $userData['seller_rating'] = round($sellerRating->avg('reviews.rating'), 1); // Рейтинг продавца
         $userData['product_rating'] = round($productRating->avg('reviews.rating'), 1); // Рейтинг товаров
         $userData['cashback_paid'] = round($cashbackPaid, 1); // Кол-во выплаченного кешбека

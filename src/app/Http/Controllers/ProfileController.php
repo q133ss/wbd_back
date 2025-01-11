@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProfileController\AvatarRequest;
 use App\Http\Requests\ProfileController\UpdateRequest;
 use App\Http\Requests\ProfileController\WithdrawRequest;
 use App\Models\Buyback;
 use App\Models\Cashout;
 use App\Models\File;
+use App\Models\Review;
 use App\Models\Role;
 use App\Models\Transaction;
 use Carbon\Carbon;
@@ -166,6 +168,72 @@ class ProfileController extends Controller
                 'status'  => 'false',
                 'message' => 'Произошла ошибка, попробуйте еще раз',
             ], 500);
+        }
+    }
+
+    public function statistic()
+    {
+        $user = auth('sanctum')->user();
+        $userData = [];
+
+        $cashbackPaid = $user->buybacks()->sum('buybacks.price');
+
+        if($user->isSeller())
+        {
+            // Продавец
+            $successBuybacks = Buyback::leftJoin('ads', 'ads.id', '=', 'buybacks.ads_id')
+                ->selectRaw('ROUND((SUM(CASE WHEN buybacks.status = "completed" THEN 1 ELSE 0 END) / COUNT(buybacks.id)) * 100, 1) as percentage')
+                ->where('ads.user_id', $user->id)
+                ->first();
+
+            $productRating = Review::join('products', 'products.id', '=', 'reviews.reviewable_id')
+                ->where('products.shop_id', function ($query) use ($user) {
+                    return $query->select('id')
+                        ->from('shops')
+                        ->where('shops.user_id', $user->id);
+                })
+                ->where('reviews.reviewable_type', 'App\Models\Product');
+        }else{
+            // Покупатель
+            $successBuybacks = Buyback::selectRaw('ROUND((SUM(CASE WHEN buybacks.status = "completed" THEN 1 ELSE 0 END) / COUNT(buybacks.id)) * 100, 1) as percentage')
+                ->where('buybacks.user_id', $user->id)
+                ->first();
+            $productRating = Review::where('reviews.user_id', $user->id)
+                ->where('reviews.reviewable_type', 'App\Models\Product')
+                ->orWhere('reviews.reviewable_type', 'App\Models\Ad');
+        }
+
+        $userData['success_buybacks'] = round($successBuybacks->percentage, 1); // % успешных выкупов
+        $userData['cashback_paid'] = round($cashbackPaid, 1); // Кол-во выплаченного кешбека
+        $userData['total_reviews'] = round($productRating->count(), 1); // Кол-во оценок товаров
+        $userData['product_rating'] = round($productRating->avg('reviews.rating'), 1); // Рейтинг товаров
+
+        return $userData;
+    }
+
+    public function avatar(AvatarRequest $request)
+    {
+        $user = auth('sanctum')->user();
+        if ($request->hasFile('avatar')) {
+            // Удаление предыдущего аватара, если он существует
+            if ($user->avatar) {
+                $oldFile = storage_path('app/public/' . $user->avatar?->getRawOriginal('src'));
+                if (file_exists($oldFile)) {
+                    unlink($oldFile);
+                }
+                $user->avatar?->delete();
+            }
+
+            $fileSrc = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar()->create([
+                'src' => $fileSrc,
+                'category' => 'avatar'
+            ]);
+
+            return response()->json([
+               'status'  => 'true',
+               'message' => 'Аватар успешно изменен!',
+            ]);
         }
     }
 }
