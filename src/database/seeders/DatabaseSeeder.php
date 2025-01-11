@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Ad;
+use App\Models\Category;
+use App\Models\File;
 use App\Models\Product;
 use App\Models\Promocode;
 use App\Models\Review;
@@ -86,6 +88,57 @@ class DatabaseSeeder extends Seeder
         if (env('APP_ENV') === 'production') {
             $this->command->info('Импорт категорий..');
             Artisan::call('categories:import');
+
+            Category::create([
+                'name'      => 'Школа'
+            ]);
+
+            Category::create([
+                'name'      => 'Без категории',
+            ]);
+
+            $this->command->info('Фото для категорий');
+
+            // Список категорий
+            $categories_list = [
+                'Женщинам',
+                'Обувь',
+                'Детям',
+                'Мужчинам',
+                'Дом',
+                'Красота',
+                'Аксессуары',
+                'Электроника',
+                'Игрушки',
+                'Мебель',
+                'Товары для взрослых',
+                'Продукты',
+                'Цветы',
+                'Бытовая техника',
+                'Зоотовары',
+                'Спорт',
+                'Автотовары',
+                'Школа',
+                'Книги',
+                'Ювелирные изделия',
+                'Для ремонта',
+                'Сад и дача',
+                'Здоровье',
+                'Канцтовары',
+                'Акции',
+                'Культурный код'
+            ];
+
+            $categories = Category::whereIn('name', $categories_list)->get();
+            foreach ($categories as $category) {
+                File::create([
+                    'fileable_type' => 'App\Models\Category',
+                    'fileable_id' => $category->id,
+                    'category' => 'img',
+                    'src' => 'images/categories/'.$category->name.'.png'
+                ]);
+                $this->command->info("Фото для категории: {$category->name}");
+            }
         }
 
         User::create([
