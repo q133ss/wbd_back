@@ -76,14 +76,51 @@ class OrderController extends Controller
 
     public function orderStatusList()
     {
-        return [
-            'cancelled' => 'Отменен',
-            'pending' => 'Ожидание заказа',
-            'awaiting_receipt' => 'Ожидание получения',
-            'on_confirmation' => 'Подтверждение',
-            'cashback_received' => 'Кешбек получен',
-            'completed' => 'Завершено',
-            'archive' => 'Архив'
+        $buybacks = auth('sanctum')->user()->buybacks;
+
+        $statuses = [
+            [
+                'title' => 'Все',
+                'not_read' => $buybacks->flatMap->messages->where('is_read', false)->count(),
+                'slug' => 'all',
+            ],
+            [
+                'title' => 'Отменен',
+                'not_read' => $buybacks->where('status', 'cancelled')->flatMap->messages->where('is_read', false)->count(),
+                'slug' => 'cancelled',
+            ],
+            [
+                'title' => 'Ожидание заказа',
+                'not_read' => $buybacks->where('status', 'pending')->flatMap->messages->where('is_read', false)->count(),
+                'slug' => 'pending',
+            ],
+            [
+                'title' => 'Ожидание получения',
+                'not_read' => $buybacks->where('status', 'awaiting_receipt')->flatMap->messages->where('is_read', false)->count(),
+                'slug' => 'awaiting_receipt',
+            ],
+            [
+                'title' => 'Подтверждение',
+                'not_read' => $buybacks->where('status', 'on_confirmation')->flatMap->messages->where('is_read', false)->count(),
+                'slug' => 'on_confirmation',
+            ],
+            [
+                'title' => 'Кешбек получен',
+                'not_read' => $buybacks->where('status', 'cashback_received')->flatMap->messages->where('is_read', false)->count(),
+                'slug' => 'cashback_received',
+            ],
+            [
+                'title' => 'Завершено',
+                'not_read' => $buybacks->where('status', 'completed')->flatMap->messages->where('is_read', false)->count(),
+                'slug' => 'completed',
+            ],
+            [
+                'title' => 'Архив',
+                'not_read' => $buybacks->where('status', 'archive')->flatMap->messages->where('is_read', false)->count(),
+                'slug' => 'archive',
+            ]
         ];
+
+        return $statuses;
     }
 }
