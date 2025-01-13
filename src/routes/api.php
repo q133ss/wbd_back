@@ -69,6 +69,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'show']);
         Route::post('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'send']);
     });
+    Route::get('/chat/status-list', [\App\Http\Controllers\Buyer\OrderController::class, 'orderStatusList']);
 });
 
 // SSE route

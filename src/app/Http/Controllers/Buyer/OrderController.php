@@ -73,4 +73,17 @@ class OrderController extends Controller
             'message' => 'Сообщение отправлено'
         ], 201);
     }
+
+    public function orderStatusList()
+    {
+        return [
+            'cancelled' => 'Отменен',
+            'pending' => 'Ожидание заказа',
+            'awaiting_receipt' => 'Ожидание получения',
+            'on_confirmation' => 'Подтверждение',
+            'cashback_received' => 'Кешбек получен',
+            'completed' => 'Завершено',
+            'archive' => 'Архив'
+        ];
+    }
 }
