@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AuthController\CompleteRequest;
 use App\Http\Requests\AuthController\LoginRequest;
+use App\Http\Requests\AuthController\ResetCheckCodeRequest;
 use App\Http\Requests\AuthController\ResetRequest;
 use App\Http\Requests\AuthController\ResetSendCodeRequest;
 use App\Http\Requests\AuthController\SendCodeRequest;
@@ -48,7 +49,7 @@ class AuthController extends Controller
 
     public function reset(ResetRequest $request)
     {
-        return $this->authService->reset($request->phone, $request->code);
+        return $this->authService->reset($request->phone, $request->code, $request->password);
     }
 
     public function login(LoginRequest $request)
@@ -67,6 +68,11 @@ class AuthController extends Controller
         $this->authService->sendVerificationCode($request->phone);
 
         return response()->json(['message' => 'Код успешно отправлен']);
+    }
+
+    public function resetVerifyCode(ResetCheckCodeRequest $request)
+    {
+        return $this->authService->resetVerifyCode($request->phone, $request->code);
     }
 
     public function roles()

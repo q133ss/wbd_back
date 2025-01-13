@@ -5,7 +5,7 @@ namespace App\Http\Requests\AuthController;
 use App\Rules\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ResetRequest extends FormRequest
+class ResetCheckCodeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,9 +23,8 @@ class ResetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'max:255', 'exists:phone_verifications,phone_number', new PhoneNumber],
-            'code'  => ['required', 'string'],
-            'password' => ['required', 'string','min:8', 'confirmed']
+            'phone' => ['required', 'max:255', 'exists:users,phone', new PhoneNumber],
+            'code'  => ['required', 'string']
         ];
     }
 
@@ -37,12 +36,7 @@ class ResetRequest extends FormRequest
             'phone.exists'   => 'Пользователь с таким телефоном не найден',
 
             'code.required' => 'Укажите код',
-            'code.string'   => 'Код должен быть строкой',
-
-            'password.required' => 'Укажите пароль',
-            'password.string'   => 'Пароль должен быть строкой',
-            'password.min'      => 'Пароль должен быть не менее 8 символов',
-            'password.confirmed' => 'Пароли не совпадают'
+            'code.string'   => 'Код должен быть строкой'
         ];
     }
 }

@@ -7,6 +7,7 @@ Route::middleware([GuestOnly::class])->group(function () {
     Route::post('register/send-code', [\App\Http\Controllers\AuthController::class, 'sendCode']);
     Route::post('register/verify-code', [\App\Http\Controllers\AuthController::class, 'verifyCode']);
     Route::post('password/reset/send-code', [\App\Http\Controllers\AuthController::class, 'resetSendCode']);
+    Route::post('password/reset/check-code', [\App\Http\Controllers\AuthController::class, 'resetVerifyCode']);
     Route::post('password/reset', [\App\Http\Controllers\AuthController::class, 'reset']);
     Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
 });
@@ -62,8 +63,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/remove-from-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'remove']);
 
     Route::prefix('buyer')->group(function () {
-        // TODO https://www.freecodecamp.org/news/laravel-reverb-realtime-chat-app/
-        // TODO сделать npm project и проверить!
+        // TODO переделать под PUSHER
         Route::post('/create-order/{ad_id}', [\App\Http\Controllers\Buyer\OrderController::class, 'store']);
         Route::get('/orders', [\App\Http\Controllers\Buyer\OrderController::class, 'index']);
         Route::get('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'show']);

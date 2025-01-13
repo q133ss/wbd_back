@@ -31,19 +31,6 @@ services:
     depends_on:
       - php
 
-  wbd_websocket:
-    build:
-      context: .
-      dockerfile: ./docker/websocket/Dockerfile
-    container_name: wbd_websocket
-    command: php /var/www/html/websocket/server.php start
-    ports:
-      - "8088:8088"  # WebSocket порт
-    networks:
-      - wbd_network
-    depends_on:
-      - php
-
   # MariaDB контейнер
   mariadb:
     image: mariadb:10.11

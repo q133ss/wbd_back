@@ -83,21 +83,34 @@ class AuthService
     /**
      * Восстановление пароля
      */
-    public function reset(string $phone, string $code): JsonResponse
+    public function reset(string $phone, string $code, string $password): JsonResponse
     {
         $verification = $this->checkCode($phone, $code);
         if ($verification->exists()) {
             $verification->delete();
             $user     = User::where('phone', $phone)->first();
-            $password = Str::random(8);
             $update   = $user->update(['password' => Hash::make($password)]);
 
             return Response()->json([
-                'message'  => 'Пароль успешно сброшен',
-                'password' => $password,
+                'message'  => 'Пароль успешно сброшен'
             ]);
         } else {
             return Response()->json(['message' => 'Неверный код'], 401);
         }
+    }
+
+    public function resetVerifyCode(string $phone, string $code)
+    {
+        if($this->checkCode($phone, $code)->exists()){
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Код верный'
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Неверный код'
+        ], 400);
     }
 }
