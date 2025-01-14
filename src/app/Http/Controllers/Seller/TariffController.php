@@ -28,4 +28,9 @@ class TariffController extends Controller
             'tariff'  => $tariff,
         ]);
     }
+
+    public function detail(string $id)
+    {
+        return Tariff::findOrFail($id);
+    }
 }

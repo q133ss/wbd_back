@@ -50,7 +50,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/ads/stop', [\App\Http\Controllers\Seller\AdsController::class, 'stop']);
         Route::post('/ads/archive', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
         Route::post('/ads/duplicate', [\App\Http\Controllers\Seller\AdsController::class, 'duplicate']);
-        Route::get('/tariff', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
+        Route::get('/tariff/list', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
+        Route::get('/tariff/get-by-id/{id}', [\App\Http\Controllers\Seller\TariffController::class, 'detail']);
         Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
         Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
         Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
