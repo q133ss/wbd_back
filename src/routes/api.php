@@ -43,6 +43,7 @@ Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::clas
 
 // Профиль продавца
 Route::get('/seller/{id}', [\App\Http\Controllers\Front\SellerController::class, 'show']);
+Route::get('/buyer/{id}', [\App\Http\Controllers\Front\BuyerController::class, 'show']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);

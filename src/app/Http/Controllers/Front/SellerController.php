@@ -7,6 +7,7 @@ use App\Models\Buyback;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SellerController extends Controller
@@ -48,7 +49,18 @@ class SellerController extends Controller
         $userData['total_reviews'] = round($productRating->count(), 1); // Кол-во оценок товаров
         $userData['products'] = $user->shop?->products; // Товары
         $userData['reviews_count'] = $user->reviews?->count(); // Кол-во отзывов
-        $userData['reviews'] = $user->reviews; // Отзывы
+        // Получаем список адс и по ним отзывы
+        $reviews = [];
+        foreach ($user->ads as $ad) {
+            foreach ($ad->reviews as $review) {
+                $reviewArray = $review->toArray();
+                // Форматируем дату
+                $reviewArray['formatted_created_at'] = Carbon::parse($review['created_at'])->translatedFormat('j F, Y');
+                $reviews[] = $reviewArray;
+
+            }
+        }
+        $userData['reviews'] = $reviews; // Отзывы
         return $userData;
     }
 }

@@ -15,16 +15,22 @@ class Review extends Model
         return $this->hasOne(User::class, 'id', 'user_id');
     }
 
+    public function ads()
+    {
+        return $this->hasOne(Ad::class, 'id', 'ads_id');
+    }
+
     public function toArray()
     {
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
             'ads_id' => $this->ads_id,
+            'ads_name' => $this->ads?->name,
             'user_name' => $this->user ? $this->user?->name : null,
             'rating' => $this->rating,
             'text' => $this->text,
-            'created_at' => $this->created_at ? Carbon::parse($this->created_at)->translatedFormat('j F, Y') : null,
+            'created_at' => $this->created_at,
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s')
         ];
     }
