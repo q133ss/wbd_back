@@ -27,7 +27,7 @@ class UpdateRequest extends FormRequest
             'name' => 'required|string|max:255',
             'phone' => ['required', 'string', 'max:255', 'exists:users,phone', new PhoneNumber],
             'email' => 'required|email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'nullable|string|min:8|confirmed',
         ];
     }
 

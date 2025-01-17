@@ -3,6 +3,24 @@
 use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('seller')->group(function () {
+        Route::apiResource('products', \App\Http\Controllers\Seller\ProductController::class);
+        Route::post('/product/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
+        Route::post('/product/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
+        Route::post('/product/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
+        Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
+        Route::post('/ads/stop', [\App\Http\Controllers\Seller\AdsController::class, 'stop']);
+        Route::post('/ads/archive', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
+        Route::post('/ads/duplicate', [\App\Http\Controllers\Seller\AdsController::class, 'duplicate']);
+        Route::get('/tariff/list', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
+        Route::get('/tariff/get-by-id/{id}', [\App\Http\Controllers\Seller\TariffController::class, 'detail']);
+        Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
+        Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
+        Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
+    });
+});
+
 Route::middleware([GuestOnly::class])->group(function () {
     Route::post('register/send-code', [\App\Http\Controllers\AuthController::class, 'sendCode']);
     Route::post('register/verify-code', [\App\Http\Controllers\AuthController::class, 'verifyCode']);
@@ -40,22 +58,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);
     Route::post('/withdraw/{id}', [\App\Http\Controllers\ProfileController::class, 'withdrawCancel']);
     Route::get('/profile/statistic', [\App\Http\Controllers\ProfileController::class, 'statistic']);
-
-    Route::prefix('seller')->group(function () {
-        Route::apiResource('product', \App\Http\Controllers\Seller\ProductController::class)->except('store');
-        Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
-        Route::post('/products/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
-        Route::post('/products/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
-        Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
-        Route::post('/ads/stop', [\App\Http\Controllers\Seller\AdsController::class, 'stop']);
-        Route::post('/ads/archive', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
-        Route::post('/ads/duplicate', [\App\Http\Controllers\Seller\AdsController::class, 'duplicate']);
-        Route::get('/tariff/list', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
-        Route::get('/tariff/get-by-id/{id}', [\App\Http\Controllers\Seller\TariffController::class, 'detail']);
-        Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
-        Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
-        Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
-    });
 
     // Корзина и избранное
     Route::post('/add-to-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'add']);

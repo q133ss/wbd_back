@@ -52,6 +52,11 @@ class Product extends Model
         return $this->hasMany(Ad::class, 'product_id', 'id');
     }
 
+    public function activeAd(): HasOne
+    {
+        return $this->hasOne(Ad::class, 'product_id', 'id')->where('status', true);
+    }
+
     public function shop(): HasOne
     {
         return $this->hasOne(Shop::class, 'id', 'shop_id');

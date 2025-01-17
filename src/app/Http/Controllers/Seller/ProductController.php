@@ -18,35 +18,37 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $ads = auth('sanctum')->user()->shop?->products()?->with('ads')->withFilter($request)->paginate();
+        $ads = auth('sanctum')->user()->shop?->products()?->with('activeAd')->withFilter($request)->paginate();
 
-        $ads->getCollection()->transform(function ($product) {
-            // Трансформируем объявления внутри каждого товара
-            $product->ads->transform(function ($ad) {
-                // Добавляем количество завершённых выкупов
-                $ad->completed_buybacks_count = $ad->buybacks->where('status', 'completed')->count();
+        $ads->getCollection()->transform(function ($ad) {
+            $activeAd = $ad->activeAd;
+            $allRedemptionCount = $activeAd->redemption_count; // Кол-во выкупов, которое задал продавец
+            $completedBuybacksCount = $activeAd?->buybacks()->where('buybacks.status', 'completed')->count();
 
-                unset($ad->buybacks); // Убираем buybacks, если они больше не нужны
+            $conversion = $ad->views > 0
+                ? round(($ad->completed_buybacks_count / $ad->views) * 100, 2)
+                : 0;
 
-                // Добавляем расчёты
-                $ad->balance = '???'; // Пример: доработать расчёт
-                $ad->in_deal = '???'; // Пример: доработать расчёт
-                $ad->cr      = ceil($ad->completed_buybacks_count / max($ad->redemption_count ?? 1, 1)); // CR с защитой от деления на 0
+            // Добавляем дополнительные поля
+            $ad->buybacks_progress = $completedBuybacksCount." шт./ ". $allRedemptionCount ." шт."; // 15 шт. / 25 шт.
+            $ad->completed_buybacks_count = $completedBuybacksCount; // кол-во выкупов
 
-                return $ad;
-            });
-            $product->ads_count = $product->ads->count();
+            $ad->conversion = $conversion; // Конверсия
+            $ad->views = $activeAd->views_count; // Кол-во просмотров
+            $ad->ads_count = $ad->ads?->count(); // Кол-во объявлений
 
-            return $product;
+            return $ad;
         });
 
+        // Выкупов 25 из 50 || completed_buybacks_count
+        // todo потом перенести их на 1 ступень выше в товар сам!
         return $ads;
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function store(Request $request)
     {
         // update cachce
     }

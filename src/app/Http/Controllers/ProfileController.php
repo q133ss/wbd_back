@@ -29,7 +29,9 @@ class ProfileController extends Controller
         try {
             $user = auth('sanctum')->user();
             $data = $request->validated();
-            $data['password'] = Hash::make($request->password);
+            if($request->has('password')){
+                $data['password'] = Hash::make($request->password);
+            }
             $user->update($data);
 
             if ($request->hasFile('avatar')) {
@@ -76,10 +78,12 @@ class ProfileController extends Controller
         $user = auth('sanctum')->user();
         $accessBalance = $user->balance;
         $role = auth('sanctum')->user()->role;
+        $redemption_count = $user->redemption_count;
 
         $data = [
             'accessBalance' => $accessBalance,
-            'onConfirmation' => 0 // На подтверждении, либо заморожено
+            'onConfirmation' => 0, // На подтверждении, либо заморожено
+            'redemption_count' => $redemption_count
         ];
 
         if($role->slug == 'buyer')

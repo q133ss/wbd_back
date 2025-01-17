@@ -207,10 +207,7 @@ class WBService extends BaseService
     {
         try {
             $prepareData = $this->prepareProductData($product_id);
-            $response    = $this->formatResponse('true', $prepareData, 200);
-
-            return $this->sendResponse($response);
-
+            return response()->json($prepareData);
         } catch (\Exception $e) {
             $response = $this->formatResponse('false', 'Ошибка получения товара', 500);
 

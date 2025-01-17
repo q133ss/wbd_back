@@ -24,7 +24,10 @@ class CategoryController extends Controller
     }
     public function index()
     {
-        $categories = Category::with('img')->where('parent_id', null)->get();
+        $categories = Category::with('img')
+            ->where('parent_id', null)
+            ->whereHas('img')
+            ->get();
         $categoryProductCounts = $this->getProductsCount($categories);
 
         return response()->json($categoryProductCounts);
