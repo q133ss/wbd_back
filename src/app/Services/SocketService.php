@@ -6,6 +6,7 @@ use App\Jobs\SendMessage;
 use App\Models\Buyback;
 use App\Models\Message;
 use App\Models\Notification;
+use Pusher\Pusher;
 use Workerman\Worker;
 use Workerman\Connection\AsyncTcpConnection;
 
@@ -34,7 +35,16 @@ class SocketService
             ],
         ];
 
-        SendMessage::dispatch($data);
+        $pusher = new Pusher(
+            '713314410e2c9ff64942',
+            'a2943488eeda4502207e',
+            '1591884',
+            [
+                'cluster' => 'eu',
+                'useTLS' => true,
+            ]
+        );
+        $pusher->trigger('chat-' . $buyback->id, 'MessageSent', $data);
 
         // Отправка уведомления
         if ($sendNotification) {
