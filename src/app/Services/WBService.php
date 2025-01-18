@@ -72,18 +72,44 @@ class WBService extends BaseService
     }
 
     /**
-     * Принимает в себя товар из АПИ ВБ
-     * Возвращает массив с фото
+     * Генерирует URL-адреса изображений для товара Wildberries.
+     *
+     * @param array $product Массив с ключами 'wb_id' (артикул товара) и 'pics' (количество изображений).
+     * @return array Массив URL-адресов изображений.
      */
-    private function generateImageUrls($product): array
+    private function generateImageUrls(array $product): array
     {
-        $images    = [];
+        $images = [];
+        $wbId = (int) $product['wb_id'];
         $picsCount = $product['pics'] ?? 0;
-        $shortId   = floor($product['wb_id'] / 100000);
-        $basket    = floor($shortId / 144);
 
+        $vol = (int) floor($wbId / 100000); // Считаем vol
+        $part = (int) floor($wbId / 1000); // Считаем part
+        $host = ''; // Инициализация host
+
+        // Определяем host на основе vol
+        if ($vol >= 0 && $vol <= 143) $host = '01';
+        elseif ($vol >= 144 && $vol <= 287) $host = '02';
+        elseif ($vol >= 288 && $vol <= 431) $host = '03';
+        elseif ($vol >= 432 && $vol <= 719) $host = '04';
+        elseif ($vol >= 720 && $vol <= 1007) $host = '05';
+        elseif ($vol >= 1008 && $vol <= 1061) $host = '06';
+        elseif ($vol >= 1062 && $vol <= 1115) $host = '07';
+        elseif ($vol >= 1116 && $vol <= 1169) $host = '08';
+        elseif ($vol >= 1170 && $vol <= 1313) $host = '09';
+        elseif ($vol >= 1314 && $vol <= 1601) $host = '10';
+        elseif ($vol >= 1602 && $vol <= 1655) $host = '11';
+        elseif ($vol >= 1656 && $vol <= 1919) $host = '12';
+        elseif ($vol >= 1920 && $vol <= 2045) $host = '13';
+        elseif ($vol >= 2046 && $vol <= 2189) $host = '14';
+        elseif ($vol >= 2190 && $vol <= 2405) $host = '15';
+        elseif ($vol >= 2406 && $vol <= 2621) $host = '16';
+        elseif ($vol >= 2622 && $vol <= 2837) $host = '17';
+        else $host = '18';
+
+        // Генерируем ссылки на изображения
         for ($i = 1; $i <= $picsCount; $i++) {
-            $images[] = "https://basket-{$basket}.wbbasket.ru/vol{$shortId}/part".floor($product['id'] / 1000)."/{$product['id']}/images/big/{$i}.webp";
+            $images[] = "https://basket-{$host}.wbbasket.ru/vol{$vol}/part{$part}/{$wbId}/images/big/{$i}.webp";
         }
 
         return $images;
