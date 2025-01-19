@@ -36,11 +36,11 @@ class SocketService
         ];
 
         $pusher = new Pusher(
-            '713314410e2c9ff64942',
-            'a2943488eeda4502207e',
-            '1591884',
+            config('services.pusher.key'),
+            config('services.pusher.secret'),
+            config('services.pusher.id'),
             [
-                'cluster' => 'eu',
+                'cluster' => config('services.pusher.cluster'),
                 'useTLS' => true,
             ]
         );
