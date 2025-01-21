@@ -70,7 +70,7 @@ class OrderController extends Controller
         (new SocketService())->send($message, $buyback);
         return response()->json([
             'status' => 'true',
-            'message' => 'Сообщение отправлено'
+            'message' => $message
         ], 201);
     }
 

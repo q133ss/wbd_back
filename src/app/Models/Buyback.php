@@ -32,6 +32,16 @@ class Buyback extends Model
                 function (Builder $query, $status) {
                     return $query->where('buybacks.status', $status);
                 }
+            )->when(
+                $request->query('search'),
+                function (Builder $query, $q) {
+                    return $query->whereAny([
+                        'buybacks.id',
+                        'buybacks.status',
+                        'buybacks.price',
+                        'buybacks.created_at'
+                    ], 'LIKE', '%'.$q.'%');
+                }
             );
     }
 }

@@ -31,7 +31,7 @@ class Review extends Model
             'rating' => $this->rating,
             'text' => $this->text,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at->format('Y-m-d H:i:s')
+            'updated_at' => $this->updated_at
         ];
     }
 }

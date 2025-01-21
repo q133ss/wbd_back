@@ -22,6 +22,7 @@ class CartFavoriteController extends Controller
             // Использование Redis для временного хранения данных корзины
             $cartKey = "cart:$userId";
             Redis::hIncrBy($cartKey, $productId, $quantity);
+
             return response()->json([
                 'message' => 'Товар добавлен в корзину!',
                 'ad' => $product
@@ -30,6 +31,8 @@ class CartFavoriteController extends Controller
             // Использование Redis для временного хранения данных избранного
             $favoriteKey = "favorite:$userId";
             Redis::sAdd($favoriteKey, $productId);
+            $product->in_favorite = $product->in_favorite + 1;
+            $product->save();
             return response()->json([
                 'message' => 'Товар добавлен в избранное',
                 'ad' => $product

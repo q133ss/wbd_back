@@ -19,8 +19,7 @@ class OrderService extends BaseService
         $ad = Ad::findOrFail($ad_id);
         if($ad->user_id == auth('sanctum')->id())
         {
-            // TODO
-            //abort(403, 'Вы не можете купить товар у самого себя');
+            abort(403, 'Вы не можете купить товар у самого себя');
         }
         try {
             $buyback = Buyback::create([
@@ -45,7 +44,7 @@ class OrderService extends BaseService
             // Таймер
             OrderPendingCheck::dispatch($buyback->id)->delay(Carbon::now()->addMinutes(30));
             DB::commit();
-            $response = $this->formatResponse('true', 'Заказ создан', '201');
+            $response = $this->formatResponse('true', $buyback, '201');
             return $this->sendResponse($response);
         } catch (\Exception $e) {
             DB::rollBack();

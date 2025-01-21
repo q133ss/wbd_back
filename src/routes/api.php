@@ -41,10 +41,6 @@ Route::get('/product/related/{id}', [\App\Http\Controllers\Front\ProductControll
 Route::get('/category', [\App\Http\Controllers\CategoryController::class, 'index']);
 Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::class, 'indexSubCategory']);
 
-// Профиль продавца
-Route::get('/seller/{id}', [\App\Http\Controllers\Front\SellerController::class, 'show']);
-Route::get('/buyer/{id}', [\App\Http\Controllers\Front\BuyerController::class, 'show']);
-
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
@@ -75,6 +71,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/chat/status-list', [\App\Http\Controllers\Buyer\OrderController::class, 'orderStatusList']);
     Route::post('/chat/{buyback_id}/send', [\App\Http\Controllers\ChatController::class, 'send']);
 });
+
+// Профиль продавца
+Route::get('/seller/{id}', [\App\Http\Controllers\Front\SellerController::class, 'show']);
+Route::get('/buyer/{id}', [\App\Http\Controllers\Front\BuyerController::class, 'show']);
 
 // SSE route
 Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 'stream']);

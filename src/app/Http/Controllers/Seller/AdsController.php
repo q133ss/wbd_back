@@ -29,12 +29,13 @@ class AdsController extends Controller
             ->paginate();
 
         $ads->getCollection()->transform(function ($ad) {
-            $ad->completed_buybacks_count = $ad->buybacks_count; // Кол-во завершённых выкупов
+            $ad->completed_buybacks_count = $ad->buybacks()->where('status', 'completed')->count();
             unset($ad->buybacks_count);
-            $ad->balance = '???';
-            $ad->in_deal = '???'; // В сделках
+            $inDeal = Buyback::where('ads_id', $ad->id)->sum('price');
+            $ad->in_deal = $inDeal; // В сделках
             $cr          = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1)); // Защита от деления на 0
             $ad->cr      = $cr;
+            $ad->format_buybacks = $ad->completed_buybacks_count . ' шт. / '.$ad->redemption_count.' шт.';
 
             return $ad;
         });

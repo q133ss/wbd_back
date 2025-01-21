@@ -7,8 +7,11 @@ use Illuminate\Http\Request;
 
 class BuybackController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return auth('sanctum')->user()->buybacks;
+        $user = auth('sanctum')->user();
+        $buybacks = $user->buybacks()->withFilter($request)->get();
+
+        return response()->json($buybacks);
     }
 }

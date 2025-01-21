@@ -36,21 +36,25 @@ class ApplyRequest extends FormRequest
                         $fail('Указан неверный промокод');
                     }
 
-                    $promocode = $promocode->first();
+                    if($promocode->exists()){
+                        
+                        $promocode = $promocode->first();
 
-                    $currentDate = now();
-                    if ($currentDate < $promocode->start_date || $currentDate > $promocode->end_date) {
-                        $fail('Промокод неактивен');
-                    }
+                        $currentDate = now();
+                        if ($currentDate < $promocode->start_date || $currentDate > $promocode->end_date) {
+                            $fail('Промокод неактивен');
+                        }
 
-                    // Проверьте лимиты использования
-                    if ($promocode->users()->count() >= $promocode->max_usage) {
-                        $fail('Максимальный лимит использований исчерпан');
-                    }
+                        // Проверьте лимиты использования
+                        if ($promocode->users()->count() >= $promocode->max_usage) {
+                            $fail('Максимальный лимит использований исчерпан');
+                        }
 
-                    $used = DB::table('promocode_user')->where('user_id', auth('sanctum')->id())->exists();
-                    if ($used) {
-                        $fail('Вы уже использовали этот промокод');
+                        $used = DB::table('promocode_user')->where('user_id', auth('sanctum')->id())->exists();
+                        if ($used) {
+                            $fail('Вы уже использовали этот промокод');
+                        }
+
                     }
                 }
             ]
