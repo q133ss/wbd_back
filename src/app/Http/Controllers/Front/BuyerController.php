@@ -12,6 +12,12 @@ class BuyerController extends Controller
 {
     public function show(string $id)
     {
-        return User::findOrFail($id);
+        $user = User::findOrFail($id);
+        if($user->isSeller()){
+            abort(404);
+        }
+        $userArr = $user->toArray();
+        $userArr['reviews'] = Review::where('user_id', $user->id)->get();
+        return $userArr;
     }
 }

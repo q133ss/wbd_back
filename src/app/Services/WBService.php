@@ -142,7 +142,7 @@ class WBService extends BaseService
 
         return [
             'wb_id'              => $product['id'],
-            'title'              => $product['name'],
+            'name'               => $product['name'],
             'price'              => $product['salePriceU'] / 100,
             'brand'              => $product['brand']      ?? null,
             'discount'           => $product['sale']       ?? 0,

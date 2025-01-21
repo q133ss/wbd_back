@@ -67,7 +67,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/remove-from-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'remove']);
 
     Route::prefix('buyer')->group(function () {
-        // TODO переделать под PUSHER
         Route::post('/create-order/{ad_id}', [\App\Http\Controllers\Buyer\OrderController::class, 'store']);
         Route::get('/orders', [\App\Http\Controllers\Buyer\OrderController::class, 'index']);
         Route::get('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'show']);
@@ -82,12 +81,12 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 
 
 //todo НА СЕГОДНЯ!!!!
+// SSE
+// * Чат + отзыв о продавце!!!!!!!! сегодня!
 /*
  * todo У НАС ЕСТЬ ЗАМОРОЖЕННЫЙ БАЛАНС, юзеру деньги за выкуп даем от туда!!!
- * ФОТКИ ТОВАРОВ ИЗ ВБ НЕ РАБОТАЮТ!!!!
  * // БУДЕМ СОЗДАВАТЬ ДЛЯ ЭТОГО ТРАНЗАКЦИИ, что было списание с замороженного баланса!
  * сделать счетчик просмотров (через мидлвар)
- * Чат + отзыв о продавце
  * Платежка
  * Бот
  */
