@@ -9,7 +9,7 @@ class BuybackController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth('sanctum')->user();
+        $user     = auth('sanctum')->user();
         $buybacks = $user->buybacks()->withFilter($request)->get();
 
         return response()->json($buybacks);

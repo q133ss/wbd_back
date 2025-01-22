@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -14,14 +13,16 @@ class CategoryController extends Controller
         // Проходимся по всем родительским категориям
         foreach ($categories as $category) {
             $categoryProductCounts[] = [
-                'category_id' => $category->id,
+                'category_id'   => $category->id,
                 'category_name' => $category->name,
                 'product_count' => $this->countProductsInCategory($category),
-                'img' => $category->img
+                'img'           => $category->img,
             ];
         }
+
         return $categoryProductCounts;
     }
+
     public function index()
     {
         $categories = Category::with('img')
@@ -46,8 +47,9 @@ class CategoryController extends Controller
 
     public function indexSubCategory(string $id)
     {
-        $categories = Category::findOrFail($id)->children;
+        $categories            = Category::findOrFail($id)->children;
         $categoryProductCounts = $this->getProductsCount($categories);
+
         return response()->json($categoryProductCounts);
     }
 }

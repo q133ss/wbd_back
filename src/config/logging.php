@@ -129,8 +129,8 @@ return [
 
         'paylog' => [
             'driver' => 'single',
-            'path' => storage_path('logs/pay.log'),
-            'level' => 'info',
+            'path'   => storage_path('logs/pay.log'),
+            'level'  => 'info',
         ],
     ],
 

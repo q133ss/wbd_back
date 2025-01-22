@@ -28,16 +28,14 @@ class ApplyRequest extends FormRequest
             'promocode' => [
                 'required',
                 'string',
-                function(string $attribute, mixed $value, Closure $fail): void
-                {
+                function (string $attribute, mixed $value, Closure $fail): void {
                     $promocode = Promocode::where('promocode', $value);
-                    if(!$promocode->exists())
-                    {
+                    if (! $promocode->exists()) {
                         $fail('Указан неверный промокод');
                     }
 
-                    if($promocode->exists()){
-                        
+                    if ($promocode->exists()) {
+
                         $promocode = $promocode->first();
 
                         $currentDate = now();
@@ -56,8 +54,8 @@ class ApplyRequest extends FormRequest
                         }
 
                     }
-                }
-            ]
+                },
+            ],
         ];
     }
 
@@ -65,7 +63,7 @@ class ApplyRequest extends FormRequest
     {
         return [
             'promocode.required' => 'Укажите промокод',
-            'promocode.string' => 'Промокод должен быть строкой'
+            'promocode.string'   => 'Промокод должен быть строкой',
         ];
     }
 }

@@ -28,19 +28,19 @@ class ReviewJob implements ShouldQueue
      */
     public function handle(): void
     {
-        if($this->buyback->status != 'cashback_received'
+        if ($this->buyback->status    != 'cashback_received'
             && $this->buyback->status != 'cancelled'
-            && $this->buyback->status != 'completed'){
-            try{
+            && $this->buyback->status != 'completed') {
+            try {
                 DB::beginTransaction();
                 // перечисляем деньги покупателю
-                (new BalanceService())->buybackPayment($this->buyback);
+                (new BalanceService)->buybackPayment($this->buyback);
                 $this->buyback->update(['status' => 'cashback_received']);
                 // Уведомление
-                (new NotificationService())->send($this->buyback->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически подтвержден, прошло 72 часа');
-                (new NotificationService())->send($this->buyback->ad?->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически подтвержден, прошло 72 часа');
+                (new NotificationService)->send($this->buyback->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически подтвержден, прошло 72 часа');
+                (new NotificationService)->send($this->buyback->ad?->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически подтвержден, прошло 72 часа');
                 DB::commit();
-            }catch(\Exception $e){
+            } catch (\Exception $e) {
                 DB::rollBack();
                 \Log::error($e);
             }

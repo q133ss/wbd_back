@@ -22,9 +22,9 @@ class SendRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'text' => 'required|string',
-            'files' => 'nullable|array',
-            'files.*' => 'image|mimes:jpeg,png,jpg,gif|max:51200'
+            'text'    => 'required|string',
+            'files'   => 'nullable|array',
+            'files.*' => 'image|mimes:jpeg,png,jpg,gif|max:51200',
         ];
     }
 
@@ -32,11 +32,11 @@ class SendRequest extends FormRequest
     {
         return [
             'text.required' => 'Введите сообщение',
-            'text.string' => 'Сообщение должно быть строкой',
-            'files.array' => 'Файлы должны быть массивом',
+            'text.string'   => 'Сообщение должно быть строкой',
+            'files.array'   => 'Файлы должны быть массивом',
             'files.*.image' => 'Файл должен быть изображением',
             'files.*.mimes' => 'Файл должен быть изображением в форматах: jpeg, png, jpg, gif',
-            'files.*.max' => 'Размер файла не должен превышать 50 МБ'
+            'files.*.max'   => 'Размер файла не должен превышать 50 МБ',
         ];
     }
 }

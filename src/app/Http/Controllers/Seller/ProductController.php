@@ -21,8 +21,8 @@ class ProductController extends Controller
         $ads = auth('sanctum')->user()->shop?->products()?->with('activeAd')->withFilter($request)->paginate();
 
         $ads->getCollection()->transform(function ($ad) {
-            $activeAd = $ad->activeAd;
-            $allRedemptionCount = $activeAd->redemption_count; // Кол-во выкупов, которое задал продавец
+            $activeAd               = $ad->activeAd;
+            $allRedemptionCount     = $activeAd->redemption_count; // Кол-во выкупов, которое задал продавец
             $completedBuybacksCount = $activeAd?->buybacks()->where('buybacks.status', 'completed')->count();
 
             $conversion = $ad->views > 0
@@ -30,12 +30,12 @@ class ProductController extends Controller
                 : 0;
 
             // Добавляем дополнительные поля
-            $ad->buybacks_progress = $completedBuybacksCount." шт./ ". $allRedemptionCount ." шт."; // 15 шт. / 25 шт.
+            $ad->buybacks_progress        = $completedBuybacksCount.' шт./ '.$allRedemptionCount.' шт.'; // 15 шт. / 25 шт.
             $ad->completed_buybacks_count = $completedBuybacksCount; // кол-во выкупов
 
             $ad->conversion = $conversion; // Конверсия
-            $ad->views = $activeAd->views_count; // Кол-во просмотров
-            $ad->ads_count = $ad->ads?->count(); // Кол-во объявлений
+            $ad->views      = $activeAd->views_count; // Кол-во просмотров
+            $ad->ads_count  = $ad->ads?->count(); // Кол-во объявлений
 
             return $ad;
         });
@@ -132,23 +132,23 @@ class ProductController extends Controller
                 ]
             );
 
-            if($totalBalance != 0) {
+            if ($totalBalance != 0) {
                 Transaction::create([
-                    'amount' => $totalBalance,
+                    'amount'           => $totalBalance,
                     'transaction_type' => 'deposit',
-                    'currency_type' => 'cash',
-                    'description' => 'Возврат средств при архивации: ' . $totalBalance . ' ₽',
-                    'user_id' => $user->id,
+                    'currency_type'    => 'cash',
+                    'description'      => 'Возврат средств при архивации: '.$totalBalance.' ₽',
+                    'user_id'          => $user->id,
                 ]);
             }
 
-            if($totalRedemptionCount != 0) {
+            if ($totalRedemptionCount != 0) {
                 Transaction::create([
-                    'amount' => $totalRedemptionCount,
+                    'amount'           => $totalRedemptionCount,
                     'transaction_type' => 'deposit',
-                    'currency_type' => 'buyback',
-                    'description' => 'Возврат выкупов при архивации: ' . $totalRedemptionCount . ' выкупов',
-                    'user_id' => $user->id,
+                    'currency_type'    => 'buyback',
+                    'description'      => 'Возврат выкупов при архивации: '.$totalRedemptionCount.' выкупов',
+                    'user_id'          => $user->id,
                 ]);
             }
 

@@ -19,11 +19,11 @@ return new class extends Migration
                 'cancelled',       // Отменен
                 'order_expired',   // Покупатель не успел сделать заказ в установленный срок
                 'pending',         // Ожидание заказа
-                'awaiting_receipt',// Ожидание получения
+                'awaiting_receipt', // Ожидание получения
                 'on_confirmation', // Подтверждение
                 'cashback_received', // Кешбек получен
                 'completed',       // Завершено
-                'archive'          // Архив
+                'archive',          // Архив
             ])->default('pending');
             $table->double('price');
             $table->boolean('is_archived')->default(false);

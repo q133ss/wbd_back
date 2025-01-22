@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\Buyback;
-use App\Services\BalanceService;
 use App\Services\NotificationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -28,13 +27,13 @@ class DeliveryJob implements ShouldQueue
     public function handle(): void
     {
         // если он не подтвержден!
-        if($this->buyback->status != 'on_confirmation'
+        if ($this->buyback->status    != 'on_confirmation'
             && $this->buyback->status != 'cancelled'
-            && $this->buyback->status != 'completed'){
+            && $this->buyback->status != 'completed') {
             $this->buyback->update(['status' => 'cancelled']);
             // Уведомление
-            (new NotificationService())->send($this->buyback->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически отменен. Вы не выполнили условия');
-            (new NotificationService())->send($this->buyback->ad?->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически отменен. Покупатель не выполнили условия');
+            (new NotificationService)->send($this->buyback->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически отменен. Вы не выполнили условия');
+            (new NotificationService)->send($this->buyback->ad?->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически отменен. Покупатель не выполнили условия');
         }
     }
 }

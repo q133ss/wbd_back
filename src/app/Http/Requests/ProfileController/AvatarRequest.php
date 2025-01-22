@@ -30,8 +30,8 @@ class AvatarRequest extends FormRequest
     {
         return [
             'avatar.required' => 'Выберите файл',
-            'avatar.file' => 'Аватар должен быть файлом.',
-            'avatar.mimes' => 'Аватар должен быть файлом одного из следующих типов: jpeg, png, jpg, gif, svg.'
+            'avatar.file'     => 'Аватар должен быть файлом.',
+            'avatar.mimes'    => 'Аватар должен быть файлом одного из следующих типов: jpeg, png, jpg, gif, svg.',
         ];
     }
 }

@@ -11,7 +11,8 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $adsQuery = Ad::withFilter($request)->withSorting($request);
-        $ads = $adsQuery->paginate(18);
+        $ads      = $adsQuery->paginate(18);
+
         return response()->json($ads);
     }
 
@@ -23,18 +24,18 @@ class ProductController extends Controller
     public function related(string $id)
     {
         $ad = Ad::findOrFail($id);
-        if($ad->product?->category_id == null)
-        {
+        if ($ad->product?->category_id == null) {
             $related = Ad::where('id', '!=', $id)->orderBy('created_at', 'desc')->take(6)->get();
-        }else{
-            $related = Ad::whereHas('product', function($query) use ($ad) {
+        } else {
+            $related = Ad::whereHas('product', function ($query) use ($ad) {
                 $query->where('category_id', $ad->product?->category_id);
             })
-            ->where('id', '!=', $id)
-            ->inRandomOrder()
-            ->take(6)
-            ->get();
+                ->where('id', '!=', $id)
+                ->inRandomOrder()
+                ->take(6)
+                ->get();
         }
+
         return response()->json($related);
     }
 }

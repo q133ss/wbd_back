@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Workerman\Worker;
 
 class StartWebSocketServer extends Command
 {
@@ -26,8 +25,8 @@ class StartWebSocketServer extends Command
      */
     public function handle()
     {
-        $command = 'php ' . base_path('websocket/server.php') . ' start';
-        $output = shell_exec($command);
-        $this->info("WebSocket server started successfully: \n" . $output);
+        $command = 'php '.base_path('websocket/server.php').' start';
+        $output  = shell_exec($command);
+        $this->info("WebSocket server started successfully: \n".$output);
     }
 }

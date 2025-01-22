@@ -22,21 +22,21 @@ class PhotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'files' => 'required|array',
-            'files.*' => 'image|mimes:jpeg,png,jpg,gif|max:51200',
-            'file_type' => 'required|in:send_photo,review' // Заказ сделан, оставил отзыв
+            'files'     => 'required|array',
+            'files.*'   => 'image|mimes:jpeg,png,jpg,gif|max:51200',
+            'file_type' => 'required|in:send_photo,review', // Заказ сделан, оставил отзыв
         ];
     }
 
     public function messages(): array
     {
         return [
-            'files.required' => 'Загрузите фотографии.',
-            'files.*.image' => 'Файл должен быть изображением.',
-            'files.*.mimes' => 'Файл должен быть изображением в форматах: jpeg, png, jpg, gif.',
-            'files.*.max' => 'Размер файла не должен превышать 50 МБ.',
+            'files.required'     => 'Загрузите фотографии.',
+            'files.*.image'      => 'Файл должен быть изображением.',
+            'files.*.mimes'      => 'Файл должен быть изображением в форматах: jpeg, png, jpg, gif.',
+            'files.*.max'        => 'Размер файла не должен превышать 50 МБ.',
             'file_type.required' => 'Тип файла обязателен.',
-            'file_type.in' => 'Тип файла должен быть одним из следующих: order_created, review.'
+            'file_type.in'       => 'Тип файла должен быть одним из следующих: order_created, review.',
         ];
     }
 }

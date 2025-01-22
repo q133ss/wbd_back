@@ -21,7 +21,7 @@ class Buyback extends Model
 
     public function messages()
     {
-        return $this->hasMany(Message::class, 'buyback_id','id')->orderBy('created_at', 'desc');
+        return $this->hasMany(Message::class, 'buyback_id', 'id')->orderBy('created_at', 'desc');
     }
 
     public function scopeWithFilter($query, $request)
@@ -39,7 +39,7 @@ class Buyback extends Model
                         'buybacks.id',
                         'buybacks.status',
                         'buybacks.price',
-                        'buybacks.created_at'
+                        'buybacks.created_at',
                     ], 'LIKE', '%'.$q.'%');
                 }
             );

@@ -75,8 +75,8 @@ class User extends Authenticatable
     public function getRating()
     {
         $totalRating = 0;
-        $adCount = 0;
-        foreach ($this->ads()->get() as $ad){
+        $adCount     = 0;
+        foreach ($this->ads()->get() as $ad) {
             $totalRating += $ad->getAvgRating();
             $adCount++;
         }
@@ -148,8 +148,6 @@ class User extends Authenticatable
 
     /**
      * Проверяет массив объявлений
-     * @param array $adsIds
-     * @return bool
      */
     public function checkAd(array $adsIds): bool
     {
@@ -173,8 +171,6 @@ class User extends Authenticatable
 
     /**
      * Список выкупов юзера
-     *
-     * @return HasManyThrough
      */
     public function buybacks(): HasManyThrough
     {
@@ -184,7 +180,7 @@ class User extends Authenticatable
                 'ad' => function ($query) {
                     $query->with(['user']);
                 },
-                'user'
+                'user',
             ]);
     }
 
@@ -196,6 +192,7 @@ class User extends Authenticatable
     public function isSeller(): bool
     {
         $seller = Role::where('slug', 'seller')->first();
+
         return $this->role()->is($seller);
     }
 
@@ -211,16 +208,15 @@ class User extends Authenticatable
 
     public function withdraws()
     {
-        return $this->hasMany(Cashout::class,'user_id', 'id');
+        return $this->hasMany(Cashout::class, 'user_id', 'id');
     }
 
     public function checkBuyback(Buyback $buyback): void
     {
-        $adsCheck = $this->checkAd([$buyback->ads_id]);
+        $adsCheck  = $this->checkAd([$buyback->ads_id]);
         $userCheck = $this->id == $buyback->user_id;
 
-        if(!$adsCheck && !$userCheck)
-        {
+        if (! $adsCheck && ! $userCheck) {
             abort(403, 'У вас нет прав для просмотра');
         }
     }

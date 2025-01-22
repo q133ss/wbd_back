@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Review extends Model
 {
     protected $guarded = [];
+
     protected $with = ['user'];
 
     public function user()
@@ -23,15 +23,15 @@ class Review extends Model
     public function toArray()
     {
         return [
-            'id' => $this->id,
-            'user_id' => $this->user_id,
-            'ads_id' => $this->ads_id,
-            'ads_name' => $this->ads?->name,
-            'user_name' => $this->user ? $this->user?->name : null,
-            'rating' => $this->rating,
-            'text' => $this->text,
+            'id'         => $this->id,
+            'user_id'    => $this->user_id,
+            'ads_id'     => $this->ads_id,
+            'ads_name'   => $this->ads?->name,
+            'user_name'  => $this->user ? $this->user?->name : null,
+            'rating'     => $this->rating,
+            'text'       => $this->text,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at
+            'updated_at' => $this->updated_at,
         ];
     }
 }

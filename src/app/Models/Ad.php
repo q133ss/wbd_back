@@ -26,9 +26,10 @@ class Ad extends Model
         return static::withoutGlobalScope(NotArchiveScope::class);
     }
 
-    function joined($query, $table) {
+    public function joined($query, $table)
+    {
         $joins = $query->getQuery()->joins;
-        if($joins == null) {
+        if ($joins == null) {
             return false;
         }
         foreach ($joins as $join) {
@@ -36,6 +37,7 @@ class Ad extends Model
                 return true;
             }
         }
+
         return false;
     }
 
@@ -81,9 +83,10 @@ class Ad extends Model
             ->when(
                 $request->query('category_id'),
                 function (Builder $query, $categoryId) {
-                    if (!$this->joined($query, 'products')) {
+                    if (! $this->joined($query, 'products')) {
                         $query->join('products', 'products.id', '=', 'ads.product_id');
                     }
+
                     return $query->where('products.category_id', '=', $categoryId);
                 }
             );
@@ -112,7 +115,7 @@ class Ad extends Model
             'ads.balance',
             'ads.user_id',
             'ads.created_at',
-            'ads.updated_at'
+            'ads.updated_at',
         ];
 
         $productsFields = [
@@ -133,7 +136,7 @@ class Ad extends Model
             'products.images',
             'products.status',
             'products.created_at',
-            'products.updated_at'
+            'products.updated_at',
         ];
 
         $reviewsFields = [
@@ -145,7 +148,7 @@ class Ad extends Model
             'reviews.reviewable_type',
             'reviews.reviewable_id',
             'reviews.created_at',
-            'reviews.updated_at'
+            'reviews.updated_at',
         ];
 
         // Проверка и применение сортировки
@@ -155,7 +158,7 @@ class Ad extends Model
                 'price_with_cashback',
                 'rating_product',
                 'rating_seller',
-                'popular'
+                'popular',
             ];
 
             // Проверка на допустимые значения столбцов и порядка сортировки
@@ -163,26 +166,26 @@ class Ad extends Model
                 // Изначально включаем только поля из ads
                 $groupByFields = $adsFields;
                 if ($field === 'rating_product') {
-                    if (!$this->joined($query, 'products')) {
+                    if (! $this->joined($query, 'products')) {
                         $query->join('products', 'products.id', '=', 'ads.product_id');
                     }
 
-                    if (!$this->joined($query, 'reviews')) {
+                    if (! $this->joined($query, 'reviews')) {
                         $query->join('reviews', 'products.id', '=', 'reviews.reviewable_id');
                     }
                     $query->where('reviews.reviewable_type', 'App\Models\Product');
                     $groupByFields = array_merge($groupByFields, $productsFields, $reviewsFields);
                     $query->groupBy($groupByFields);
-                    $query->orderByRaw('AVG(reviews.rating) ' . $order);
+                    $query->orderByRaw('AVG(reviews.rating) '.$order);
                 } elseif ($field === 'rating_seller') {
                     // Сортировка по рейтингу продавца
-                    if (!$this->joined($query, 'reviews')) {
+                    if (! $this->joined($query, 'reviews')) {
                         $query->join('reviews', 'ads.user_id', '=', 'reviews.reviewable_id');
                     }
                     $query->where('reviews.reviewable_type', 'App\Models\User');
                     $groupByFields = array_merge($groupByFields, $reviewsFields);
                     $query->groupBy($groupByFields);
-                    $query->orderByRaw('AVG(reviews.rating) ' . $order);
+                    $query->orderByRaw('AVG(reviews.rating) '.$order);
                 } elseif ($field === 'popular') {
                     // Сортировка по популярности (например, по количеству покупок)
                     $query->orderBy('ads.number_of_purchases', $order);
@@ -192,6 +195,7 @@ class Ad extends Model
                 }
             }
         }
+
         return $query;
     }
 
@@ -235,13 +239,15 @@ class Ad extends Model
         if ($this->cashback_percentage && $this->price_with_cashback) {
             return round($this->price_with_cashback / (1 - $this->cashback_percentage / 100), 2);
         }
+
         return null;
     }
 
     public function toArray()
     {
-        $data = parent::toArray();
+        $data                           = parent::toArray();
         $data['price_without_cashback'] = $this->getPriceWithoutCashback();
+
         return $data;
     }
 }

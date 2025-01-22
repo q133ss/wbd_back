@@ -2,13 +2,9 @@
 
 namespace App\Services;
 
-use App\Jobs\SendMessage;
 use App\Models\Buyback;
 use App\Models\Message;
-use App\Models\Notification;
 use Pusher\Pusher;
-use Workerman\Worker;
-use Workerman\Connection\AsyncTcpConnection;
 
 class SocketService
 {
@@ -20,17 +16,17 @@ class SocketService
         // а сам is_read делать в get messages
         // WebSocket-сообщение
         $data = [
-            'type' => 'message', // Для сообщений
+            'type'       => 'message', // Для сообщений
             'buyback_id' => $buyback->id,
-            'buyer_id' => $buyback->user_id,
-            'seller_id' => $message->sender_id,
-            'message' => [
-                'text' => $message->text,
+            'buyer_id'   => $buyback->user_id,
+            'seller_id'  => $message->sender_id,
+            'message'    => [
+                'text'      => $message->text,
                 'sender_id' => $message->sender_id,
-                'type' => $message->type,
-                'color' => $message->color,
-                'files' => $message->files->pluck('src')->all(),
-                'file_type' => $message->system_type
+                'type'      => $message->type,
+                'color'     => $message->color,
+                'files'     => $message->files->pluck('src')->all(),
+                'file_type' => $message->system_type,
             ],
         ];
 
@@ -40,15 +36,16 @@ class SocketService
             config('services.pusher.id'),
             [
                 'cluster' => config('services.pusher.cluster'),
-                'useTLS' => true,
+                'useTLS'  => true,
             ]
         );
-        $pusher->trigger('chat-' . $buyback->id, 'MessageSent', $data);
+        $pusher->trigger('chat-'.$buyback->id, 'MessageSent', $data);
 
         // Отправка уведомления
         if ($sendNotification) {
-            (new NotificationService())->send($buyback->user_id,$buyback->id, 'У вас новое сообщение по выкупу');
+            (new NotificationService)->send($buyback->user_id, $buyback->id, 'У вас новое сообщение по выкупу');
         }
+
         return true;
     }
 }

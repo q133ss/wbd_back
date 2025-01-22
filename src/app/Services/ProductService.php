@@ -44,9 +44,8 @@ class ProductService extends BaseService
             if ($data['shop_id'] == null) {
                 $data['shop_id'] = Shop::where('user_id', Auth('sanctum')->id())->pluck('id')->first();
             }
-            if($data['category_id'] == null)
-            {
-                $data['category_id'] = (new Category())->getDefaultCategory();
+            if ($data['category_id'] == null) {
+                $data['category_id'] = (new Category)->getDefaultCategory();
             }
             $product = Product::create($data);
 

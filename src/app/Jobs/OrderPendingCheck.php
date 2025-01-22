@@ -18,7 +18,7 @@ class OrderPendingCheck implements ShouldQueue
      */
     public function __construct(string $buyback_id)
     {
-        $buyback = Buyback::find($buyback_id);
+        $buyback       = Buyback::find($buyback_id);
         $this->buyback = $buyback;
     }
 
@@ -27,13 +27,12 @@ class OrderPendingCheck implements ShouldQueue
      */
     public function handle(): void
     {
-        if($this->buyback?->status == 'pending')
-        {
+        if ($this->buyback?->status == 'pending') {
             $this->buyback?->update(['status' => 'order_expired']);
             $id = $this->buyback?->id;
             Log::build([
                 'driver' => 'single',
-                'path' => storage_path('logs/buyback.log'),
+                'path'   => storage_path('logs/buyback.log'),
             ])->info("Выкуп ID: $id отменен. Прошло 30 минут");
         }
     }

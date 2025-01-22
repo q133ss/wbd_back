@@ -16,6 +16,6 @@ class Cashout extends Model
 
     public function user(): void
     {
-        $this->belongsTo(User::class, 'id',  'user_id');
+        $this->belongsTo(User::class, 'id', 'user_id');
     }
 }

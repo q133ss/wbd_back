@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Seller\AdsController\StopRequest;
 use App\Http\Requests\Seller\AdsController\StoreRequest;
 use App\Http\Requests\Seller\AdsController\UpdateRequest;
-use App\Http\Requests\Seller\AdsController\StopRequest;
 use App\Models\Ad;
 use App\Models\Buyback;
 use App\Models\Product;
@@ -31,11 +31,11 @@ class AdsController extends Controller
         $ads->getCollection()->transform(function ($ad) {
             $ad->completed_buybacks_count = $ad->buybacks()->where('status', 'completed')->count();
             unset($ad->buybacks_count);
-            $inDeal = Buyback::where('ads_id', $ad->id)->sum('price');
-            $ad->in_deal = $inDeal; // В сделках
-            $cr          = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1)); // Защита от деления на 0
-            $ad->cr      = $cr;
-            $ad->format_buybacks = $ad->completed_buybacks_count . ' шт. / '.$ad->redemption_count.' шт.';
+            $inDeal              = Buyback::where('ads_id', $ad->id)->sum('price');
+            $ad->in_deal         = $inDeal; // В сделках
+            $cr                  = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1)); // Защита от деления на 0
+            $ad->cr              = $cr;
+            $ad->format_buybacks = $ad->completed_buybacks_count.' шт. / '.$ad->redemption_count.' шт.';
 
             return $ad;
         });
@@ -110,7 +110,7 @@ class AdsController extends Controller
     {
         try {
             DB::beginTransaction();
-            $ads = Ad::whereIn('id', $request->ad_ids);
+            $ads         = Ad::whereIn('id', $request->ad_ids);
             $product_ids = $ads->pluck('product_id')->all();
             Product::whereIn('id', $product_ids)->update(['status' => false]);
             DB::commit();
@@ -167,23 +167,23 @@ class AdsController extends Controller
                 ]
             );
 
-            if($totalBalance != 0) {
+            if ($totalBalance != 0) {
                 Transaction::create([
-                    'amount' => $totalBalance,
+                    'amount'           => $totalBalance,
                     'transaction_type' => 'deposit',
-                    'currency_type' => 'cash',
-                    'description' => 'Возврат средств при архивации: ' . $totalBalance . ' ₽',
-                    'user_id' => $user->id,
+                    'currency_type'    => 'cash',
+                    'description'      => 'Возврат средств при архивации: '.$totalBalance.' ₽',
+                    'user_id'          => $user->id,
                 ]);
             }
 
-            if($totalRedemptionCount != 0) {
+            if ($totalRedemptionCount != 0) {
                 Transaction::create([
-                    'amount' => $totalRedemptionCount,
+                    'amount'           => $totalRedemptionCount,
                     'transaction_type' => 'deposit',
-                    'currency_type' => 'buyback',
-                    'description' => 'Возврат выкупов при архивации: ' . $totalRedemptionCount . ' выкупов',
-                    'user_id' => $user->id,
+                    'currency_type'    => 'buyback',
+                    'description'      => 'Возврат выкупов при архивации: '.$totalRedemptionCount.' выкупов',
+                    'user_id'          => $user->id,
                 ]);
             }
 

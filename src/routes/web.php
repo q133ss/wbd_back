@@ -7,7 +7,7 @@ Route::get('/login', function () {
 })->name('login');
 Route::post('/login', [\App\Http\Controllers\Admin\LoginController::class, 'login']);
 
-Route::view('chat','chattest');
+Route::view('chat', 'chattest');
 Route::middleware(['auth', 'is.admin'])->group(function () {
     Route::get('/', function () {
         return view('admin.index');

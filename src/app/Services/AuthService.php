@@ -6,7 +6,6 @@ use App\Models\PhoneVerification;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class AuthService
 {
@@ -88,11 +87,11 @@ class AuthService
         $verification = $this->checkCode($phone, $code);
         if ($verification->exists()) {
             $verification->delete();
-            $user     = User::where('phone', $phone)->first();
-            $update   = $user->update(['password' => Hash::make($password)]);
+            $user   = User::where('phone', $phone)->first();
+            $update = $user->update(['password' => Hash::make($password)]);
 
             return Response()->json([
-                'message'  => 'Пароль успешно сброшен'
+                'message' => 'Пароль успешно сброшен',
             ]);
         } else {
             return Response()->json(['message' => 'Неверный код'], 401);
@@ -101,16 +100,16 @@ class AuthService
 
     public function resetVerifyCode(string $phone, string $code)
     {
-        if($this->checkCode($phone, $code)->exists()){
+        if ($this->checkCode($phone, $code)->exists()) {
             return response()->json([
-                'status' => 'true',
-                'message' => 'Код верный'
+                'status'  => 'true',
+                'message' => 'Код верный',
             ]);
         }
 
         return response()->json([
-            'status' => 'false',
-            'message' => 'Неверный код'
+            'status'  => 'false',
+            'message' => 'Неверный код',
         ], 400);
     }
 }

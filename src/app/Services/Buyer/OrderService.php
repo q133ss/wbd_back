@@ -17,16 +17,15 @@ class OrderService extends BaseService
     {
         DB::beginTransaction();
         $ad = Ad::findOrFail($ad_id);
-        if($ad->user_id == auth('sanctum')->id())
-        {
+        if ($ad->user_id == auth('sanctum')->id()) {
             abort(403, 'Вы не можете купить товар у самого себя');
         }
         try {
             $buyback = Buyback::create([
-                'ads_id' => $ad_id,
+                'ads_id'  => $ad_id,
                 'user_id' => auth('sanctum')->id(),
-                'status' => 'pending',
-                'price' => $ad->product?->price
+                'status'  => 'pending',
+                'price'   => $ad->product?->price,
             ]);
 
             // Плашка "у покупателя есть 30 мин.." делается на фронте по статусу заказа!
@@ -34,23 +33,25 @@ class OrderService extends BaseService
 
             // Отправляем автоматическое сообщение от продавца
             $message = Message::create([
-                'text' => $ad->redemption_instructions,
-                'sender_id' => $ad->user_id,
+                'text'       => $ad->redemption_instructions,
+                'sender_id'  => $ad->user_id,
                 'buyback_id' => $buyback->id,
-                'type' => 'text',
-                'color' => Message::VIOLET_COLOR
+                'type'       => 'text',
+                'color'      => Message::VIOLET_COLOR,
             ]);
 
             // Отправляем сообщение по веб сокетам
-            (new SocketService())->send($message, $buyback);
+            (new SocketService)->send($message, $buyback);
 
             // Таймер
             OrderPendingCheck::dispatch($buyback->id)->delay(Carbon::now()->addMinutes(30));
             DB::commit();
             $response = $this->formatResponse('true', $buyback, '201');
+
             return $this->sendResponse($response);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return $this->sendError('Произошла ошибка, попробуйте еще раз', 500);
         }
     }

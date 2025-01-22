@@ -28,12 +28,11 @@ class WithdrawRequest extends FormRequest
                 'numeric',
                 'min:100',
                 'max:100000',
-                function(string $attribute, mixed $value, Closure $fail): void
-                {
+                function (string $attribute, mixed $value, Closure $fail): void {
                     if ($value > auth('sanctum')->user()->balance) {
                         $fail('Недостаточно средств на счету.');
                     }
-                }
+                },
             ],
             'card_number' => [
                 'required',
@@ -45,12 +44,12 @@ class WithdrawRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'amount.required' => 'Сумма обязательна для заполнения.',
-            'amount.numeric' => 'Сумма должна быть числом.',
-            'amount.min' => 'Минимальная сумма — 100.',
-            'amount.max' => 'Максимальная сумма — 100000.',
+            'amount.required'      => 'Сумма обязательна для заполнения.',
+            'amount.numeric'       => 'Сумма должна быть числом.',
+            'amount.min'           => 'Минимальная сумма — 100.',
+            'amount.max'           => 'Максимальная сумма — 100000.',
             'card_number.required' => 'Номер карты обязателен.',
-            'card_number.regex' => 'Номер карты должен состоять из 16 цифр.',
+            'card_number.regex'    => 'Номер карты должен состоять из 16 цифр.',
         ];
     }
 }

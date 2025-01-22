@@ -23,9 +23,9 @@ class ResetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'max:255', 'exists:phone_verifications,phone_number', new PhoneNumber],
-            'code'  => ['required', 'string'],
-            'password' => ['required', 'string','min:8', 'confirmed']
+            'phone'    => ['required', 'max:255', 'exists:phone_verifications,phone_number', new PhoneNumber],
+            'code'     => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
 
@@ -39,10 +39,10 @@ class ResetRequest extends FormRequest
             'code.required' => 'Укажите код',
             'code.string'   => 'Код должен быть строкой',
 
-            'password.required' => 'Укажите пароль',
-            'password.string'   => 'Пароль должен быть строкой',
-            'password.min'      => 'Пароль должен быть не менее 8 символов',
-            'password.confirmed' => 'Пароли не совпадают'
+            'password.required'  => 'Укажите пароль',
+            'password.string'    => 'Пароль должен быть строкой',
+            'password.min'       => 'Пароль должен быть не менее 8 символов',
+            'password.confirmed' => 'Пароли не совпадают',
         ];
     }
 }

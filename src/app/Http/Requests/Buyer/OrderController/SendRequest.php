@@ -22,23 +22,23 @@ class SendRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'text' => 'string|required',
-            'file' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'file_type' => 'nullable|in:order,barcode,review|required_if:file,present'
+            'text'      => 'string|required',
+            'file'      => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'file_type' => 'nullable|in:order,barcode,review|required_if:file,present',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'text.required' => 'Сообщение обязательно для заполнения.',
-            'text.string' => 'Сообщение должно быть строкой.',
-            'file.file' => 'Файл должен быть правильного формата.',
-            'file.mimes' => 'Файл должен быть изображением в формате: jpeg, png, jpg, gif, svg.',
-            'file.max' => 'Размер файла не должен превышать 2 МБ.',
+            'text.required'         => 'Сообщение обязательно для заполнения.',
+            'text.string'           => 'Сообщение должно быть строкой.',
+            'file.file'             => 'Файл должен быть правильного формата.',
+            'file.mimes'            => 'Файл должен быть изображением в формате: jpeg, png, jpg, gif, svg.',
+            'file.max'              => 'Размер файла не должен превышать 2 МБ.',
             'file_type.required_if' => 'Тип файла обязателен, если файл загружен.',
-            'file_type.in' => 'Тип файла должен быть одним из следующих: order, barcode, review.',
-            'file_type.nullable' => 'Тип файла может быть пустым, если файл не загружен.',
+            'file_type.in'          => 'Тип файла должен быть одним из следующих: order, barcode, review.',
+            'file_type.nullable'    => 'Тип файла может быть пустым, если файл не загружен.',
         ];
     }
 }

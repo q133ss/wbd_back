@@ -72,9 +72,8 @@ class AdsService extends BaseService
             // Заморозка баланса
             // цену для юзера умножаем ее на кол-во выкупов
             $priceForUser = $data['price_with_cashback'] * $data['redemption_count'];
-            $newBalance = $user->balance - $priceForUser;
-            if($newBalance <= 0)
-            {
+            $newBalance   = $user->balance - $priceForUser;
+            if ($newBalance <= 0) {
                 $this->sendError('У вас недостаточно средств', 400);
             }
             $user->update(['balance' => $newBalance]);
@@ -83,9 +82,9 @@ class AdsService extends BaseService
 
             FrozenBalance::create([
                 'user_id' => $user->id,
-                'ad_id' => $ad->id,
-                'amount' => $priceForUser,
-                'reason' => 'Создание объявления #'.$ad->id,
+                'ad_id'   => $ad->id,
+                'amount'  => $priceForUser,
+                'reason'  => 'Создание объявления #'.$ad->id,
             ]);
 
             if (isset($depositTransaction)) {

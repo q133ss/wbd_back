@@ -24,7 +24,7 @@ class ResetCheckCodeRequest extends FormRequest
     {
         return [
             'phone' => ['required', 'max:255', 'exists:users,phone', new PhoneNumber],
-            'code'  => ['required', 'string']
+            'code'  => ['required', 'string'],
         ];
     }
 
@@ -36,7 +36,7 @@ class ResetCheckCodeRequest extends FormRequest
             'phone.exists'   => 'Пользователь с таким телефоном не найден',
 
             'code.required' => 'Укажите код',
-            'code.string'   => 'Код должен быть строкой'
+            'code.string'   => 'Код должен быть строкой',
         ];
     }
 }

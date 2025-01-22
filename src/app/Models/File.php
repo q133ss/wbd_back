@@ -10,6 +10,6 @@ class File extends Model
 
     public function getSrcAttribute($value)
     {
-        return config('app.url') . '/storage/' . $value;
+        return config('app.url').'/storage/'.$value;
     }
 }
