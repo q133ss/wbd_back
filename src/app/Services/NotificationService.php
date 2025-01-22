@@ -16,13 +16,14 @@ class NotificationService
             'text' => $text
         ]);
 
-        Redis::publish('user_notifications:' . $user_id, json_encode([
+        Redis::rpush('user_notifications:' . $user_id, json_encode([
             'user_id' => $user_id,
             'type' => 'notification',
             'buyback_id' => $buyback_id,
             'text' => $text,
-            'timestamp' => $notification->created_at
+            'timestamp' => $notification->created_at->toIso8601String()
         ]));
+
         return true;
     }
 }

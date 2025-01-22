@@ -86,7 +86,6 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 // todo
 
 /*
- * 2) Доделать stream из NotificaionService!
  * 3) Доделать сторону продавца в чате + написать доку для Степы
  */
 
@@ -94,7 +93,7 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 
 
 //todo НА СЕГОДНЯ!!!!
-// SSE
+// SSE проверить. Просто отправив сообщение
 // * Чат + отзыв о продавце!!!!!!!! сегодня!
 /*
  * todo У НАС ЕСТЬ ЗАМОРОЖЕННЫЙ БАЛАНС, юзеру деньги за выкуп даем от туда!!!

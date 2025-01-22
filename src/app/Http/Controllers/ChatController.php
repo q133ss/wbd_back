@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChatController\PhotoRequest;
+use App\Http\Requests\ChatController\SendRequest;
 use App\Jobs\DeliveryJob;
 use App\Jobs\ReviewJob;
 use App\Models\Buyback;
@@ -23,20 +24,35 @@ class ChatController extends Controller
 
         return Message::with('file')->where('buyback_id', $buyback_id)->get();
     }
-    public function send(string $buyback_id)
+    public function send(string $buyback_id, SendRequest $request)
     {
-        // todo отправка фото !!!!
         $buyback = Buyback::findOrFail($buyback_id);
         auth('sanctum')->user()->checkBuyback($buyback);
 
         $message = Message::create([
             'buyback_id' => $buyback_id,
             'sender_id' => auth('sanctum')->user()->id,
-            'text' => 'Привет мир!'
+            'text' => $request->text
         ]);
+
+        if($request->has('files')){
+            foreach ($request->file('files') as $file){
+                $fileSrc = $file->store('files', 'public');
+                $fileModel = File::create([
+                    'fileable_type' => 'App\Models\Message',
+                    'fileable_id' => $message->id,
+                    'src' => $fileSrc,
+                    'category' => 'image'
+                ]);
+            }
+        }
+
         $msg = (new SocketService())->send($message, $buyback);
         if($msg){
-            return response()->json(['success' => true]);
+            return response()->json([
+                'success' => true,
+                'message' => $message->load('files')
+            ]);
         }
         return response()->json(['success' => false]);
     }
