@@ -13,4 +13,9 @@ class Message extends Model
     {
         return $this->morphOne(File::class, 'fileable');
     }
+
+    public function files()
+    {
+        return $this->morphMany(File::class, 'fileable');
+    }
 }

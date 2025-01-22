@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->text('text');
+            $table->text('text')->nullable();
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('buyback_id')->constrained('buybacks')->onDelete('cascade');
             $table->enum('type', ['text', 'image', 'system'])->default('text');

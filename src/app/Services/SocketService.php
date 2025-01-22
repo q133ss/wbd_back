@@ -15,6 +15,9 @@ class SocketService
     public function send(Message $message, Buyback $buyback, bool $sendNotification = true)
     {
         // Создаем уведомление
+        // todo тут наверное надо делать проверку, если в течении 5 минут покупатель не увидиил сообщение, то тогда отправлять!
+        // проверка на is_read
+        // а сам is_read делать в get messages
         Notification::create([
             'user_id' => $buyback->user_id, // Покупатель
             'buyback_id' => $buyback->id,
@@ -32,6 +35,8 @@ class SocketService
                 'sender_id' => $message->sender_id,
                 'type' => $message->type,
                 'color' => $message->color,
+                'files' => $message->files->pluck('src')->all(),
+                'file_type' => $message->system_type
             ],
         ];
 

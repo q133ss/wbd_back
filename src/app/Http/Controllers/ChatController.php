@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChatController\PhotoRequest;
 use App\Models\Buyback;
+use App\Models\File;
 use App\Models\Message;
 use App\Services\SocketService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
 {
@@ -20,6 +23,7 @@ class ChatController extends Controller
     }
     public function send(string $buyback_id)
     {
+        // todo отправка фото !!!!
         $buyback = Buyback::findOrFail($buyback_id);
         auth('sanctum')->user()->checkBuyback($buyback);
 
@@ -41,26 +45,79 @@ class ChatController extends Controller
 
         $buyback = Buyback::findOrFail($id);
         $user->checkBuyback($buyback);
+
         if($buyback->status == 'cancelled'){
             abort(403, 'Заказ уже отменен');
         }
-        $buyback->update(['status' => 'cancelled']);
-        $isSeller = $user->isSeller();
-        $text = '';
-        if($isSeller){
-            $text = 'Выкуп отменен по инициативе продавца';
-        }else{
-            $text = 'Выкуп отменен по инициативе покупателя';
+        DB::beginTransaction();
+        try {
+            $buyback->update(['status' => 'cancelled']);
+            $isSeller = $user->isSeller();
+            $text = '';
+            if ($isSeller) {
+                $text = 'Выкуп отменен по инициативе продавца';
+            } else {
+                $text = 'Выкуп отменен по инициативе покупателя';
+            }
+            $message = Message::create([
+                'buyback_id' => $id,
+                'sender_id' => $user->id,
+                'text' => $text,
+                'type' => 'system',
+                'system_type' => 'cancel'
+            ]);
+            DB::commit();
+            return response()->json([
+                'message' => $message
+            ], 201);
+        }catch (\Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'status'  => 'false',
+                'message' => 'Произошла ошибка, попробуйте еще раз',
+            ], 500);
         }
-        $message = Message::create([
-            'buyback_id' => $id,
-            'sender_id' => $user->id,
-            'text' => $text,
-            'type' => 'system',
-            'system_type' => 'cancel'
-        ]);
-        return response()->json([
-            'message' => $message
-        ], 201);
+    }
+
+    public function photo(PhotoRequest $request, string $buyback_id)
+    {
+        $buyback = Buyback::findOrFail($buyback_id);
+
+        $user = auth('sanctum')->user();
+        $user->checkBuyback($buyback);
+
+        DB::beginTransaction();
+        try{
+            $imgMsg = Message::create([
+                'sender_id' => $user->id,
+                'buyback_id' => $buyback_id,
+                'type' => 'image',
+                'system_type' => $request->file_type
+            ]);
+            $files = [];
+            foreach ($request->file('files') as $file){
+                $fileSrc = $file->store('files', 'public');
+                $fileModel = File::create([
+                    'fileable_type' => 'App\Models\Message',
+                    'fileable_id' => $imgMsg->id,
+                    'src' => $fileSrc,
+                    'category' => 'image'
+                ]);
+                $files[] = $fileModel;
+            }
+            (new SocketService())->send($imgMsg, $buyback);
+             // todo ДЕЛАЕМ СРАЗУ ПОДТВЕРЖДЕНИЕ ЗАКАЗА ПРОДАВЦОМ!!! ЭТО 5 минут!
+            DB::commit();
+            return response()->json([
+               'files' => $files,
+                'system_type' => $request->file_type
+            ], 201);
+        }catch (\Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'status'  => 'false',
+                'message' => 'Произошла ошибка, попробуйте еще раз',
+            ], 500);
+        }
     }
 }
