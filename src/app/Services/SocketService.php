@@ -18,12 +18,6 @@ class SocketService
         // todo тут наверное надо делать проверку, если в течении 5 минут покупатель не увидиил сообщение, то тогда отправлять!
         // проверка на is_read
         // а сам is_read делать в get messages
-        Notification::create([
-            'user_id' => $buyback->user_id, // Покупатель
-            'buyback_id' => $buyback->id,
-            'text' => 'У вас новое сообщение по выкупу',
-        ]);
-
         // WebSocket-сообщение
         $data = [
             'type' => 'message', // Для сообщений
@@ -53,12 +47,7 @@ class SocketService
 
         // Отправка уведомления
         if ($sendNotification) {
-            $notification = [
-                'type' => 'notification',
-                'buyback_id' => $buyback->id,
-                'text' => 'У вас новое сообщение по выкупу #' . $buyback->id
-            ];
-            // todo SSE тут
+            (new NotificationService())->send($buyback->user_id,$buyback->id, 'У вас новое сообщение по выкупу');
         }
         return true;
     }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChatController\PhotoRequest;
+use App\Jobs\DeliveryJob;
+use App\Jobs\ReviewJob;
 use App\Models\Buyback;
 use App\Models\File;
 use App\Models\Message;
@@ -97,6 +99,7 @@ class ChatController extends Controller
             $files = [];
             foreach ($request->file('files') as $file){
                 $fileSrc = $file->store('files', 'public');
+                # todo там подтверждать надо КАЖДУЮ ФОТКУ, так, что делаем 2 разных сообщения!!!
                 $fileModel = File::create([
                     'fileable_type' => 'App\Models\Message',
                     'fileable_id' => $imgMsg->id,
@@ -107,6 +110,17 @@ class ChatController extends Controller
             }
             (new SocketService())->send($imgMsg, $buyback);
              // todo ДЕЛАЕМ СРАЗУ ПОДТВЕРЖДЕНИЕ ЗАКАЗА ПРОДАВЦОМ!!! ЭТО 5 минут!
+            switch ($request->file_type){
+                case 'send_photo':
+                    // ждем 10 дней и отменяем
+                    DeliveryJob::dispatch($buyback)->delay(now()->addDays(10));
+                    break;
+                case 'review':
+                    // 72 часа ждем и принимаем!
+                    ReviewJob::dispatch($buyback)->delay(now()->addHours(72));
+                    break;
+            }
+
             DB::commit();
             return response()->json([
                'files' => $files,

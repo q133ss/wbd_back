@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('frozen_balances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Продавец
-            $table->foreignId('ad_id')->constrained('ads')->onDelete('cascade'); // Продавец
+            $table->foreignId('ad_id')->unique()->constrained('ads')->onDelete('cascade'); // Продавец
             $table->decimal('amount', 8, 2); // Сумма, замороженная на аккаунте
             $table->string('reason'); // Причина заморозки (например, создание объявления)
             $table->enum('status', ['reserved', 'debited', 'returned'])->comment('Зарезервирована | Списана | Возвращаена')->default('reserved'); // Статус заморозки

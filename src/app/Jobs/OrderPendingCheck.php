@@ -29,7 +29,7 @@ class OrderPendingCheck implements ShouldQueue
     {
         if($this->buyback?->status == 'pending')
         {
-            $this->buyback?->update(['status' => 'cancelled']);
+            $this->buyback?->update(['status' => 'order_expired']);
             $id = $this->buyback?->id;
             Log::build([
                 'driver' => 'single',

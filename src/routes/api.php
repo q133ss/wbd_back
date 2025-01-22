@@ -83,6 +83,16 @@ Route::get('/buyer/{id}', [\App\Http\Controllers\Front\BuyerController::class, '
 Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 'stream']);
 
 
+// todo
+
+/*
+ * 2) Доделать stream из NotificaionService!
+ * 3) Доделать сторону продавца в чате + написать доку для Степы
+ */
+
+
+
+
 //todo НА СЕГОДНЯ!!!!
 // SSE
 // * Чат + отзыв о продавце!!!!!!!! сегодня!

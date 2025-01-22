@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->enum('status', [
                 'cancelled',       // Отменен
+                'order_expired',   // Покупатель не успел сделать заказ в установленный срок
                 'pending',         // Ожидание заказа
                 'awaiting_receipt',// Ожидание получения
                 'on_confirmation', // Подтверждение
