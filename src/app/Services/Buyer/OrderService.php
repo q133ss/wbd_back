@@ -29,6 +29,9 @@ class OrderService extends BaseService
                 'price' => $ad->product?->price
             ]);
 
+            // Плашка "у покупателя есть 30 мин.." делается на фронте по статусу заказа!
+            // В зависимости от статуса меняется текст
+
             // Отправляем автоматическое сообщение от продавца
             $message = Message::create([
                 'text' => $ad->redemption_instructions,

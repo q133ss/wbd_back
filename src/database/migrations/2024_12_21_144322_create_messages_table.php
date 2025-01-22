@@ -17,6 +17,10 @@ return new class extends Migration
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('buyback_id')->constrained('buybacks')->onDelete('cascade');
             $table->enum('type', ['text', 'image', 'system'])->default('text');
+            $table->enum('system_type',
+                ['cancel', 'send_photo', 'review', 'confirm']
+                // Заказ отменен, покупатель отправил фото, покупатель оставил отзыв, продавец подтвердил
+            )->nullable();
             $table->boolean('is_read')->default(false);
             $table->string('color')->default('#7F56D9')->comment('Цвет сообщения');
             $table->timestamps();

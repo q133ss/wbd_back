@@ -213,4 +213,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(Cashout::class,'user_id', 'id');
     }
+
+    public function checkBuyback(Buyback $buyback): void
+    {
+        $adsCheck = $this->checkAd([$buyback->ads_id]);
+        $userCheck = $this->id == $buyback->user_id;
+
+        if(!$adsCheck && !$userCheck)
+        {
+            abort(403, 'У вас нет прав для просмотра');
+        }
+    }
 }
