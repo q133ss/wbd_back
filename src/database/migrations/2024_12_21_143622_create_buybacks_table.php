@@ -27,6 +27,8 @@ return new class extends Migration
             ])->default('pending');
             $table->double('price');
             $table->boolean('is_archived')->default(false);
+            $table->boolean('has_review_by_seller')->default(false);
+            $table->boolean('has_review_by_buyer')->default(false);
             $table->timestamps();
         });
     }

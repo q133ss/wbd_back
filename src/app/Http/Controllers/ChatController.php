@@ -331,11 +331,19 @@ class ChatController extends Controller
 
         if($buyback->user_id == $user->id){
             // оставляем продавцу
+            if($buyback->has_review_by_seller){
+                abort(403, 'Отзыв уже оставлен');
+            }
+            $buyback->update(['has_review_by_seller' => true]);
             $user_id = $buyback->ad?->user?->id;
             $notification = 'Покупатель оставил отзыв о выкупе #'.$id;
         }else{
             // для покупателя
+            if($buyback->has_review_by_buyer){
+                abort(403, 'Отзыв уже оставлен');
+            }
             $user_id = $buyback->user_id;
+            $buyback->update(['has_review_by_buyer' => true]);
             $notification = 'Продавец оставил отзыв о выкупе #'.$id;
         }
 
