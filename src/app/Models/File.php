@@ -12,4 +12,9 @@ class File extends Model
     {
         return config('app.url').'/storage/'.$value;
     }
+
+    public function fileable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    {
+        return $this->morphTo();
+    }
 }

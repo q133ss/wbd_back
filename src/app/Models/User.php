@@ -217,7 +217,7 @@ class User extends Authenticatable
         $userCheck = $this->id == $buyback->user_id;
 
         if (! $adsCheck && ! $userCheck) {
-            abort(403, 'У вас нет прав для просмотра');
+            abort(403, 'У вас недостаточно прав');
         }
     }
 }

@@ -109,16 +109,15 @@ class ChatController extends Controller
 
         DB::beginTransaction();
         try {
-            $imgMsg = Message::create([
-                'sender_id'   => $user->id,
-                'buyback_id'  => $buyback_id,
-                'type'        => 'image',
-                'system_type' => $request->file_type,
-            ]);
             $files = [];
             foreach ($request->file('files') as $file) {
+                $imgMsg = Message::create([
+                    'sender_id'   => $user->id,
+                    'buyback_id'  => $buyback_id,
+                    'type'        => 'image',
+                    'system_type' => $request->file_type,
+                ]);
                 $fileSrc = $file->store('files', 'public');
-                // todo там подтверждать надо КАЖДУЮ ФОТКУ, так, что делаем 2 разных сообщения!!!
                 $fileModel = File::create([
                     'fileable_type' => 'App\Models\Message',
                     'fileable_id'   => $imgMsg->id,
@@ -128,7 +127,7 @@ class ChatController extends Controller
                 $files[] = $fileModel;
             }
             (new SocketService)->send($imgMsg, $buyback);
-            // todo ДЕЛАЕМ СРАЗУ ПОДТВЕРЖДЕНИЕ ЗАКАЗА ПРОДАВЦОМ!!! ЭТО 5 минут!
+
             switch ($request->file_type) {
                 case 'send_photo':
                     // ждем 10 дней и отменяем
@@ -153,6 +152,73 @@ class ChatController extends Controller
                 'status'  => 'false',
                 'message' => 'Произошла ошибка, попробуйте еще раз',
             ], 500);
+        }
+    }
+
+    public function fileApprove(string $buyback_id,string $file_id)
+    {
+        $buyback = Buyback::findOrFail($buyback_id);
+        auth('sanctum')->user()->checkBuyback($buyback);
+
+        $check = File::where('fileable_type', 'App\Models\Message')
+        ->where('fileable_id', $file_id)
+        ->where('category', 'image');
+
+        if($check->exists()){
+            $file = $check->first();
+            $file->update(['status' => true]);
+
+            // Ищем все файлы с этим же типом!
+            $allStatuses = File::leftJoin('messages', 'messages.id', '=', 'files.fileable_id')
+                    ->where('files.fileable_type', 'App\Models\Message')
+                    ->where('messages.buyback_id', $buyback_id)
+                    ->pluck('files.status', 'files.id')
+                    ->all();
+
+            // Проверяем, все-ли фото одобренны
+            $allValuesAreTrueOrOne = count($allStatuses) === count(array_filter($allStatuses, function ($value) {
+                    return $value === true || $value === 1;
+                }));
+
+            if($allValuesAreTrueOrOne) {
+                // Если все фото одобрены, отправляем сообщение в чат
+
+                switch ($file->fileable?->system_type){
+                    case 'send_photo':
+                        $text = 'Продавец подтвердил ваш заказ';
+                        $system_type = 'send_photo';
+                        break;
+                    case 'review':
+                        $text = 'Продавец подтвердил ваш отзыв';
+                        $system_type = 'review';
+                        break;
+                    default:
+                        $text = 'Продавец подтвердил ваши файлы';
+                        $system_type = 'review';
+                        break;
+                }
+
+                $message = Message::create([
+                    'buyback_id'  => $file->fileable_id,
+                    'sender_id'   => auth('sanctum')->user()->id,
+                    'text'        => $text,
+                    'type'        => 'system',
+                    'system_type' => $system_type,
+                ]);
+                (new SocketService)->send($message, $buyback);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                ], 201);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Файл одобрен',
+            ], 200);
+        }else{
+            abort(404, 'Файл не найден');
         }
     }
 }

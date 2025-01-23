@@ -18,6 +18,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
         Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
         Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
+        Route::post('/chat/{buyback}/file/{file}/approve', [\App\Http\Controllers\ChatController::class, 'fileApprove']);
     });
 });
 
@@ -92,8 +93,6 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 // SSE проверить. Просто отправив сообщение
 // * Чат + отзыв о продавце!!!!!!!! сегодня!
 /*
- * todo У НАС ЕСТЬ ЗАМОРОЖЕННЫЙ БАЛАНС, юзеру деньги за выкуп даем от туда!!!
- * // БУДЕМ СОЗДАВАТЬ ДЛЯ ЭТОГО ТРАНЗАКЦИИ, что было списание с замороженного баланса!
  * сделать счетчик просмотров (через мидлвар)
  * Платежка
  * Бот

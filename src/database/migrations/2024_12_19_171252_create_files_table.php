@@ -16,6 +16,8 @@ return new class extends Migration
             $table->morphs('fileable');
             $table->string('category');
             $table->string('src');
+            $table->boolean('status')->nullable();
+            $table->string('status_comment')->nullable();
             $table->timestamps();
         });
     }
