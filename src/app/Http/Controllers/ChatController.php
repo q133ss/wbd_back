@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ChatController\FileRejectRequest;
 use App\Http\Requests\ChatController\PhotoRequest;
+use App\Http\Requests\ChatController\ReviewRequest;
 use App\Http\Requests\ChatController\SendRequest;
 use App\Jobs\DeliveryJob;
 use App\Jobs\ReviewJob;
@@ -11,6 +12,8 @@ use App\Models\Buyback;
 use App\Models\File;
 use App\Models\Message;
 use App\Services\BalanceService;
+use App\Services\NotificationService;
+use App\Services\ReviewService;
 use App\Services\SocketService;
 use Illuminate\Support\Facades\DB;
 
@@ -310,5 +313,37 @@ class ChatController extends Controller
                 'message' => 'Произошла ошибка, попробуйте еще раз',
             ], 500);
         }
+    }
+
+    public function review(ReviewRequest $request, string $id)
+    {
+        $buyback = Buyback::findOrFail($id);
+        $user = auth('sanctum')->user();
+        $user->checkBuyback($buyback);
+
+        $rating = $request->rating;
+        $text = $request->text;
+        $type = 'App\Models\User';
+        $ads_id = $buyback->ads_id;
+
+        if($buyback->user_id == $user->id){
+            // оставляем продавцу
+            $user_id = $buyback->ad?->user?->id;
+            $notification = 'Покупатель оставил отзыв о выкупе #'.$id;
+        }else{
+            // для покупателя
+            $user_id = $buyback->user_id;
+            $notification = 'Продавец оставил отзыв о выкупе #'.$id;
+        }
+
+        // Уведомление и создание отзыва
+        $notification = (new NotificationService)->send($user_id, $id, $notification);
+        $review = (new ReviewService())->create($ads_id, $rating, $text, $type, $user_id);
+
+        return response()->json([
+            'notification' => $notification,
+            'review' => $review,
+            'buyback' => $buyback
+        ], 201);
     }
 }

@@ -76,6 +76,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/messages/{buyback_id}', [\App\Http\Controllers\ChatController::class, 'messages']);
     Route::post('/buyback/{id}/cancel', [\App\Http\Controllers\ChatController::class, 'cancel']);
     Route::post('/chat/{id}/photo', [\App\Http\Controllers\ChatController::class, 'photo']);
+    Route::post('/chat/{id}/review', [\App\Http\Controllers\ChatController::class, 'review']);
 });
 
 // Профиль продавца
