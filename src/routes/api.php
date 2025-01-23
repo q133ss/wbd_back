@@ -19,6 +19,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
         Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
         Route::post('/chat/{buyback}/file/{file}/approve', [\App\Http\Controllers\ChatController::class, 'fileApprove']);
+        Route::post('/chat/{buyback}/file/{file}/reject', [\App\Http\Controllers\ChatController::class, 'fileReject']);
+        Route::post('/chat/{buyback}/complete', [\App\Http\Controllers\ChatController::class, 'complete']);
     });
 });
 

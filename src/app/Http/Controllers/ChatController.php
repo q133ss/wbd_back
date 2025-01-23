@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChatController\FileRejectRequest;
 use App\Http\Requests\ChatController\PhotoRequest;
 use App\Http\Requests\ChatController\SendRequest;
 use App\Jobs\DeliveryJob;
@@ -9,6 +10,7 @@ use App\Jobs\ReviewJob;
 use App\Models\Buyback;
 use App\Models\File;
 use App\Models\Message;
+use App\Services\BalanceService;
 use App\Services\SocketService;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +33,7 @@ class ChatController extends Controller
 
         $message = Message::create([
             'buyback_id' => $buyback_id,
-            'sender_id'  => auth('sanctum')->user()->id,
+            'sender_id'  => auth('sanctum')->id(),
             'text'       => $request->text,
         ]);
 
@@ -155,6 +157,26 @@ class ChatController extends Controller
         }
     }
 
+    private function checkFileType($system_type): array
+    {
+        switch ($system_type){
+            case 'send_photo':
+                $text = 'Продавец подтвердил ваш заказ';
+                $system_type = 'send_photo';
+                $status = 'awaiting_receipt';
+                break;
+            case 'review':
+                $text = 'Продавец подтвердил ваш отзыв';
+                $system_type = 'review';
+                $status = 'cashback_received';
+                break;
+            default:
+                abort(403, 'Неверный тип файла');
+                break;
+        }
+        return ['text' => $text,'system_type' => $system_type,'status' => $status];
+    }
+
     public function fileApprove(string $buyback_id,string $file_id)
     {
         $buyback = Buyback::findOrFail($buyback_id);
@@ -167,6 +189,10 @@ class ChatController extends Controller
         if($check->exists()){
             $file = $check->first();
             $file->update(['status' => true]);
+
+            if($file->fileable?->buyback_id != $buyback_id){
+                abort(403, 'Нельзя одобрить файл из другого заказа');
+            }
 
             // Ищем все файлы с этим же типом!
             $allStatuses = File::leftJoin('messages', 'messages.id', '=', 'files.fileable_id')
@@ -182,25 +208,17 @@ class ChatController extends Controller
 
             if($allValuesAreTrueOrOne) {
                 // Если все фото одобрены, отправляем сообщение в чат
+                $checkFile = $this->checkFileType($file->fileable?->system_type);
 
-                switch ($file->fileable?->system_type){
-                    case 'send_photo':
-                        $text = 'Продавец подтвердил ваш заказ';
-                        $system_type = 'send_photo';
-                        break;
-                    case 'review':
-                        $text = 'Продавец подтвердил ваш отзыв';
-                        $system_type = 'review';
-                        break;
-                    default:
-                        $text = 'Продавец подтвердил ваши файлы';
-                        $system_type = 'review';
-                        break;
-                }
+                $text = $checkFile['text'];
+                $system_type = $checkFile['system_type'];
+                $status = $checkFile['status'];
+
+                $buyback->update(['status' => $status]);
 
                 $message = Message::create([
                     'buyback_id'  => $file->fileable_id,
-                    'sender_id'   => auth('sanctum')->user()->id,
+                    'sender_id'   => auth('sanctum')->id(),
                     'text'        => $text,
                     'type'        => 'system',
                     'system_type' => $system_type,
@@ -210,15 +228,87 @@ class ChatController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => $message,
+                    'buyback' => $buyback
                 ], 201);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Файл одобрен',
+                'buyback' => $buyback
             ], 200);
         }else{
             abort(404, 'Файл не найден');
+        }
+    }
+
+    public function fileReject(FileRejectRequest $request, string $buyback_id,string $file_id)
+    {
+        $buyback = Buyback::findOrFail($buyback_id);
+        auth('sanctum')->user()->checkBuyback($buyback);
+
+        $file = File::findOrFail($file_id);
+
+        if($file->fileable?->buyback_id != $buyback_id){
+            abort(403, 'Нельзя отклонить файл из другого заказа');
+        }
+
+        $file->update(['status' => false]);
+        $checkFile = $this->checkFileType($file->fileable?->system_type);
+
+        $system_type = $checkFile['system_type'];
+        $status = $checkFile['status'];
+
+        $buyback->update(['status' => $status]);
+
+        // отправляем сообщение
+        $message = Message::create([
+            'buyback_id'  => $file->fileable_id,
+            'sender_id'   => auth('sanctum')->id(),
+            'text'        => $request->comment,
+            'type'        => 'text',
+            'system_type' => $system_type,
+        ]);
+
+        (new SocketService)->send($message, $buyback);
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'buyback' => $buyback
+        ], 200);
+    }
+
+    public function complete(string $id)
+    {
+        $buyback = Buyback::findOrFail($id);
+        auth('sanctum')->user()->checkBuyback($buyback);
+        DB::beginTransaction();
+        try {
+            $buyback->update(['status' => 'completed']);
+
+            (new BalanceService())->buybackPayment($buyback);
+
+            $message = Message::create([
+                'buyback_id'  => $id,
+                'sender_id'   => auth('sanctum')->id(),
+                'text'        => 'Продавец подтвердил выполнение заказа',
+                'type'        => 'text',
+                'system_type' => 'completed'
+            ]);
+
+            (new SocketService)->send($message, $buyback);
+            DB::commit();
+            return response()->json([
+                'buyback' => $buyback,
+                'message' => $message
+            ], 200);
+        }catch (\Exception $e){
+            DB::rollBack();
+
+            return response()->json([
+                'status'  => 'false',
+                'message' => 'Произошла ошибка, попробуйте еще раз',
+            ], 500);
         }
     }
 }

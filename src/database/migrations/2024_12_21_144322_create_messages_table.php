@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('buyback_id')->constrained('buybacks')->onDelete('cascade');
             $table->enum('type', ['text', 'image', 'system'])->default('text');
             $table->enum('system_type',
-                ['cancel', 'send_photo', 'review', 'confirm']
+                ['cancel', 'send_photo', 'review', 'confirm', 'completed']
                 // Заказ отменен, покупатель отправил фото, покупатель оставил отзыв, продавец подтвердил
             )->nullable();
             $table->boolean('is_read')->default(false);
