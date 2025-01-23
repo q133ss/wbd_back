@@ -18,7 +18,9 @@ class ProductController extends Controller
 
     public function show(string $id)
     {
-        return Ad::findOrFail($id);
+        $ad = Ad::findOrFail($id);
+        $ad->increment('views_count');
+        return $ad;
     }
 
     public function related(string $id)

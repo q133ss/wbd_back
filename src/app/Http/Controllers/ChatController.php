@@ -26,6 +26,9 @@ class ChatController extends Controller
         $user = auth('sanctum')->user();
         $user->checkBuyback($buyback);
 
+        // Обновляем все сообщения, устанавливая флаг прочитанности
+        Message::where('buyback_id', $buyback_id)->update(['is_read' => true]);
+
         return Message::with('file')->where('buyback_id', $buyback_id)->get();
     }
 
