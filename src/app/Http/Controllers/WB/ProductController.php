@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\WB;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Services\WBService;
 
 class ProductController extends Controller
@@ -22,5 +23,10 @@ class ProductController extends Controller
     public function addProduct(string $id)
     {
         return $this->service->addProduct($id);
+    }
+
+    public function getProduct(string $id)
+    {
+        return Product::findOrFail($id);
     }
 }

@@ -47,6 +47,7 @@ Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::clas
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
+    Route::get('/wb/product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'getProduct']);
 
     // Профиль
     Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'index']);
@@ -71,6 +72,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'show']);
         Route::post('/orders/{id}', [\App\Http\Controllers\Buyer\OrderController::class, 'send']);
     });
+
+    // Список товаров и объявлений для фильтрации в транзакциях
+    Route::get('{type}/transactions-list', [\App\Http\Controllers\Seller\ProductController::class, 'list'])->where('type', 'ads|products');;
+
+    // Чат
     Route::get('/chat/status-list', [\App\Http\Controllers\Buyer\OrderController::class, 'orderStatusList']);
     Route::post('/chat/{buyback_id}/send', [\App\Http\Controllers\ChatController::class, 'send']);
     Route::get('/messages/{buyback_id}', [\App\Http\Controllers\ChatController::class, 'messages']);

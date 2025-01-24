@@ -267,7 +267,7 @@ class WBService extends BaseService
     private function getProductFieldsArray($product): array
     {
         return [
-            'name'               => $product['title'],
+            'name'               => $product['name'],
             'is_archived'        => false,
             'shop_id'            => auth('sanctum')->user()->shop?->id,
             'wb_id'              => $product['wb_id'],
@@ -304,11 +304,11 @@ class WBService extends BaseService
 
             return $this->sendResponse($response);
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Error adding product: '.$e->getMessage(), ['exception' => $e]);
             $response = $this->formatResponse('false', $e->getMessage(), $e->getCode());
 
             return $this->sendResponse($response);
-            DB::rollBack();
         }
     }
 }

@@ -154,8 +154,9 @@ class AdsController extends Controller
 
             $product_ids = $ads->pluck('product_id')->all();
 
-            $products = Product::whereIn('id', $product_ids);
-            $products->update(['is_archived' => true]);
+            // Думаю, что не нужно архивировать товар
+//            $products = Product::whereIn('id', $product_ids);
+//            $products->update(['is_archived' => true]);
 
             $totalBalance         += $ads->sum('balance');
             $totalRedemptionCount += $ads->sum('redemption_count');

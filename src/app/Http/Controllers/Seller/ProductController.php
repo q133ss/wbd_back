@@ -215,4 +215,16 @@ class ProductController extends Controller
     {
         // update cachce
     }
+
+    public function list(string $type)
+    {
+        $user = auth('sanctum')->user();
+        if ($type == 'ads') {
+            return $user->ads?->select('id', 'name');
+        } elseif ($type == 'products') {
+            // Логика для обработки списка продуктов
+            return $user->shop?->products?->select('id', 'name');
+        }
+        abort(404);
+    }
 }
