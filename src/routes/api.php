@@ -55,6 +55,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/profile/avatar', [\App\Http\Controllers\ProfileController::class, 'avatar']);
     Route::get('transactions', [\App\Http\Controllers\ProfileController::class, 'transactions']);
     Route::get('/balance', [\App\Http\Controllers\ProfileController::class, 'balance']);
+    Route::post('/balance', [\App\Http\Controllers\ProfileController::class, 'topup']);
     Route::post('/withdraw', [\App\Http\Controllers\ProfileController::class, 'withdraw']);
     Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);
     Route::post('/withdraw/{id}', [\App\Http\Controllers\ProfileController::class, 'withdrawCancel']);

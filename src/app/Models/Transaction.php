@@ -32,7 +32,7 @@ class Transaction extends Model
                         ->where('transactions.ads_id', $ads_id);
                 }
             )->when(
-                $request->query('product_id'),
+                $request->query(' '),
                 function (Builder $query, $product_id) {
                     return $query
                         ->leftJoin('ads', 'ads.id', 'transactions.ads_id')

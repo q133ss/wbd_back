@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileController\AvatarRequest;
+use App\Http\Requests\ProfileController\TopUpRequest;
 use App\Http\Requests\ProfileController\UpdateRequest;
 use App\Http\Requests\ProfileController\WithdrawRequest;
 use App\Models\Buyback;
@@ -242,5 +243,14 @@ class ProfileController extends Controller
                 'message' => 'Аватар успешно изменен!',
             ]);
         }
+    }
+
+    public function topup(TopUpRequest $request)
+    {
+        $user = auth('sanctum')->user();
+        $user->update(['balance' => $user->balance += $request->amount]);
+        return response()->json([
+            'message' => 'Баланс успешно пополнен!'
+        ]);
     }
 }

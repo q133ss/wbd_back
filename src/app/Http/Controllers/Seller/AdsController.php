@@ -112,6 +112,7 @@ class AdsController extends Controller
             DB::beginTransaction();
             $ads         = Ad::whereIn('id', $request->ad_ids);
             $product_ids = $ads->pluck('product_id')->all();
+            $ads->update(['status' => false]);
             Product::whereIn('id', $product_ids)->update(['status' => false]);
             DB::commit();
 

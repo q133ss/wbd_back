@@ -95,7 +95,7 @@ class AdsService extends BaseService
             DB::commit();
 
             return Response()->json([
-                'ads'  => $ad,
+                'ads'  => $ad->load('product', 'shop'),
                 'user' => [
                     'balance'          => $user->balance,
                     'redemption_count' => $user->redemption_count,
@@ -103,6 +103,7 @@ class AdsService extends BaseService
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
 
             return $this->sendError('Произошла ошибка, попробуйте еще раз', 500);
         }
