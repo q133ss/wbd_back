@@ -348,7 +348,7 @@ class ChatController extends Controller
         }
 
         // Уведомление и создание отзыва
-        $notification = (new NotificationService)->send($user_id, $id, $notification);
+        $notification = (new NotificationService)->send($user_id, $id, $notification, true);
         $review = (new ReviewService())->create($ads_id, $rating, $text, $type, $user_id);
 
         return response()->json([

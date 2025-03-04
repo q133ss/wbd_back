@@ -17,6 +17,8 @@ return new class extends Migration
             $table->boolean('is_configured')->default(false)->comment('Проверка, завершил-ли юзер настройку профиля после регистрации');
             $table->decimal('balance', 10, 2)->default(0)->comment('Баланс пользователя');
             $table->unsignedSmallInteger('redemption_count')->default(0)->comment('Количество выкупов');
+
+            $table->string('telegram_id')->unique()->nullable()->comment('ID пользователя в Telegram');
         });
     }
 

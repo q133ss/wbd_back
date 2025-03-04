@@ -94,10 +94,12 @@ Route::get('/buyer/{id}', [\App\Http\Controllers\Front\BuyerController::class, '
 Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 'stream']);
 
 
+// Telegram webhook
+Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramController::class, 'handle']);
+
 //todo
 /*
+ * Правки из Trello
  * Админка
- * SSE проверить. Просто отправив сообщение
  * Платежка
- * Бот
  */

@@ -41,4 +41,8 @@ return [
         'secret'  => env('PUSHER_APP_SECRET'),
         'cluster' => env('PUSHER_APP_CLUSTER'),
     ],
+
+    'telegram' => [
+        'token' => env('TELEGRAM_BOT_TOKEN')
+    ]
 ];

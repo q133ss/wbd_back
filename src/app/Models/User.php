@@ -29,6 +29,7 @@ class User extends Authenticatable
         'role_id',
         'redemption_count',
         'balance',
+        'telegram_id'
     ];
 
     protected $with = ['shop'];

@@ -38,8 +38,8 @@ class BalanceService extends BaseService
             ]);
 
             // Делаем 2 уведомления
-            (new NotificationService)->send($buyback->user_id, $buyback->id, 'Вы получили кешбек '.$buyback->price.' ₽ за выкуп #'.$buyback->id);
-            (new NotificationService)->send($buyback->user_id, $buyback->id, 'Кешбек за выкуп #'.$buyback->id.' выплачен');
+            (new NotificationService)->send($buyback->user_id, $buyback->id, 'Вы получили кешбек '.$buyback->price.' ₽ за выкуп #'.$buyback->id, true);
+            (new NotificationService)->send($buyback->user_id, $buyback->id, 'Кешбек за выкуп #'.$buyback->id.' выплачен', true);
         } catch (\Exception $e) {
             \Log::info('ОШИБКА ПРИ НАЧИСЛЕНИИ БАЛАНСА');
             \Log::error($e);

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Redis;
 
 class NotificationService
 {
-    public function send(string $user_id, string $buyback_id, string $text)
+    public function send(string $user_id, string $buyback_id, string $text, $sendTelegram = false)
     {
         $notification = Notification::create([
             'user_id'    => $user_id,
@@ -22,6 +22,11 @@ class NotificationService
             'text'       => $text,
             'timestamp'  => $notification->created_at->toIso8601String(),
         ]));
+
+        // Отправка уведомления в телеграм
+        if($sendTelegram){
+            (new TelegramService())->sendNotification($user_id, $text);
+        }
 
         return true;
     }

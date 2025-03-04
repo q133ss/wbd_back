@@ -32,8 +32,8 @@ class DeliveryJob implements ShouldQueue
             && $this->buyback->status != 'completed') {
             $this->buyback->update(['status' => 'cancelled']);
             // Уведомление
-            (new NotificationService)->send($this->buyback->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически отменен. Вы не выполнили условия');
-            (new NotificationService)->send($this->buyback->ad?->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически отменен. Покупатель не выполнили условия');
+            (new NotificationService)->send($this->buyback->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически отменен. Вы не выполнили условия', true);
+            (new NotificationService)->send($this->buyback->ad?->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически отменен. Покупатель не выполнили условия', true);
         }
     }
 }

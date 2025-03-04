@@ -37,8 +37,8 @@ class ReviewJob implements ShouldQueue
                 (new BalanceService)->buybackPayment($this->buyback);
                 $this->buyback->update(['status' => 'cashback_received']);
                 // Уведомление
-                (new NotificationService)->send($this->buyback->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически подтвержден, прошло 72 часа');
-                (new NotificationService)->send($this->buyback->ad?->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически подтвержден, прошло 72 часа');
+                (new NotificationService)->send($this->buyback->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически подтвержден, прошло 72 часа', true);
+                (new NotificationService)->send($this->buyback->ad?->user_id, $this->buyback->id, 'Выкуп #'.$this->buyback->id.' автоматически подтвержден, прошло 72 часа', true);
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();

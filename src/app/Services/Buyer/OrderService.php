@@ -7,6 +7,7 @@ use App\Models\Ad;
 use App\Models\Buyback;
 use App\Models\Message;
 use App\Services\BaseService;
+use App\Services\NotificationService;
 use App\Services\SocketService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -40,8 +41,11 @@ class OrderService extends BaseService
                 'color'      => Message::VIOLET_COLOR,
             ]);
 
-            // Отправляем сообщение по веб сокетам
+            // Отправляем сообщение по веб сокетам покупателю
             (new SocketService)->send($message, $buyback);
+
+            // Уведомление для продавца
+            (new NotificationService())->send($ad->user_id,$buyback->id, 'Новый выкуп по объявлению #'.$ad->id, true);
 
             // Таймер
             OrderPendingCheck::dispatch($buyback->id)->delay(Carbon::now()->addMinutes(30));
@@ -50,6 +54,7 @@ class OrderService extends BaseService
 
             return $this->sendResponse($response);
         } catch (\Exception $e) {
+            \Log::error($e);
             DB::rollBack();
 
             return $this->sendError('Произошла ошибка, попробуйте еще раз', 500);

@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
             'balance'          => 10000,
             'password'         => bcrypt('password'),
             'role_id'          => Role::where('slug', 'seller')->pluck('id')->first(),
+            'telegram_id'      => '461612832'
         ]);
 
         Shop::create([
