@@ -22,7 +22,7 @@ class ProductController extends Controller
 
         $ads->getCollection()->transform(function ($ad) {
             $activeAd               = $ad->activeAd;
-            $allRedemptionCount     = $activeAd->redemption_count; // Кол-во выкупов, которое задал продавец
+            $allRedemptionCount     = $activeAd?->redemption_count; // Кол-во выкупов, которое задал продавец
             $completedBuybacksCount = $activeAd?->buybacks()->where('buybacks.status', 'completed')->count();
 
             $conversion = $ad->views > 0
@@ -34,7 +34,7 @@ class ProductController extends Controller
             $ad->completed_buybacks_count = $completedBuybacksCount; // кол-во выкупов
 
             $ad->conversion = $conversion; // Конверсия
-            $ad->views      = $activeAd->views_count; // Кол-во просмотров
+            $ad->views      = $activeAd?->views_count; // Кол-во просмотров
             $ad->ads_count  = $ad->ads?->count(); // Кол-во объявлений
 
             return $ad;
@@ -67,6 +67,7 @@ class ProductController extends Controller
     public function update(Request $request, string $id)
     {
         // Можно сделать обновление данных товара с ВБ
+        dd($id);
     }
 
     public function stop(StopRequest $request)

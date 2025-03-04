@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileController\AvatarRequest;
+use App\Http\Requests\ProfileController\TopupBuybacksRequest;
 use App\Http\Requests\ProfileController\TopUpRequest;
 use App\Http\Requests\ProfileController\UpdateRequest;
 use App\Http\Requests\ProfileController\WithdrawRequest;
 use App\Models\Buyback;
 use App\Models\Cashout;
 use App\Models\Review;
+use App\Models\Tariff;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -245,12 +247,37 @@ class ProfileController extends Controller
         }
     }
 
-    public function topup(TopUpRequest $request)
+    public function topup(TopUpRequest $request): \Illuminate\Http\JsonResponse
     {
         $user = auth('sanctum')->user();
         $user->update(['balance' => $user->balance += $request->amount]);
         return response()->json([
             'message' => 'Баланс успешно пополнен!'
         ]);
+    }
+
+    public function topupBuybacks(TopupBuybacksRequest $request): \Illuminate\Http\JsonResponse
+    {
+        try{
+            DB::beginTransaction();
+            $user = auth('sanctum')->user();
+            $amount = $request->amount;
+            $sum = Tariff::where('buybacks_count', $amount)->pluck('price')->first();
+            $user->update([
+                'balance' => $user->balance -= $sum,
+                'redemption_count' => $user->redemption_count += $amount
+            ]);
+            DB::commit();
+            return response()->json([
+                'message' => 'Баланс успешно пополнен!',
+                'balance' => $user->balance,
+                'redemption_count' => $user->redemption_count
+            ]);
+        }catch (\Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Произошла ошибка, попробуйте еще раз'
+            ], 500);
+        }
     }
 }

@@ -5,10 +5,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('seller')->group(function () {
-        Route::apiResource('products', \App\Http\Controllers\Seller\ProductController::class);
-        Route::post('/product/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
-        Route::post('/product/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
-        Route::post('/product/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
+        Route::apiResource('products', \App\Http\Controllers\Seller\ProductController::class)->except('show');
+        Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
+        Route::post('/products/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
+        Route::post('/products/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
         Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
         Route::post('/ads/stop', [\App\Http\Controllers\Seller\AdsController::class, 'stop']);
         Route::post('/ads/archive', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
@@ -56,6 +56,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('transactions', [\App\Http\Controllers\ProfileController::class, 'transactions']);
     Route::get('/balance', [\App\Http\Controllers\ProfileController::class, 'balance']);
     Route::post('/balance', [\App\Http\Controllers\ProfileController::class, 'topup']);
+    Route::post('/balance/buybacks', [\App\Http\Controllers\ProfileController::class, 'topupBuybacks']);
     Route::post('/withdraw', [\App\Http\Controllers\ProfileController::class, 'withdraw']);
     Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);
     Route::post('/withdraw/{id}', [\App\Http\Controllers\ProfileController::class, 'withdrawCancel']);
