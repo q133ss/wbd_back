@@ -19,6 +19,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('redemption_count')->default(0)->comment('Количество выкупов');
 
             $table->string('telegram_id')->unique()->nullable()->comment('ID пользователя в Telegram');
+            $table->foreignId('referral_id')->comment('ID того, кто пригласил')->nullable()->constrained('users')->nullOnDelete();
         });
     }
 

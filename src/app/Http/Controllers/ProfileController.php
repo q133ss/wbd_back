@@ -9,6 +9,7 @@ use App\Http\Requests\ProfileController\UpdateRequest;
 use App\Http\Requests\ProfileController\WithdrawRequest;
 use App\Models\Buyback;
 use App\Models\Cashout;
+use App\Models\ReferralStat;
 use App\Models\Review;
 use App\Models\Tariff;
 use App\Models\Transaction;
@@ -251,6 +252,16 @@ class ProfileController extends Controller
     {
         $user = auth('sanctum')->user();
         $user->update(['balance' => $user->balance += $request->amount]);
+        // todo чек
+        $refState = ReferralStat::where(['user_id' => $user->referral_id])->first();
+        if($refState) {
+            // Рассчитываем 10% от $request->amount
+            $bonusAmount = $request->amount * 0.1;
+            $refState->update([
+                'topup_count' => $refState->topup_count + 1,
+                'earnings' => $refState->earnings + $bonusAmount
+            ]);
+        }
         return response()->json([
             'message' => 'Баланс успешно пополнен!'
         ]);

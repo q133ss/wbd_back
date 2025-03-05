@@ -29,7 +29,8 @@ class User extends Authenticatable
         'role_id',
         'redemption_count',
         'balance',
-        'telegram_id'
+        'telegram_id',
+        'referral_id'
     ];
 
     protected $with = ['shop'];
@@ -220,5 +221,10 @@ class User extends Authenticatable
         if (! $adsCheck && ! $userCheck) {
             abort(403, 'У вас недостаточно прав');
         }
+    }
+
+    public function referralStat(): HasOne
+    {
+        return $this->hasOne(ReferralStat::class, 'user_id', 'id');
     }
 }

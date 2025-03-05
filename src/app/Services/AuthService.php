@@ -3,8 +3,11 @@
 namespace App\Services;
 
 use App\Models\PhoneVerification;
+use App\Models\ReferralStat;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService
@@ -57,25 +60,45 @@ class AuthService
             ->where('verification_code', $code);
     }
 
-    public function verifyCode(string $phone, string $code, int $role_id): JsonResponse|array
+    public function verifyCode(string $phone, string $code, int $role_id, $ip = null): JsonResponse|array
     {
-        $verification = $this->checkCode($phone, $code);
-        if ($verification->exists()) {
-            $user = User::create([
-                'phone'    => $phone,
-                'password' => '-',
-                'name'     => '-',
-                'role_id'  => $role_id,
-            ]);
+        try {
+            DB::beginTransaction();
+            $verification = $this->checkCode($phone, $code);
+            if ($verification->exists()) {
+                $data = [
+                    'phone' => $phone,
+                    'password' => '-',
+                    'name' => '-',
+                    'role_id' => $role_id,
+                ];
 
-            $token = $user->createToken('web');
+                $ref = Cache::get("ref_{$ip}");
+                if ($ref != null) {
+                    $data['referral_id'] = $ref;
 
-            return [
-                'user'  => $user,
-                'token' => $token->plainTextToken,
-            ];
-        } else {
-            return Response()->json(['message' => 'Неверный код'], 401);
+                    ReferralStat::updateOrCreate(
+                        ['user_id' => $ref]
+                    )->increment('registrations_count');
+                }
+
+                $user = User::create($data);
+                $verification->delete();
+
+                $token = $user->createToken('web');
+
+                DB::commit();
+
+                return [
+                    'user' => $user,
+                    'token' => $token->plainTextToken,
+                ];
+            } else {
+                return Response()->json(['message' => 'Неверный код'], 401);
+            }
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return Response()->json(['message' => 'Ошибка сервера'], 500);
         }
     }
 

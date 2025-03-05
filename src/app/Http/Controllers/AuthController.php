@@ -31,7 +31,8 @@ class AuthController extends Controller
 
     public function verifyCode(VerifyCodeRequest $request)
     {
-        return $this->authService->verifyCode($request->phone, $request->code, $request->role_id);
+        $ip = $request->ip();
+        return $this->authService->verifyCode($request->phone, $request->code, $request->role_id, $ip);
     }
 
     public function completeRegistration(CompleteRequest $request)

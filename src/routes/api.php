@@ -61,6 +61,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);
     Route::post('/withdraw/{id}', [\App\Http\Controllers\ProfileController::class, 'withdrawCancel']);
     Route::get('/profile/statistic', [\App\Http\Controllers\ProfileController::class, 'statistic']);
+    Route::get('/referral', [\App\Http\Controllers\ReferralController::class, 'index']);
 
     // Корзина и избранное
     Route::post('/add-to-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'add']);
@@ -98,9 +99,11 @@ Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 's
 // Telegram webhook
 Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramController::class, 'handle']);
 
+// Реферальная ссылка
+Route::post('/referral/{id}', [\App\Http\Controllers\ReferralController::class, 'store']);
+
 //todo
 /*
- * Правки из Trello
  * Админка
  * Платежка
  */
