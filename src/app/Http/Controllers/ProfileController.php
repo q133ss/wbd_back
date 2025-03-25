@@ -60,7 +60,6 @@ class ProfileController extends Controller
             return $user;
         } catch (\Exception $e) {
             DB::rollBack();
-
             return response()->json([
                 'status'  => 'false',
                 'message' => 'Произошла ошибка, попробуйте еще раз',
@@ -188,7 +187,8 @@ class ProfileController extends Controller
         $user     = auth('sanctum')->user();
         $userData = [];
 
-        $cashbackPaid = $user->buybacks()->sum('buybacks.price');
+        $completedBuybacks = $user->buybacks?->where('status', 'completed');
+        $cashbackPaid = $completedBuybacks->sum('price');
 
         if ($user->isSeller()) {
             // Продавец

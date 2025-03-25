@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Seller\AdsController;
 
 use App\Models\Ad;
+use App\Models\Product;
 use App\Models\Tariff;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -24,7 +25,7 @@ class StoreRequest extends FormRequest
      */
     public function rules(): array
     {
-        $user = Auth('sanctum')->user();
+        $user = auth('sanctum')->user();
 
         return [
             'product_id' => [
@@ -50,17 +51,24 @@ class StoreRequest extends FormRequest
                 'integer',
                 'min:1',
                 function (string $attribute, mixed $value, Closure $fail) use ($user): void {
+                    $priceBuybacks = 0;
                     if ($value > $user->redemption_count) {
-                        $tariff = Tariff::where('buybacks_count', '>=', $value)
-                            ->orderBy('buybacks_count', 'desc') // Выбираем максимальное подходящее количество
-                            ->first();
-                        if (! $tariff) {
-                            $fail('На балансе не хватает выкупов.');
-                        } else {
-                            if ($user->balance < $tariff->price) {
-                                $fail('На балансе недостаточно средств.');
-                            }
-                        }
+                        // Если выкупов не хватает на балансе
+                        $buybacksCount = $value - $user->redemption_count;
+                        $priceBuybacks = $buybacksCount * config('price.buyback_price');
+                    }
+
+                    $productPrice       = Product::find($this->product_id)->pluck('price')->first();
+                    $cashbackPercentage = $this->cashback_percentage;
+                    $cashbackAmount = ($productPrice * $cashbackPercentage) / 100;
+                    $price_with_cashback = $productPrice - $cashbackAmount;
+
+                    $priceForUser = $price_with_cashback * $value;
+                    $totalPrice = $priceBuybacks + $priceForUser;
+                    $newBalance   = $user->balance - $totalPrice;
+
+                    if($newBalance < 0){
+                        //$fail('На балансе недостаточно средств');
                     }
                 },
             ],

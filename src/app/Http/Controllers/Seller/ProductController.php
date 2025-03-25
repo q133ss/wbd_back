@@ -20,25 +20,27 @@ class ProductController extends Controller
     {
         $ads = auth('sanctum')->user()->shop?->products()?->with('activeAd')->withFilter($request)->paginate();
 
-        $ads->getCollection()->transform(function ($ad) {
-            $activeAd               = $ad->activeAd;
-            $allRedemptionCount     = $activeAd?->redemption_count; // Кол-во выкупов, которое задал продавец
-            $completedBuybacksCount = $activeAd?->buybacks()->where('buybacks.status', 'completed')->count();
+        if($ads != null) {
+            $ads->getCollection()->transform(function ($ad) {
+                $activeAd = $ad->activeAd;
+                $allRedemptionCount = $activeAd?->redemption_count; // Кол-во выкупов, которое задал продавец
+                $completedBuybacksCount = $activeAd?->buybacks()->where('buybacks.status', 'completed')->count();
 
-            $conversion = $ad->views > 0
-                ? round(($ad->completed_buybacks_count / $ad->views) * 100, 2)
-                : 0;
+                $conversion = $ad->views > 0
+                    ? round(($ad->completed_buybacks_count / $ad->views) * 100, 2)
+                    : 0;
 
-            // Добавляем дополнительные поля
-            $ad->buybacks_progress        = $completedBuybacksCount.' шт./ '.$allRedemptionCount.' шт.'; // 15 шт. / 25 шт.
-            $ad->completed_buybacks_count = $completedBuybacksCount; // кол-во выкупов
+                // Добавляем дополнительные поля
+                $ad->buybacks_progress = $completedBuybacksCount . ' шт./ ' . $allRedemptionCount . ' шт.'; // 15 шт. / 25 шт.
+                $ad->completed_buybacks_count = $completedBuybacksCount; // кол-во выкупов
 
-            $ad->conversion = $conversion; // Конверсия
-            $ad->views      = $activeAd?->views_count; // Кол-во просмотров
-            $ad->ads_count  = $ad->ads?->count(); // Кол-во объявлений
+                $ad->conversion = $conversion; // Конверсия
+                $ad->views = $activeAd?->views_count; // Кол-во просмотров
+                $ad->ads_count = $ad->ads?->count(); // Кол-во объявлений
 
-            return $ad;
-        });
+                return $ad;
+            });
+        }
 
         // Выкупов 25 из 50 || completed_buybacks_count
         // todo потом перенести их на 1 ступень выше в товар сам!

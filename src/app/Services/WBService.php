@@ -44,11 +44,12 @@ class WBService extends BaseService
     }
 
     /**
-     * @return void
+     * @param $shop
+     * @return bool
      */
-    private function checkShop($shop, $product)
+    private function checkShop($shop): bool
     {
-        $user = Auth('sanctum')->user();
+        $user = auth('sanctum')->user();
 
         // Если магазина нет, создаем новый
         if ($user->shop == null) {
@@ -59,15 +60,13 @@ class WBService extends BaseService
                 'legal_name'  => $shop['legal_name'],
                 'wb_name'     => $shop['wb_name'],
             ]);
-
             return true;
         } else {
             // Проверяем магазин
-            if ($shop['supplier_id'] != $user->shop?->supplier_id) {
-                $response = $this->formatResponse('false', 'Данный товар принадлежит другому продавцу', 403);
-
-                return $this->sendResponse($response);
+            if ((string)$shop['supplier_id'] != (string)$user->shop?->supplier_id) {
+                return false;
             }
+            return true;
         }
     }
 
@@ -233,7 +232,7 @@ class WBService extends BaseService
             'supplier_id' => $product['supplierId'],
             'inn'         => $getSupplier['inn'],
             'legal_name'  => $getSupplier['supplierName'],
-            'wb_name'     => $getSupplier['trademark'],
+            'wb_name'     => $getSupplier['trademark'] ?? $getSupplier['supplierName'],
         ];
 
         $product = $this->formatProductData($product);
@@ -255,6 +254,7 @@ class WBService extends BaseService
 
             return response()->json($prepareData);
         } catch (\Exception $e) {
+            \Log::error($e);
             $response = $this->formatResponse('false', 'Ошибка получения товара', 500);
 
             return $this->sendResponse($response);
@@ -295,7 +295,12 @@ class WBService extends BaseService
             $shop        = $prepareData['shop'];
             $product     = $prepareData['product'];
             $this->productCheck($product_id);
-            $this->checkShop($shop, $product);
+            $productCheck = $this->checkShop($shop);
+            if(!$productCheck)
+            {
+                $response = $this->formatResponse('false', 'Данный товар принадлежит другому продавцу', 403);
+                return $this->sendResponse($response);
+            }
             $productService = new ProductService;
             $createData     = $this->getProductFieldsArray($product);
             $createProduct  = $productService->create($createData);

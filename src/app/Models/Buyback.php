@@ -30,7 +30,9 @@ class Buyback extends Model
             ->when(
                 $request->query('status'),
                 function (Builder $query, $status) {
-                    return $query->where('buybacks.status', $status);
+                    if($status != 'all') {
+                        return $query->where('buybacks.status', $status);
+                    }
                 }
             )->when(
                 $request->query('search'),

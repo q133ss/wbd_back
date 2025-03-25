@@ -4,6 +4,7 @@ namespace App\Http\Requests\ProfileController;
 
 use App\Rules\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateRequest extends FormRequest
 {
@@ -22,11 +23,16 @@ class UpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $id = auth('sanctum')->id();
         return [
             'avatar'   => 'nullable|file|mimes:jpeg,png,jpg,gif,svg',
             'name'     => 'required|string|max:255',
             'phone'    => ['required', 'string', 'max:255', 'exists:users,phone', new PhoneNumber],
-            'email'    => 'required|email',
+            'email'    => [
+                'required',
+                'email',
+                Rule::unique('users')->ignore($id)
+            ],
             'password' => 'nullable|string|min:8|confirmed',
         ];
     }

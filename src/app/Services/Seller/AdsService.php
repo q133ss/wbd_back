@@ -23,60 +23,42 @@ class AdsService extends BaseService
             $cashbackAmount              = ($productPrice * $cashbackPercentage) / 100;
             $data['price_with_cashback'] = $productPrice - $cashbackAmount;
 
-            $user = Auth('sanctum')->user();
+            $user = auth('sanctum')->user();
 
             $data['status']  = true;
             $data['user_id'] = $user->id;
+            $redemption = $user->redemption_count - $data['redemption_count'];
 
             if ($data['redemption_count'] > $user->redemption_count) {
-                $tariff = Tariff::where('buybacks_count', '>=', $data['redemption_count'])
-                    ->orderBy('buybacks_count', 'desc')
-                    ->first();
-
+                // если выкупов не хватает!
+                $buybacks_count = $data['redemption_count'] - $user->redemption_count;
                 $userData            = [];
-                $userData['balance'] = $user->balance - $tariff->price;
+                $price = $buybacks_count * config('price.buyback_price');
+                $userData['balance'] = $user->balance - $price;
 
-                if ($tariff->buybacks_count > $data['redemption_count']) {
-                    $difference                   = $tariff->buybacks_count - $data['redemption_count'];
-                    $userData['redemption_count'] = $user->redemption_count + $difference;
-                    $depositTransaction           = Transaction::create([
-                        'amount'           => $tariff->buybacks_count,
-                        'transaction_type' => 'deposit',
-                        'currency_type'    => 'buyback',
-                        'description'      => 'Начисление пакета выкупов (оплата балансом): '.$tariff->buybacks_count.' выкупов',
-                        'user_id'          => $user->id,
-                    ]);
+                if($userData['balance'] < 0){
+                    $this->sendError('У вас недостаточно выкупов', 400);
                 }
 
+                $depositTransaction = Transaction::create([
+                    'amount'           => $price,
+                    'transaction_type' => 'deposit',
+                    'currency_type'    => 'buyback',
+                    'description'      => 'Начисление выкупов (оплата балансом): '.$buybacks_count.' выкупов',
+                    'user_id'          => $user->id,
+                ]);
                 $user->update($userData);
-
-                $withdrawTransaction = Transaction::create([
-                    'amount'           => $tariff->price,
-                    'transaction_type' => 'withdraw',
-                    'currency_type'    => 'buyback',
-                    'description'      => 'Создание объявления: '.$data['redemption_count'].' выкупов',
-                    'user_id'          => $user->id,
-                ]);
-            } else {
-                $redemption = $user->redemption_count - $data['redemption_count'];
-                $user->update(['redemption_count' => $redemption]);
-                $withdrawTransaction = Transaction::create([
-                    'amount'           => $data['redemption_count'],
-                    'transaction_type' => 'withdraw',
-                    'currency_type'    => 'buyback',
-                    'description'      => 'Создание объявления: '.$data['redemption_count'].' выкупов',
-                    'user_id'          => $user->id,
-                ]);
+                $redemption = $redemption + $buybacks_count;
             }
 
             // Заморозка баланса
             // цену для юзера умножаем ее на кол-во выкупов
             $priceForUser = $data['price_with_cashback'] * $data['redemption_count'];
             $newBalance   = $user->balance - $priceForUser;
-            if ($newBalance <= 0) {
+            if ($newBalance < 0) {
                 $this->sendError('У вас недостаточно средств', 400);
             }
-            $user->update(['balance' => $newBalance]);
+            $user->update(['balance' => $newBalance, 'redemption_count' => $redemption]);
 
             $ad = Ad::create($data);
 
@@ -90,7 +72,16 @@ class AdsService extends BaseService
             if (isset($depositTransaction)) {
                 $depositTransaction->update(['ads_id' => $ad->id]);
             }
-            $withdrawTransaction->update(['ads_id' => $ad->id]);
+
+
+            Transaction::create([
+                'amount'           => $data['redemption_count'],
+                'transaction_type' => 'withdraw',
+                'currency_type'    => 'buyback',
+                'description'      => 'Создание объявления: '.$data['redemption_count'].' выкупов',
+                'user_id'          => $user->id,
+                'ads_id'           => $ad->id
+            ]);
 
             DB::commit();
 
@@ -103,8 +94,6 @@ class AdsService extends BaseService
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            dd($e);
-
             return $this->sendError('Произошла ошибка, попробуйте еще раз', 500);
         }
     }
