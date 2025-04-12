@@ -22,6 +22,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/chat/{buyback}/file/{file}/reject', [\App\Http\Controllers\ChatController::class, 'fileReject']);
         Route::post('/chat/{buyback}/complete', [\App\Http\Controllers\ChatController::class, 'complete']);
     });
+
+    Route::get('/chat-list', [\App\Http\Controllers\ChatController::class, 'list']);
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index']);
 });
 
 Route::middleware([GuestOnly::class])->group(function () {
@@ -86,6 +89,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/buyback/{id}/cancel', [\App\Http\Controllers\ChatController::class, 'cancel']);
     Route::post('/chat/{id}/photo', [\App\Http\Controllers\ChatController::class, 'photo']);
     Route::post('/chat/{id}/review', [\App\Http\Controllers\ChatController::class, 'review']);
+    // Шаблоны
+    Route::apiResource('template', \App\Http\Controllers\TemplateController::class)->except('store', 'destroy');
 });
 
 // Профиль продавца

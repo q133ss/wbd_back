@@ -17,3 +17,22 @@ Route::middleware(['auth', 'is.admin'])->group(function () {
 });
 
 Route::view('/sse', 'sse');
+
+Route::get('/qq', function(){
+    \App\Models\Message::create([
+        'text' => 'Привет!',
+        'sender_id' => 1,
+        'buyback_id' => 1
+    ]);
+
+    \App\Models\Message::create([
+        'text' => 'Привет!!!',
+        'sender_id' => 2,
+        'buyback_id' => 1
+    ]);
+//    \App\Models\Buyback::create([
+//        'ads_id' => 1,
+//        'user_id' => 1,
+//        'price' => 1
+//    ]);
+});

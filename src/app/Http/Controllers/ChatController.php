@@ -15,6 +15,7 @@ use App\Services\BalanceService;
 use App\Services\NotificationService;
 use App\Services\ReviewService;
 use App\Services\SocketService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
@@ -356,5 +357,17 @@ class ChatController extends Controller
             'review' => $review,
             'buyback' => $buyback
         ], 201);
+    }
+
+    public function list(Request $request)
+    {
+//        $chats = auth('sanctum')->user()->buybacks()->withFilters($request)->with('messages')->get();
+        $chats = auth('sanctum')->user()
+            ->buybacks()
+            ->where(function ($query) use ($request) {
+                // Вызываем scope через модель Buyback
+                (new \App\Models\Buyback)->scopeWithFilter($query, $request);
+            });
+        return response()->json($chats->get());
     }
 }

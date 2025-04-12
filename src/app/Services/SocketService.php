@@ -15,19 +15,18 @@ class SocketService
         // проверка на is_read
         // а сам is_read делать в get messages
         // WebSocket-сообщение
+
         $data = [
-            'type'       => 'message', // Для сообщений
-            'buyback_id' => $buyback->id,
-            'buyer_id'   => $buyback->user_id,
-            'seller_id'  => $message->sender_id,
-            'message'    => [
-                'text'      => $message->text,
-                'sender_id' => $message->sender_id,
-                'type'      => $message->type,
-                'color'     => $message->color,
-                'files'     => $message->files->pluck('src')->all(),
-                'file_type' => $message->system_type,
-            ],
+            'buyback_id' => $message->buyback_id,
+            'color' => $message->color,
+            'created_at' => $message->created_at,
+            'id' => $message->id,
+            'is_read' => $message->is_read,
+            'sender_id' => $message->sender_id,
+            'system_type' => $message->system_type,
+            'text' => $message->text,
+            'type' => $message->type,
+            'updated_at' => $message->updated_at
         ];
 
         $pusher = new Pusher(
