@@ -361,13 +361,11 @@ class ChatController extends Controller
 
     public function list(Request $request)
     {
-//        $chats = auth('sanctum')->user()->buybacks()->withFilters($request)->with('messages')->get();
         $chats = auth('sanctum')->user()
             ->buybacks()
             ->where(function ($query) use ($request) {
-                // Вызываем scope через модель Buyback
                 (new \App\Models\Buyback)->scopeWithFilter($query, $request);
-            });
+            })->with('messages');
         return response()->json($chats->get());
     }
 }
