@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
@@ -9,6 +10,14 @@ class Message extends Model
     protected $guarded = [];
 
     const VIOLET_COLOR = '#6941C6';
+
+    protected static function booted()
+    {
+        // Дефолтная сортировка
+        static::addGlobalScope('order', function (Builder $builder) {
+            $builder->orderBy('messages.created_at', 'desc');
+        });
+    }
 
     public function file()
     {

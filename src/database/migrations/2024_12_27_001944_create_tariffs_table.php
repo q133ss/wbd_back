@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->integer('price');
-            $table->integer('buybacks_count');
+            $table->integer('buybacks_count')->comment('Кол-во выкупов');
+            $table->json('advantages')->comment('Преимущества');
+            $table->unsignedInteger('redemption_price')->comment('Цена 1 выкупа');
+            $table->date('expiration_date')->nullable()->comment('Срок действия');
             $table->timestamps();
         });
     }

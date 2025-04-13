@@ -155,22 +155,50 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Создаем тарифы');
 
         Tariff::create([
-            'name'           => 'Тариф 1',
-            'price'          => 900,
-            'buybacks_count' => 10,
+            'name'           => 'Start',
+            'price'          => 100,
+            'buybacks_count' => 1,
+            'advantages' => [
+                'Выкуп живыми пользователями по ключевому запросу',
+                'Фото/видео отзыв'
+            ],
+            'redemption_price' => 100
         ]);
 
         Tariff::create([
-            'name'           => 'Тариф 2',
-            'price'          => 1600,
+            'name'           => 'Optimal',
+            'advantages' => [
+                'Выкуп живыми пользователями по ключевому запросу',
+                'Фото/видео отзыв'
+            ],
+            'price'          => 1900,
             'buybacks_count' => 20,
+            'redemption_price' => 95
         ]);
 
         Tariff::create([
-            'name'           => 'Тариф 3',
-            'price'          => 2000,
-            'buybacks_count' => 30,
+            'name'           => 'Premium',
+            'advantages' => [
+                'Выкуп живыми пользователями по ключевому запросу',
+                'Фото/видео отзыв'
+            ],
+            'price'          => 9000,
+            'buybacks_count' => 100,
+            'redemption_price' => 90
         ]);
+
+        Tariff::create([
+            'name'           => 'Ultima',
+            'advantages' => [
+                'Выкуп живыми пользователями',
+                'Фото/видео отзыв'
+            ],
+            'price'          => 40000,
+            'buybacks_count' => 500,
+            'redemption_price' => 80
+        ]);
+
+        // Промокод
 
         Promocode::create([
             'name'           => 'Тестовый промокод',

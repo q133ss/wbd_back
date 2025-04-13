@@ -365,7 +365,10 @@ class ChatController extends Controller
             ->buybacks()
             ->where(function ($query) use ($request) {
                 (new \App\Models\Buyback)->scopeWithFilter($query, $request);
-            })->with('messages');
+            })
+            ->with(['messages' => function ($query) {
+                $query->orderBy('messages.created_at', 'desc');
+            }]);
         return response()->json($chats->get());
     }
 }

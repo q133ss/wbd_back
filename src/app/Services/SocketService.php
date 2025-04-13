@@ -16,6 +16,9 @@ class SocketService
         // а сам is_read делать в get messages
         // WebSocket-сообщение
 
+        // Подгружаем все значения из БД
+        $message->refresh();
+
         $data = [
             'buyback_id' => $message->buyback_id,
             'color' => $message->color,
@@ -38,6 +41,11 @@ class SocketService
                 'useTLS'  => true,
             ]
         );
+
+        \Log::info($message);
+        \Log::info($data);
+        dd($message);
+
         $pusher->trigger('chat-'.$buyback->id, 'MessageSent', $data);
 
         // Отправка уведомления
