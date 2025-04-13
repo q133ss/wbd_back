@@ -23,7 +23,7 @@ class CompleteRequest extends FormRequest
     {
         return [
             'name'     => 'required|string|max:255',
-            'email'    => 'nullable|string|max:255|email',
+            'email'    => 'nullable|string|max:255|email|unique:users,email',
             'password' => 'required|string|min:8|max:255|confirmed',
         ];
     }
@@ -34,6 +34,7 @@ class CompleteRequest extends FormRequest
             'name.required'      => 'Имя обязательно для заполнения',
             'name.max'           => 'Поле имя не должно превышать 255 символов',
             'email.email'        => 'Укажите правильный email',
+            'email.unique'       => 'Пользователь с таким email уже существует',
             'password.required'  => 'Пароль обязательно для заполнения',
             'password.min'       => 'Пароль должен быть не менее 8 символов',
             'password.max'       => 'Поле пароль не должно превышать 255 символов',
