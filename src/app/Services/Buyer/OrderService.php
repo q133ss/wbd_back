@@ -42,11 +42,8 @@ class OrderService extends BaseService
             ]);
 
             // Отправляем сообщение по веб сокетам покупателю
-            // TODO ВЕРНУТЬ
-//            (new SocketService)->send($message, $buyback);
-//
-//            // Уведомление для продавца
-//            (new NotificationService())->send($ad->user_id,$buyback->id, 'Новый выкуп по объявлению #'.$ad->id, true);
+            (new SocketService)->send($message, $buyback);
+            (new NotificationService())->send($ad->user_id,$buyback->id, 'Новый выкуп по объявлению #'.$ad->id, true);
 
             // Таймер
             OrderPendingCheck::dispatch($buyback->id)->delay(Carbon::now()->addMinutes(30));
