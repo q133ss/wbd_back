@@ -11,6 +11,7 @@ use App\Models\Review;
 use App\Models\Role;
 use App\Models\Shop;
 use App\Models\Tariff;
+use App\Models\Template;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -30,7 +31,7 @@ class DatabaseSeeder extends Seeder
         ];
         Role::insert($roles);
 
-        User::factory()->create([
+        $alexey = User::factory()->create([
             'name'             => 'Алексей',
             'email'            => 'alexey@email.net',
             'phone'            => '+7(951)867-70-86',
@@ -40,6 +41,9 @@ class DatabaseSeeder extends Seeder
             'role_id'          => Role::where('slug', 'seller')->pluck('id')->first(),
             'telegram_id'      => '461612832'
         ]);
+
+        $template = new Template();
+        $template->createDefault($alexey->id);
 
         Shop::create([
             'user_id'     => User::where('email', 'alexey@email.net')->pluck('id')->first(),
@@ -142,7 +146,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        User::create([
+        $admin = User::create([
             'name'             => 'admin',
             'email'            => 'admin@email.net',
             'redemption_count' => 100,
@@ -151,6 +155,8 @@ class DatabaseSeeder extends Seeder
             'password'         => bcrypt('password'),
             'role_id'          => Role::where('slug', 'admin')->pluck('id')->first(),
         ]);
+
+        $template->createDefault($admin->id);
 
         $this->command->info('Создаем тарифы');
 
@@ -218,6 +224,8 @@ class DatabaseSeeder extends Seeder
             'password'         => bcrypt('password'),
             'role_id'          => Role::where('slug', 'buyer')->pluck('id')->first(),
         ]);
+
+        $template->createDefault($buyer->id);
 
         Review::create([
             'user_id'         => $buyer->id,

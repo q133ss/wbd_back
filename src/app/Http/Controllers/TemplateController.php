@@ -10,7 +10,6 @@ class TemplateController extends Controller
 {
     private User|null $user;
 
-
     public function __construct()
     {
         $this->user = auth('sanctum')->user();

@@ -232,4 +232,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class, 'user_id', 'id');
     }
+
+    public function templates()
+    {
+        return $this->hasMany(Template::class, 'user_id', 'id');
+    }
 }

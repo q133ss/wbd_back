@@ -10,6 +10,7 @@ use App\Http\Requests\AuthController\ResetSendCodeRequest;
 use App\Http\Requests\AuthController\SendCodeRequest;
 use App\Http\Requests\AuthController\VerifyCodeRequest;
 use App\Models\Role;
+use App\Models\Template;
 use App\Models\User;
 use App\Services\AuthService;
 
@@ -41,6 +42,9 @@ class AuthController extends Controller
         $data                  = $request->validated();
         $data['is_configured'] = true;
         $updated               = $user->update($data);
+
+        $template = new Template();
+        $template->createDefault($user->id);
 
         return Response()->json([
             'message' => 'true',

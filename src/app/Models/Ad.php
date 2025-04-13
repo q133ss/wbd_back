@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class Ad extends Model
 {
@@ -94,106 +95,60 @@ class Ad extends Model
 
     public function scopeWithSorting($query, Request $request)
     {
-        // Получаем все параметры запроса
-        $sortParams = $request->query();
+        // Получаем параметры сортировки
+        $sortField = $request->input('sort');
+        $sortOrder = $request->input('order');
 
-        // Поля для groupBy
-        $adsFields = [
-            'ads.id',
-            'ads.product_id',
-            'ads.name',
-            'ads.cashback_percentage',
-            'ads.price_with_cashback',
-            'ads.order_conditions',
-            'ads.redemption_instructions',
-            'ads.review_criteria',
-            'ads.redemption_count',
-            'ads.views_count',
-            'ads.one_per_user',
-            'ads.is_archived',
-            'ads.status',
-            'ads.balance',
-            'ads.user_id',
-            'ads.created_at',
-            'ads.updated_at',
-        ];
+        // Проверка допустимых значений
+        $validColumns = ['created_at', 'price_with_cashback', 'rating_product', 'rating_seller', 'popular', 'cashback_percentage'];
+        $validOrders = ['asc', 'desc'];
 
-        $productsFields = [
-            'products.id',
-            'products.wb_id',
-            'products.name',
-            'products.price',
-            'products.brand',
-            'products.discount',
-            'products.rating',
-            'products.quantity_available',
-            'products.supplier_id',
-            'products.category_id',
-            'products.description',
-            'products.supplier_rating',
-            'products.is_archived',
-            'products.shop_id',
-            'products.images',
-            'products.status',
-            'products.created_at',
-            'products.updated_at',
-        ];
+        if (!in_array($sortField, $validColumns)) {
+            throw new \InvalidArgumentException("Неверное поле сортировки: $sortField");
+        }
 
-        $reviewsFields = [
-            'reviews.id',
-            'reviews.user_id',
-            'reviews.ads_id',
-            'reviews.rating',
-            'reviews.text',
-            'reviews.reviewable_type',
-            'reviews.reviewable_id',
-            'reviews.created_at',
-            'reviews.updated_at',
-        ];
+        if (!in_array($sortOrder, $validOrders)) {
+            throw new \InvalidArgumentException("Неверное направление сортировки: $sortOrder");
+        }
 
-        // Проверка и применение сортировки
-        foreach ($sortParams as $field => $order) {
-            $validColumns = [
-                'created_at',
-                'price_with_cashback',
-                'rating_product',
-                'rating_seller',
-                'popular',
-            ];
+        // Применяем сортировку
+        if ($sortField === 'rating_product') {
+            $subQuery = DB::table('ads')
+                ->leftJoin('reviews', function ($join) {
+                    $join->on('ads.id', '=', 'reviews.reviewable_id')
+                        ->where('reviews.reviewable_type', 'App\Models\Ad');
+                })
+                ->select('ads.id', DB::raw('COALESCE(AVG(reviews.rating), 0) as avg_rating'))
+                ->groupBy('ads.id');
 
-            // Проверка на допустимые значения столбцов и порядка сортировки
-            if (in_array($field, $validColumns) && in_array($order, ['asc', 'desc'])) {
-                // Изначально включаем только поля из ads
-                $groupByFields = $adsFields;
-                if ($field === 'rating_product') {
-                    if (! $this->joined($query, 'products')) {
-                        $query->join('products', 'products.id', '=', 'ads.product_id');
-                    }
+            $query->joinSub($subQuery, 'sub', function ($join) {
+                $join->on('ads.id', '=', 'sub.id');
+            })->orderBy('sub.avg_rating', $sortOrder);
+        } elseif ($sortField === 'rating_seller') {
+            $subQuery = DB::table('ads')
+                ->leftJoin('reviews', function ($join) {
+                    $join->on('ads.user_id', '=', 'reviews.reviewable_id')
+                        ->where('reviews.reviewable_type', 'App\Models\User');
+                })
+                ->select('ads.id', DB::raw('COALESCE(AVG(reviews.rating), 0) as avg_rating'))
+                ->groupBy('ads.id');
 
-                    if (! $this->joined($query, 'reviews')) {
-                        $query->join('reviews', 'products.id', '=', 'reviews.reviewable_id');
-                    }
-                    $query->where('reviews.reviewable_type', 'App\Models\Product');
-                    $groupByFields = array_merge($groupByFields, $productsFields, $reviewsFields);
-                    $query->groupBy($groupByFields);
-                    $query->orderByRaw('AVG(reviews.rating) '.$order);
-                } elseif ($field === 'rating_seller') {
-                    // Сортировка по рейтингу продавца
-                    if (! $this->joined($query, 'reviews')) {
-                        $query->join('reviews', 'ads.user_id', '=', 'reviews.reviewable_id');
-                    }
-                    $query->where('reviews.reviewable_type', 'App\Models\User');
-                    $groupByFields = array_merge($groupByFields, $reviewsFields);
-                    $query->groupBy($groupByFields);
-                    $query->orderByRaw('AVG(reviews.rating) '.$order);
-                } elseif ($field === 'popular') {
-                    // Сортировка по популярности (например, по количеству покупок)
-                    $query->orderBy('ads.number_of_purchases', $order);
-                } else {
-                    // Сортировка по другим полям
-                    $query->orderBy($field, $order);
-                }
-            }
+            $query->joinSub($subQuery, 'sub', function ($join) {
+                $join->on('ads.id', '=', 'sub.id');
+            })->orderBy('sub.avg_rating', $sortOrder);
+        } elseif ($sortField === 'popular') {
+            $subQuery = DB::table('buybacks')
+                ->select('ads_id', DB::raw('COUNT(*) as buyback_count'))
+                ->groupBy('ads_id');
+
+            $query->leftJoinSub($subQuery, 'buyback_counts', function ($join) {
+                $join->on('ads.id', '=', 'buyback_counts.ads_id');
+            })
+                ->orderBy(DB::raw('COALESCE(buyback_counts.buyback_count, 0)'), $sortOrder);
+        }elseif ($sortField === 'cashback_percentage') {
+            $query->orderBy('ads.cashback_percentage', $sortOrder);
+        } else {
+            $query->orderBy($sortField, $sortOrder);
         }
 
         return $query;
