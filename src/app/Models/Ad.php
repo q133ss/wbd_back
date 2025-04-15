@@ -104,11 +104,11 @@ class Ad extends Model
         $validOrders = ['asc', 'desc'];
 
         if (!in_array($sortField, $validColumns)) {
-            throw new \InvalidArgumentException("Неверное поле сортировки: $sortField");
+            $sortField = 'created_at';
         }
 
         if (!in_array($sortOrder, $validOrders)) {
-            throw new \InvalidArgumentException("Неверное направление сортировки: $sortOrder");
+            $sortOrder = 'desc';
         }
 
         // Применяем сортировку

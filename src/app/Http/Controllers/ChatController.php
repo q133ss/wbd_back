@@ -56,10 +56,13 @@ class ChatController extends Controller
             }
         }
 
+        $whoSend = $buyback->user_id == auth('sanctum')->id() ? 'buyer' : 'seller';
+
         $msg = (new SocketService)->send($message, $buyback);
         if ($msg) {
             return response()->json([
                 'success' => true,
+                'whoSend' => $whoSend,
                 'message' => $message->load('files'),
             ]);
         }
@@ -366,9 +369,7 @@ class ChatController extends Controller
             ->where(function ($query) use ($request) {
                 (new \App\Models\Buyback)->scopeWithFilter($query, $request);
             })
-            ->with(['messages' => function ($query) {
-                $query->orderBy('messages.created_at', 'desc');
-            }]);
+            ->with('messages');
         return response()->json($chats->get());
     }
 }

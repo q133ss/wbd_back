@@ -15,7 +15,7 @@ class Message extends Model
     {
         // Дефолтная сортировка
         static::addGlobalScope('order', function (Builder $builder) {
-            $builder->orderBy('messages.created_at', 'desc');
+            $builder->orderBy('messages.created_at', 'asc');
         });
     }
 

@@ -42,10 +42,6 @@ class SocketService
             ]
         );
 
-        \Log::info($message);
-        \Log::info($data);
-        dd($message);
-
         $pusher->trigger('chat-'.$buyback->id, 'MessageSent', $data);
 
         // Отправка уведомления
