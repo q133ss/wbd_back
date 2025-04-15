@@ -32,13 +32,16 @@ class OrderController extends Controller
 
     public function show(string $id)
     {
-        return Buyback::with([
+        $userId = auth('sanctum')->id();
+        $buyback = Buyback::with([
             'messages',
             'ad' => function ($query) {
                 $query->without('reviews');
             },
         ]
         )->where('user_id', auth('sanctum')->id())->findOrFail($id);
+        $buyback['whoSend'] = $buyback->user_id == $userId ? 'buyer' : 'seller';
+        return $buyback;
     }
 
     public function send(SendRequest $request, string $id): \Illuminate\Http\JsonResponse
