@@ -362,14 +362,41 @@ class ChatController extends Controller
         ], 201);
     }
 
+//    public function list(Request $request)
+//    {
+//        $chats = auth('sanctum')->user()
+//            ->buybacks()
+//            ->where(function ($query) use ($request) {
+//                (new \App\Models\Buyback)->scopeWithFilter($query, $request);
+//            })
+//            ->with('messages');
+//        return response()->json($chats->get());
+//    }
     public function list(Request $request)
     {
+        $userId = auth('sanctum')->id();
+
         $chats = auth('sanctum')->user()
             ->buybacks()
             ->where(function ($query) use ($request) {
                 (new \App\Models\Buyback)->scopeWithFilter($query, $request);
             })
-            ->with('messages');
-        return response()->json($chats->get());
+            ->with(['messages', 'ad']) // Добавляем загрузку объявления, если нужно
+            ->get()
+            ->map(function($buyback) use ($userId) {
+                // Определяем роль текущего пользователя для этого buyback
+                $isBuyer = $buyback->user_id == $userId;
+
+                // Добавляем whoSend для каждого сообщения
+                $buyback->messages->each(function($message) use ($isBuyer, $buyback) {
+                    $message->whoSend = ($message->sender_id == $buyback->user_id) == $isBuyer
+                        ? 'buyer'
+                        : 'seller';
+                });
+
+                return $buyback;
+            });
+
+        return response()->json($chats);
     }
 }

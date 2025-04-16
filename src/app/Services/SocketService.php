@@ -19,6 +19,10 @@ class SocketService
         // Подгружаем все значения из БД
         $message->refresh();
 
+        $userId = auth('sanctum')->id();
+        $isBuyer = $buyback->user_id == $userId;
+        $whoSend = ($message->sender_id == $buyback->user_id) == $isBuyer ? 'buyer' : 'seller';
+
         $data = [
             'buyback_id' => $message->buyback_id,
             'color' => $message->color,
@@ -29,7 +33,8 @@ class SocketService
             'system_type' => $message->system_type,
             'text' => $message->text,
             'type' => $message->type,
-            'updated_at' => $message->updated_at
+            'updated_at' => $message->updated_at,
+            'whoSend' => $whoSend
         ];
 
         $pusher = new Pusher(
