@@ -15,6 +15,12 @@ class ShowResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $userId = auth('sanctum')->id();
+
+        $this->messages->each(function($message) use ($userId) {
+            $message->whoSend = $message->sender_id == $userId ? 'buyer' : 'seller';
+        });
+
         return [
             'price' => $this->price,
             'id' => $this->id,
@@ -23,8 +29,7 @@ class ShowResource extends JsonResource
             'is_archived' => $this->is_archived,
             'status' => $this->status,
             'messages' => $this->messages,
-            'ad' => $this->ad,
-            'whoSend' => $this->whoSend
+            'ad' => $this->ad
         ];
     }
 }

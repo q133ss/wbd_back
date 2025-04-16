@@ -20,7 +20,8 @@ class BuybackController extends Controller
     public function show(string $id)
     {
         $userId = auth('sanctum')->id();
-        $buyback = Buyback::leftJoin('users', 'buybacks.user_id', '=', 'users.id')
+        $buyback = Buyback::with('messages')
+            ->leftJoin('users', 'buybacks.user_id', '=', 'users.id')
             ->leftJoin('ads', 'buybacks.ads_id', '=', 'ads.id')
             ->where('buybacks.id', $id)
             ->where(function ($query) use ($userId) {
@@ -32,8 +33,6 @@ class BuybackController extends Controller
         if ($buyback === null) {
             abort(404);
         }
-        $buyback['whoSend'] = $buyback->user_id == $userId ? 'buyer' : 'seller';
-
         return new ShowResource($buyback);
     }
 }

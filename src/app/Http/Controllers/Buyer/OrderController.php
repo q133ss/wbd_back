@@ -34,13 +34,15 @@ class OrderController extends Controller
     {
         $userId = auth('sanctum')->id();
         $buyback = Buyback::with([
-            'messages',
+            'messages' => function($query) use ($userId) {
+                $query->addSelect(['*',
+                    \DB::raw('CASE WHEN sender_id = '.$userId.' THEN "buyer" ELSE "seller" END as whoSend')
+                ]);
+            },
             'ad' => function ($query) {
                 $query->without('reviews');
             },
-        ]
-        )->where('user_id', auth('sanctum')->id())->findOrFail($id);
-        $buyback['whoSend'] = $buyback->user_id == $userId ? 'buyer' : 'seller';
+        ])->where('user_id', $userId)->findOrFail($id);
         return $buyback;
     }
 
