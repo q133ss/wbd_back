@@ -135,7 +135,7 @@ class WBService extends BaseService
 
     private function fetchDescription($product_id)
     {
-        // Нужно найти способ получить описание!
+        // TODO Нужно найти способ получить описание!
         return null;
     }
 

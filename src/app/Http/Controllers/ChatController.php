@@ -44,6 +44,7 @@ class ChatController extends Controller
             'text'       => $request->text,
         ]);
 
+        # TODO добавить возможность отправлять фото без текста!
         if ($request->has('files')) {
             foreach ($request->file('files') as $file) {
                 $fileSrc   = $file->store('files', 'public');

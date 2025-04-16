@@ -253,5 +253,7 @@ class DatabaseSeeder extends Seeder
             'reviewable_id'   => Ad::pluck('id')->first(),
             'reviewable_type' => 'App\Models\Ad',
         ]);
+
+        $this->call(ReviewSeed::class);
     }
 }
