@@ -25,7 +25,7 @@ class BuybackController extends Controller
             $query->without('reviews');
         }])
             ->leftJoin('users', 'buybacks.user_id', '=', 'users.id')
-            ->leftJoin('ads', 'buybacks.ad_id', '=', 'ads.id')
+            ->leftJoin('ads', 'buybacks.ads_id', '=', 'ads.id')
             ->where('buybacks.id', $id)
             ->where(function ($query) use ($userId) {
                 $query->where('buybacks.user_id', $userId)
