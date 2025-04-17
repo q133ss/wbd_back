@@ -104,5 +104,18 @@ class ReviewSeed extends Seeder
             // Выходим из аккаунта
             Auth::logout();
         }
+
+        $users = User::skip(3)->take(9999)->get();
+        $shops = Shop::skip(1)->take(9999)->get();
+
+        $index = 0;
+        foreach ($users as $user){
+            try {
+                $shops[$index]->update(['user_id' => $user->id]);
+            }catch (\Exception $e){
+
+            }
+            $index++;
+        }
     }
 }
