@@ -22,15 +22,25 @@ class ChatController extends Controller
 {
     public function messages(string $buyback_id)
     {
-        $buyback = Buyback::findOrFail($buyback_id);
+        $buyback = Buyback::with('ad')->findOrFail($buyback_id);
 
         $user = auth('sanctum')->user();
         $user->checkBuyback($buyback);
 
-        // Обновляем все сообщения, устанавливая флаг прочитанности
-        Message::where('buyback_id', $buyback_id)->update(['is_read' => true]);
+        // Определяем ID второй стороны в сделке
+        $adUserId = $buyback->ad?->user_id;
+        $counterpartyId = ($user->id == $buyback->user_id) ? $adUserId : $buyback->user_id;
 
-        return Message::with('file')->where('buyback_id', $buyback_id)->get();
+        // Помечаем только сообщения от второй стороны как прочитанные
+        Message::where('buyback_id', $buyback_id)
+            ->where('sender_id', $counterpartyId) // Сообщения от противоположной стороны
+            ->where('is_read', false)             // Только непрочитанные
+            ->update(['is_read' => true]);
+
+        return Message::with('file')
+            ->where('buyback_id', $buyback_id)
+            ->orderBy('created_at', 'desc')      // Сортировка по дате (новые внизу)
+            ->paginate(30);
     }
 
     public function send(string $buyback_id, SendRequest $request)
@@ -365,8 +375,6 @@ class ChatController extends Controller
 
     public function list(Request $request)
     {
-        $userId = auth('sanctum')->id();
-
         $chats = auth('sanctum')->user()
             ->buybacks()
             ->where(function ($query) use ($request) {
@@ -374,7 +382,7 @@ class ChatController extends Controller
             })
             ->with(['messages', 'ad']) // Добавляем загрузку объявления, если нужно
             ->get()
-            ->map(function($buyback) use ($userId) {
+            ->map(function($buyback) {
                 $userId = $buyback->ad?->user_id;
                 $isBuyer = $buyback->user_id == $userId;
 

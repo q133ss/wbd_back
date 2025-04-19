@@ -34,14 +34,7 @@ class OrderController extends Controller
     {
         $userId = auth('sanctum')->id();
 
-        $buyback = Buyback::with([
-            'messages' => function($query) {
-                $query->select('*');
-            },
-            'ad' => function ($query) {
-                $query->without('reviews');
-            },
-        ])->where('user_id', $userId)->findOrFail($id);
+        $buyback = Buyback::with('messages', 'ad')->where('buybacks.user_id', $userId)->findOrFail($id);
 
         $buyback->messages->each(function ($message) use ($buyback, $userId) {
             $adUserId = $buyback->ad?->user_id;

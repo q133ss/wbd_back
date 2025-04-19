@@ -20,6 +20,7 @@ return new class extends Migration
 
             $table->string('telegram_id')->unique()->nullable()->comment('ID пользователя в Telegram');
             $table->foreignId('referral_id')->comment('ID того, кто пригласил')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('last_seen_at')->nullable();
         });
     }
 

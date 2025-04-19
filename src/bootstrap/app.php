@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(\App\Http\Middleware\Cors::class);
+        $middleware->append(\App\Http\Middleware\UpdateUserStatus::class);
         $middleware->alias([
             'is.admin' => \App\Http\Middleware\IsAdmin::class,
         ]);

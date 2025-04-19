@@ -10,7 +10,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $adsQuery = Ad::withFilter($request)->withSorting($request);
+        $adsQuery = Ad::withFilter($request)->where('ads.status', true)->withSorting($request);
         $ads      = $adsQuery->paginate(18);
 
         return response()->json($ads);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Seller;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BuybackController\ShowResource;
 use App\Models\Buyback;
+use App\Models\Message;
 use Illuminate\Http\Request;
 
 class BuybackController extends Controller
@@ -21,7 +22,7 @@ class BuybackController extends Controller
     {
         $userId = auth('sanctum')->id();
 
-        $buyback = Buyback::with(['messages', 'ad' => function($query) {
+        $buyback = Buyback::with(['messages', 'user', 'ad' => function($query) {
             $query->without('reviews');
         }])
             ->leftJoin('users', 'buybacks.user_id', '=', 'users.id')
@@ -37,6 +38,15 @@ class BuybackController extends Controller
         if ($buyback === null) {
             abort(404);
         }
+
+        // Определяем ID второй стороны
+        $adUserId = $buyback->ad?->user_id;
+        $counterpartyId = ($userId == $buyback->user_id) ? $adUserId : $buyback->user_id;
+
+        Message::where('buyback_id', $buyback->id)
+            ->where('sender_id', $counterpartyId) // Сообщения от противоположной стороны
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
 
         // Добавляем whoSend к каждому сообщению
         $buyback->messages->each(function ($message) use ($buyback) {

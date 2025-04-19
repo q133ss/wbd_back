@@ -30,10 +30,9 @@ class User extends Authenticatable
         'redemption_count',
         'balance',
         'telegram_id',
-        'referral_id'
+        'referral_id',
+        'last_seen_at'
     ];
-
-    protected $with = ['shop'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -44,6 +43,8 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    protected $with = ['shop'];
 
     /**
      * Get the attributes that should be cast.
@@ -103,6 +104,7 @@ class User extends Authenticatable
             'is_configured' => $this->is_configured,
             'shop'          => $this->shop,
             'role'          => $this->role,
+            'is_online'     => $this->is_online
         ];
     }
 
@@ -236,5 +238,20 @@ class User extends Authenticatable
     public function templates()
     {
         return $this->hasMany(Template::class, 'user_id', 'id');
+    }
+
+    /**
+     * Возвращет статус онлайна
+     * @return bool
+     */
+    public function getIsOnlineAttribute(): bool
+    {
+        // Если last_seen_at не загружен, подгружаем его
+        if (!array_key_exists('last_seen_at', $this->attributes)) {
+            $this->load('last_seen_at');
+        }
+
+        return $this->last_seen_at &&
+            $this->last_seen_at > now()->subMinutes(3);
     }
 }

@@ -29,7 +29,8 @@ class ShowResource extends JsonResource
             'is_archived' => $this->is_archived,
             'status' => $this->status,
             'messages' => $this->messages,
-            'ad' => $this->ad
+            'ad' => $this->ad,
+            'user' => $this->user
         ];
     }
 }
