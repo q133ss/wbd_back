@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
+# TODO Для переключения аккаунтов, можно просто менять role_id и все!
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('seller')->group(function () {
