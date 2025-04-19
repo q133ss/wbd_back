@@ -72,25 +72,45 @@ class ProductController extends Controller
         dd($id);
     }
 
-    public function stop(StopRequest $request)
+    public function startStop(StopRequest $request)
     {
         try {
             DB::beginTransaction();
-            Product::whereIn('id', $request->product_ids)->update(['status' => false]);
-            Ad::whereIn('product_id', $request->product_ids)->update(['status' => false]);
+
+            $productIds = $request->product_ids;
+            $currentStatus = Product::whereIn('id', $productIds)->value('status');
+            $newStatus = is_null($currentStatus) ? false : !$currentStatus;
+
+            if ($newStatus) {
+                // Активация (только товары)
+                Product::whereIn('id', $productIds)->update(['status' => true]);
+                $message = 'Товары активированы';
+            } else {
+                // Деактивация (товары + объявления) — 2 запроса, но в одной транзакции
+                Product::whereIn('id', $productIds)->update(['status' => false]);
+
+                // Оптимизированный запрос через JOIN (быстрее, чем whereIn)
+                DB::table('ads')
+                    ->join('products', 'ads.product_id', '=', 'products.id')
+                    ->whereIn('products.id', $productIds)
+                    ->update(['ads.status' => false]);
+
+                $message = 'Товары и их объявления остановлены';
+            }
+
             DB::commit();
 
             return response()->json([
-                'status'  => 'true',
-                'message' => 'Товары остановлен',
+                'status'  => true,
+                'message' => $message,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-
+            \Log::error('Product status error: ' . $e->getMessage());
             return response()->json([
-                'status'  => 'false',
-                'message' => 'Произошла ошибка, попробуйте еще раз',
-            ]);
+                'status'  => false,
+                'message' => 'Ошибка сервера',
+            ], 500);
         }
     }
 

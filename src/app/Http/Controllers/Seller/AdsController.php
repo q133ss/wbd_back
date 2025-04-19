@@ -106,30 +106,78 @@ class AdsController extends Controller
         }
     }
 
-    public function stop(StopRequest $request)
+    public function startStop(StopRequest $request)
     {
         try {
             DB::beginTransaction();
-            $ads         = Ad::whereIn('id', $request->ad_ids);
-            $product_ids = $ads->pluck('product_id')->all();
-            $ads->update(['status' => false]);
-            Product::whereIn('id', $product_ids)->update(['status' => false]);
+
+            $adsData = Ad::whereIn('id', $request->ad_ids)
+                ->select(['id', 'product_id', 'status'])
+                ->orderBy('id')
+                ->get();
+
+            if ($adsData->isEmpty()) {
+                return response()->json(['status' => false, 'message' => 'Объявления не найдены'], 404);
+            }
+
+            $newStatus = !$adsData->first()->status;
+            $productIds = $adsData->pluck('product_id')->unique();
+
+            if ($newStatus) {
+                // Определяем ID объявлений для активации (по одному на товар)
+                $adsToActivate = $adsData->groupBy('product_id')
+                    ->map->first()
+                    ->pluck('id');
+
+                // Один запрос для обновления всех статусов
+                DB::statement("
+                UPDATE ads
+                SET status = CASE
+                    WHEN id IN (".$adsToActivate->join(',').") THEN TRUE
+                    WHEN product_id IN (".$productIds->join(',').") THEN FALSE
+                    ELSE status
+                END
+                WHERE product_id IN (".$productIds->join(',').")
+            ");
+
+                // Активируем товары
+                Product::whereIn('id', $productIds)->update(['status' => true]);
+
+                $message = 'Активировано по одному объявлению для каждого товара';
+            } else {
+                // Деактивация
+                Ad::whereIn('id', $request->ad_ids)->update(['status' => false]);
+
+                // Деактивируем товары без активных объявлений
+                $inactiveProducts = DB::table('products')
+                    ->whereIn('id', $productIds)
+                    ->whereNotExists(function ($query) {
+                        $query->select(DB::raw(1))
+                            ->from('ads')
+                            ->whereColumn('ads.product_id', 'products.id')
+                            ->where('ads.status', true);
+                    })
+                    ->pluck('id');
+
+                if ($inactiveProducts->isNotEmpty()) {
+                    Product::whereIn('id', $inactiveProducts)->update(['status' => false]);
+                }
+
+                $message = 'Объявления остановлены';
+            }
+
             DB::commit();
 
             return response()->json([
-                'status'  => 'true',
-                'message' => 'Объявления остановлены',
+                'status' => true,
+                'message' => $message,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return response()->json([
-                'status'  => 'false',
-                'message' => 'Произошла ошибка, попробуйте еще раз',
-            ]);
+            \Log::error('Ad status change error: '.$e->getMessage());
+            return response()->json(['status' => false, 'message' => 'Ошибка сервера'], 500);
         }
     }
-
     public function archive(StopRequest $request)
     {
         try {

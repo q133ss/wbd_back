@@ -6,11 +6,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('seller')->group(function () {
         Route::apiResource('products', \App\Http\Controllers\Seller\ProductController::class)->except('show');
-        Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'stop']);
+        Route::post('/products/stop', [\App\Http\Controllers\Seller\ProductController::class, 'startStop']);
         Route::post('/products/archive', [\App\Http\Controllers\Seller\ProductController::class, 'archive']);
         Route::post('/products/duplicate', [\App\Http\Controllers\Seller\ProductController::class, 'duplicate']);
         Route::apiResource('ads', \App\Http\Controllers\Seller\AdsController::class);
-        Route::post('/ads/stop', [\App\Http\Controllers\Seller\AdsController::class, 'stop']);
+        Route::post('/ads/stop', [\App\Http\Controllers\Seller\AdsController::class, 'startStop']);
         Route::post('/ads/archive', [\App\Http\Controllers\Seller\AdsController::class, 'archive']);
         Route::post('/ads/duplicate', [\App\Http\Controllers\Seller\AdsController::class, 'duplicate']);
         Route::get('/tariff/list', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
@@ -113,3 +113,4 @@ Route::post('/referral/{id}', [\App\Http\Controllers\ReferralController::class, 
  * Админка
  * Платежка
  */
+
