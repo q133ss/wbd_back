@@ -16,4 +16,13 @@ class TelegramController extends Controller
 
         return response('OK', 200);
     }
+
+    public function getTelegramLink()
+    {
+        $user = auth('sanctum')->user();
+        $telegramService = app(TelegramService::class);
+        return response()->json([
+            'link' => $telegramService->generateAuthLink($user)
+        ]);
+    }
 }

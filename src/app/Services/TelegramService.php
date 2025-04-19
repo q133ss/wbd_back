@@ -59,8 +59,26 @@ class TelegramService
     }
 
     // Команда /start
-    private function startCommand($chatId): void
+    private function startCommand($chatId, $startPayload = null): void
     {
+
+        if ($startPayload) {
+            // Пытаемся найти пользователя по токену
+            $userId = cache()->get("telegram_auth:{$startPayload}");
+
+            if ($userId) {
+                $user = User::find($userId);
+
+                if ($user) {
+                    $user->update(['telegram_id' => $chatId]);
+                    cache()->forget("telegram_auth:{$startPayload}");
+
+                    $this->sendMessage($chatId, "✅ Вы успешно привязали аккаунт!");
+                    return;
+                }
+            }
+        }
+
         $welcomeMessage = "👋 Добро пожаловать в бот WBDiscount!
 
 Этот бот станет вашим персональным помощником для управления выкупами и отслеживания финансовых операций. Вот что он может делать для вас:
@@ -79,7 +97,7 @@ class TelegramService
         // Проверяем пользователя в БД
         $user = User::where('telegram_id', $chatId)->first();
         if (!$user) {
-            $registrationLink = config('app.url') . '/register'; // Ссылка на страницу регистрации на сайте
+            $registrationLink = config('app.frontend_url') . '/register'; // Ссылка на страницу регистрации на сайте
             $message = "⚠️ Вы пока не зарегистрированы в системе. Для начала работы пройдите регистрацию на нашем сайте.";
             $keyboard = [
                 'inline_keyboard' => [
@@ -96,5 +114,26 @@ class TelegramService
         if($chatId != null){
             $this->sendMessage($chatId, $text);
         }
+    }
+
+    // Генерация ссылки на телеграм
+
+    public function generateAuthLink(User $user): string
+    {
+        $botUsername = config('services.telegram.username'); // Получаем username бота из конфига
+        $token = $this->generateUserToken($user);
+
+        return "https://t.me/{$botUsername}?start={$token}";
+    }
+
+    private function generateUserToken(User $user): string
+    {
+        // Генерируем уникальный токен для пользователя
+        $token = hash_hmac('sha256', $user->id, config('app.key'));
+
+        // Сохраняем токен в кеш на 24 часа
+        cache()->put("telegram_auth:{$token}", $user->id, now()->addDay());
+
+        return $token;
     }
 }

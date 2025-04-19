@@ -92,6 +92,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/chat/{id}/review', [\App\Http\Controllers\ChatController::class, 'review']);
     // Шаблоны
     Route::apiResource('template', \App\Http\Controllers\TemplateController::class)->except('store', 'destroy');
+
+    // Ссылка на ТГ бота
+    Route::get('/get-telegram-link', [\App\Http\Controllers\TelegramController::class, 'getTelegramLink']);
 });
 
 // Профиль продавца
@@ -107,6 +110,10 @@ Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramController::clas
 
 // Реферальная ссылка
 Route::post('/referral/{id}', [\App\Http\Controllers\ReferralController::class, 'store']);
+
+# TODO это для тестов, нужно убрать и перенести в крон!
+Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
 
 //todo
 /*

@@ -8,6 +8,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/tests" isTestSource="true" packagePrefix="Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/src/tests/Feature" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/tests/Unit" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/spec" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/brick/math" />
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/carbonphp/carbon-doctrine-types" />
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/composer" />
@@ -135,6 +137,15 @@
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/react/promise-timer" />
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/react/socket" />
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/react/stream" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/masterminds/html5" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/nicmart/tree" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/spatie/browsershot" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/spatie/crawler" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/spatie/laravel-package-tools" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/spatie/laravel-sitemap" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/spatie/robots-txt" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/spatie/temporary-directory" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/symfony/dom-crawler" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

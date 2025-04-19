@@ -144,6 +144,15 @@
       <path value="$PROJECT_DIR$/src/vendor/pusher/pusher-php-server" />
       <path value="$PROJECT_DIR$/src/vendor/react/event-loop" />
       <path value="$PROJECT_DIR$/src/vendor/laravel/reverb" />
+      <path value="$PROJECT_DIR$/src/vendor/masterminds/html5" />
+      <path value="$PROJECT_DIR$/src/vendor/spatie/laravel-sitemap" />
+      <path value="$PROJECT_DIR$/src/vendor/spatie/laravel-package-tools" />
+      <path value="$PROJECT_DIR$/src/vendor/spatie/crawler" />
+      <path value="$PROJECT_DIR$/src/vendor/spatie/browsershot" />
+      <path value="$PROJECT_DIR$/src/vendor/spatie/temporary-directory" />
+      <path value="$PROJECT_DIR$/src/vendor/spatie/robots-txt" />
+      <path value="$PROJECT_DIR$/src/vendor/symfony/dom-crawler" />
+      <path value="$PROJECT_DIR$/src/vendor/nicmart/tree" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
