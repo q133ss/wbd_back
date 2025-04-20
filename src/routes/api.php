@@ -3,7 +3,6 @@
 use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
 # TODO Для переключения аккаунтов, можно просто менять role_id и все!
-
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('seller')->group(function () {
         Route::apiResource('products', \App\Http\Controllers\Seller\ProductController::class)->except('show');
@@ -96,6 +95,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Ссылка на ТГ бота
     Route::get('/get-telegram-link', [\App\Http\Controllers\TelegramController::class, 'getTelegramLink']);
+
+    Route::post('/role-switch', [\App\Http\Controllers\SwitchController::class, 'switch']);
 });
 
 // Профиль продавца
@@ -122,3 +123,10 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'sho
  * Платежка
  */
 
+
+Route::get('/qq', function (){
+    $users = App\Models\User::get();
+    foreach ($users as $user){
+        echo $user->id . ' '.$user->shop?->id.'<br>';
+    }
+});

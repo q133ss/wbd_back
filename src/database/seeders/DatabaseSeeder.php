@@ -156,6 +156,14 @@ class DatabaseSeeder extends Seeder
             'role_id'          => Role::where('slug', 'admin')->pluck('id')->first(),
         ]);
 
+        Shop::create([
+            'user_id'     => User::where('email', 'admin@email.net')->pluck('id')->first(),
+            'supplier_id' => '83274',
+            'inn'         => '772440935',
+            'legal_name'  => 'Магазин 123',
+            'wb_name'     => 'shop123',
+        ]);
+
         $template->createDefault($admin->id);
 
         $this->command->info('Создаем тарифы');
@@ -223,6 +231,14 @@ class DatabaseSeeder extends Seeder
             'phone'            => '+7(222)222-22-22',
             'password'         => bcrypt('password'),
             'role_id'          => Role::where('slug', 'buyer')->pluck('id')->first(),
+        ]);
+
+        Shop::create([
+            'user_id'     => User::where('email', 'buyer@email.net')->pluck('id')->first(),
+            'supplier_id' => '83224',
+            'inn'         => '732440935',
+            'legal_name'  => 'Магазин 2',
+            'wb_name'     => 'shop2',
         ]);
 
         $template->createDefault($buyer->id);

@@ -15,7 +15,6 @@ use Illuminate\Support\Str;
 class ReviewSeed extends Seeder
 {
     private $articles = [
-        '211832299',
         '206342089',
         '128033464',
         '35778729',
@@ -23,7 +22,6 @@ class ReviewSeed extends Seeder
         '175570960',
         '293853820',
         '140851046',
-        '2389212',
         '123977427',
         '362387767',
         '222462692',
@@ -133,7 +131,7 @@ class ReviewSeed extends Seeder
         }
 
         $users = User::skip(3)->take(9999)->get();
-        $shops = Shop::skip(1)->take(9999)->get();
+        $shops = Shop::skip(3)->take(9999)->get();
 
         $index = 0;
         foreach ($users as $user){
