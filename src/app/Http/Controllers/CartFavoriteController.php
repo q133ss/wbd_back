@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ad;
 use Illuminate\Http\Request;
-//use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Redis;
 
 class CartFavoriteController extends Controller
 {
