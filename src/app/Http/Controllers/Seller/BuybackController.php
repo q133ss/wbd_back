@@ -22,7 +22,7 @@ class BuybackController extends Controller
     {
         $userId = auth('sanctum')->id();
 
-        $buyback = Buyback::with(['messages', 'user', 'ad' => function($query) {
+        $buyback = Buyback::with(['user', 'ad' => function($query) {
             $query->without('reviews');
         }])
             ->leftJoin('users', 'buybacks.user_id', '=', 'users.id')
@@ -44,17 +44,19 @@ class BuybackController extends Controller
         $counterpartyId = ($userId == $buyback->user_id) ? $adUserId : $buyback->user_id;
 
         Message::where('buyback_id', $buyback->id)
-            ->where('sender_id', $counterpartyId) // Сообщения от противоположной стороны
+            ->where('sender_id', $counterpartyId)
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        // Добавляем whoSend к каждому сообщению
-        $buyback->messages->each(function ($message) use ($buyback) {
-            $adUserId = $buyback->ad?->user_id;
-            $isBuyer = $buyback->user_id == $adUserId;
-            $message->whoSend = ($message->sender_id == $buyback->user_id) == $isBuyer ? 'buyer' : 'seller';
-        });
+        // Загружаем сообщения с пагинацией
+        $messages = Message::where('buyback_id', $buyback->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        // Добавляем сообщения в buyback как пагинированный список
+        $buyback->setRelation('messages', $messages);
 
         return new ShowResource($buyback);
     }
+
 }

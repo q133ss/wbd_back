@@ -4,6 +4,7 @@ namespace App\Http\Resources\BuybackController;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ShowResource extends JsonResource
 {
@@ -17,20 +18,36 @@ class ShowResource extends JsonResource
     {
         $userId = auth('sanctum')->id();
 
-        $this->messages->each(function($message) use ($userId) {
-            $message->whoSend = $message->sender_id == $userId ? 'buyer' : 'seller';
+        $messages = $this->messages instanceof LengthAwarePaginator
+            ? $this->messages->getCollection()
+            : collect($this->messages);
+
+        // Добавляем проверку, что элемент является объектом и имеет свойство sender_id
+        $messages = $messages->map(function($message) use ($userId) {
+            if (is_object($message)) {  // Добавлена закрывающая скобка для is_object
+                $message->whoSend = $message->sender_id == $userId ? 'buyer' : 'seller';
+            }
+            return $message;
         });
 
-        return [
+        $result = [
             'price' => $this->price,
             'id' => $this->id,
             'has_review_by_buyer' => $this->has_review_by_buyer,
             'has_review_by_seller' => $this->has_review_by_seller,
             'is_archived' => $this->is_archived,
             'status' => $this->status,
-            'messages' => $this->messages,
             'ad' => $this->ad,
             'user' => $this->user
         ];
+
+        if ($this->messages instanceof LengthAwarePaginator) {
+            $this->messages->setCollection($messages);
+            $result['messages'] = $this->messages;
+        } else {
+            $result['messages'] = $messages;
+        }
+
+        return $result;
     }
 }
