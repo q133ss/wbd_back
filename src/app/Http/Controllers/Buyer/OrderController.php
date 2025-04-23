@@ -34,13 +34,23 @@ class OrderController extends Controller
     {
         $userId = auth('sanctum')->id();
 
-        $buyback = Buyback::with('messages', 'ad')->where('buybacks.user_id', $userId)->findOrFail($id);
+        // Загружаем buyback без сообщений сначала
+        $buyback = Buyback::with('ad')->where('buybacks.user_id', $userId)->findOrFail($id);
 
-        $buyback->messages->each(function ($message) use ($buyback, $userId) {
-            $adUserId = $buyback->ad?->user_id;
-            $isBuyer = $buyback->user_id == $adUserId;
+        // Загружаем сообщения с пагинацией
+        $messages = $buyback->messages()->paginate(15);
+
+        // Обрабатываем сообщения
+        $adUserId = $buyback->ad?->user_id;
+        $isBuyer = $buyback->user_id == $adUserId;
+
+        $messages->getCollection()->transform(function ($message) use ($isBuyer, $buyback) {
             $message->whoSend = ($message->sender_id == $buyback->user_id) == $isBuyer ? 'buyer' : 'seller';
+            return $message;
         });
+
+        // Возвращаем buyback с пагинированными сообщениями
+        $buyback->setRelation('messages', $messages);
 
         return $buyback;
     }
