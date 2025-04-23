@@ -122,11 +122,3 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'sho
  * Админка
  * Платежка
  */
-
-
-Route::get('/qq', function (){
-    $users = App\Models\User::get();
-    foreach ($users as $user){
-        echo $user->id . ' '.$user->shop?->id.'<br>';
-    }
-});

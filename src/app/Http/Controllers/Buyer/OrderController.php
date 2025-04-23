@@ -10,6 +10,7 @@ use App\Models\Message;
 use App\Services\Buyer\OrderService;
 use App\Services\SocketService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -57,35 +58,57 @@ class OrderController extends Controller
 
     public function send(SendRequest $request, string $id): \Illuminate\Http\JsonResponse
     {
-        $user_id = auth('sanctum')->id();
-        $buyback = Buyback::where('user_id', $user_id)->findOrFail($id);
+        DB::beginTransaction();
 
-        $data               = [];
-        $data['text']       = $request->text;
-        $data['sender_id']  = $user_id;
-        $data['buyback_id'] = $id;
+        try {
+            $user_id = auth('sanctum')->id();
+            $buyback = Buyback::where('user_id', $user_id)->findOrFail($id);
 
-        $message = Message::create($data);
+            $data = [
+                'text' => $request->text,
+                'sender_id' => $user_id,
+                'buyback_id' => $id
+            ];
 
-        // todo ТУТ проверяем тип и взамисимости от типа файла отправляем сообщение нужного цвета!
+            // Создаем основное сообщение
+            $message = Message::create($data);
 
-        if ($request->hasFile('file')) {
-            $fileSrc = $request->file('file')->store('files', 'public');
-            $imgMsg  = Message::create($data);
-            File::create([
-                'fileable_type' => 'App\Models\Message',
-                'fileable_id'   => $imgMsg->id,
-                'src'           => $fileSrc,
-                'category'      => $request->file_type,
-            ]);
+            // Обрабатываем файл, если есть
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileSrc = '/storage/' . $file->store('files', 'public');
+
+                File::create([
+                    'fileable_type' => Message::class,
+                    'fileable_id' => $message->id, // Привязываем к основному сообщению
+                    'src' => $fileSrc,
+                    'category' => $request->file_type ?? 'image', // Дефолтное значение
+                ]);
+            }
+
+            // Явно подгружаем файлы перед отправкой
+            $message->load('files');
+
+            DB::commit();
+
+            // Отправляем через WebSocket
+            (new SocketService)->send($message, $buyback);
+
+            return response()->json([
+                'status' => true,
+                'message' => $message,
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Message send error: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'error' => 'Failed to send message',
+                'details' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
         }
-
-        (new SocketService)->send($message, $buyback);
-
-        return response()->json([
-            'status'  => 'true',
-            'message' => $message,
-        ], 201);
     }
 
     public function orderStatusList()

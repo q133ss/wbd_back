@@ -57,7 +57,7 @@ class ChatController extends Controller
         # TODO добавить возможность отправлять фото без текста!
         if ($request->has('files')) {
             foreach ($request->file('files') as $file) {
-                $fileSrc   = $file->store('files', 'public');
+                $fileSrc   = '/storage/'.$file->store('files', 'public');
                 $fileModel = File::create([
                     'fileable_type' => 'App\Models\Message',
                     'fileable_id'   => $message->id,
