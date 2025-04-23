@@ -90,6 +90,12 @@ class Ad extends Model
 
                     return $query->where('products.category_id', '=', $categoryId);
                 }
+            )
+            ->when(
+                $request->query('search'),
+                function (Builder $query, $search) {
+                    return $query->whereAny(['name', 'price_with_cashback'], 'LIKE', '%'.$search.'%');
+                }
             );
     }
 
