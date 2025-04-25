@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Category;
 use Illuminate\Console\Command;
+use App\Models\File;
 use Illuminate\Support\Facades\Http;
 
 class ImportCategories extends Command
@@ -49,6 +50,15 @@ class ImportCategories extends Command
                     'parent_id' => $parentId,
                 ]
             );
+            
+            if($parentId == null){
+                File::create([
+                    'src' => '/storage/images/categories/'.$category['name'].'.png',
+                    'fileable_type' => 'App\Models\Category',
+                    'fileable_id' => $newCategory->id,
+                    'category' => 'img'
+                ]);
+            }
 
             if (isset($category['childs'])) {
                 $this->importCategories($category['childs'], $newCategory->id);
