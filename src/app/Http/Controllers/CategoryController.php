@@ -27,7 +27,6 @@ class CategoryController extends Controller
     {
         $categories = Category::with('img')
             ->where('parent_id', null)
-            ->whereHas('img')
             ->get();
         $categoryProductCounts = $this->getProductsCount($categories);
 

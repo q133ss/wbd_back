@@ -45,6 +45,17 @@ class Category extends Model
     public function img()
     {
         return $this->morphOne(File::class, 'fileable')
-            ->where('category', 'img');
+            ->where('category', 'img')
+            ->withDefault([
+                'src' => 'images/no_image.svg', // Путь к заглушке
+                'id' => null, // Чтобы не было путаницы с реальными записями
+                'fileable_type' => null,
+                'fileable_id' => null,
+                'category' => 'img',
+                'status' => null,
+                'status_comment' => null,
+                'created_at' => null,
+                'updated_at' => null,
+            ]);
     }
 }

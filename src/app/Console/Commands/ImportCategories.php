@@ -42,6 +42,34 @@ class ImportCategories extends Command
 
     private function importCategories(array $categories, $parentId = null)
     {
+        $imgCategories = [
+            'Автотовары',
+            'Аксессуары',
+            'Акции',
+            'Бытовая техника',
+            'Детям',
+            'Для ремонта',
+            'Дом',
+            'Женщинам',
+            'Здоровье',
+            'Зоотовары',
+            'Игрушки',
+            'Канцтовары',
+            'Книги',
+            'Красота',
+            'Культурный код',
+            'Мебель',
+            'Мужчинам',
+            'Обувь',
+            'Продукты',
+            'Сад и дача',
+            'Спорт',
+            'Товары для взрослых',
+            'Цветы',
+            'Школа',
+            'Электроника',
+            'Ювелирные изделия'
+        ];
         foreach ($categories as $category) {
             $newCategory = Category::updateOrCreate(
                 ['id' => $category['id']],
@@ -50,14 +78,16 @@ class ImportCategories extends Command
                     'parent_id' => $parentId,
                 ]
             );
-            
+
             if($parentId == null){
-                File::create([
-                    'src' => '/storage/images/categories/'.$category['name'].'.png',
-                    'fileable_type' => 'App\Models\Category',
-                    'fileable_id' => $newCategory->id,
-                    'category' => 'img'
-                ]);
+                if(in_array($category['name'], $imgCategories)){
+                    File::create([
+                        'src' => 'images/categories/'.$category['name'].'.png',
+                        'fileable_type' => 'App\Models\Category',
+                        'fileable_id' => $newCategory->id,
+                        'category' => 'img'
+                    ]);
+                }
             }
 
             if (isset($category['childs'])) {
