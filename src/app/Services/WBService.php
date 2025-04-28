@@ -7,6 +7,7 @@ use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -177,70 +178,141 @@ class WBService extends BaseService
      */
     private function generateImageUrls(array $product): array
     {
-        $images    = [];
-        $wbId      = (int) $product['wb_id'];
+        $images = [];
+        $wbId = (int) $product['wb_id'];
         $picsCount = $product['pics'] ?? 0;
 
-        $pathData = $this->generatePathData($wbId);
-
-        // Генерируем ссылки на изображения
-        for ($i = 1; $i <= $picsCount; $i++) {
-            $images[] = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$wbId}/images/big/{$i}.webp";
+        if ($picsCount <= 0) {
+            return [];
         }
 
-        return $images;
+        $pathData = $this->generatePathData($wbId);
+        $validImages = [];
+
+        // Ограничим максимальное количество проверяемых изображений для производительности
+        $maxImagesToCheck = min($picsCount, 20); // Проверяем не более 20 изображений
+
+        // Используем пул запросов для параллельной проверки
+        $responses = Http::pool(function (Pool $pool) use ($pathData, $wbId, $maxImagesToCheck) {
+            $requests = [];
+            for ($i = 1; $i <= $maxImagesToCheck; $i++) {
+                $url = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$wbId}/images/big/{$i}.webp";
+                $requests[] = $pool->head($url); // Используем HEAD для проверки без загрузки содержимого
+            }
+            return $requests;
+        });
+
+        // Собираем только валидные изображения
+        for ($i = 1; $i <= $maxImagesToCheck; $i++) {
+            //if (isset($responses[$i - 1]) && $responses[$i - 1]->successful()) {
+                $validImages[] = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$wbId}/images/big/{$i}.webp";
+            //}
+        }
+
+        return $validImages;
     }
+
+//    private function generatePathData(int $wbId): array
+//    {
+//        $vol  = (int) floor($wbId / 100000); // Считаем vol
+//        $part = (int) floor($wbId / 1000); // Считаем part
+//        $host = ''; // Инициализация host
+//
+//        // Определяем host на основе vol
+//        if ($vol >= 0 && $vol <= 143) {
+//            $host = '01';
+//        } elseif ($vol >= 144 && $vol <= 287) {
+//            $host = '02';
+//        } elseif ($vol >= 288 && $vol <= 431) {
+//            $host = '03';
+//        } elseif ($vol >= 432 && $vol <= 719) {
+//            $host = '04';
+//        } elseif ($vol >= 720 && $vol <= 1007) {
+//            $host = '05';
+//        } elseif ($vol >= 1008 && $vol <= 1061) {
+//            $host = '06';
+//        } elseif ($vol >= 1062 && $vol <= 1115) {
+//            $host = '07';
+//        } elseif ($vol >= 1116 && $vol <= 1169) {
+//            $host = '08';
+//        } elseif ($vol >= 1170 && $vol <= 1313) {
+//            $host = '09';
+//        } elseif ($vol >= 1314 && $vol <= 1601) {
+//            $host = '10';
+//        } elseif ($vol >= 1602 && $vol <= 1655) {
+//            $host = '11';
+//        } elseif ($vol >= 1656 && $vol <= 1919) {
+//            $host = '12';
+//        } elseif ($vol >= 1920 && $vol <= 2045) {
+//            $host = '13';
+//        } elseif ($vol >= 2046 && $vol <= 2189) {
+//            $host = '14';
+//        } elseif ($vol >= 2190 && $vol <= 2405) {
+//            $host = '15';
+//        } elseif ($vol >= 2406 && $vol <= 2621) {
+//            $host = '16';
+//        } elseif ($vol >= 2622 && $vol <= 2837) {
+//            $host = '17';
+//        } else {
+//            $host = '18';
+//        }
+//
+//        return [
+//            'vol' => $vol,
+//            'part' => $part,
+//            'host' => $host,
+//        ];
+//    }
 
     private function generatePathData(int $wbId): array
     {
-        $vol  = (int) floor($wbId / 100000); // Считаем vol
-        $part = (int) floor($wbId / 1000); // Считаем part
-        $host = ''; // Инициализация host
+        $vol = (int)floor($wbId / 100000);
+        $part = (int)floor($wbId / 1000);
 
-        // Определяем host на основе vol
-        if ($vol >= 0 && $vol <= 143) {
-            $host = '01';
-        } elseif ($vol >= 144 && $vol <= 287) {
-            $host = '02';
-        } elseif ($vol >= 288 && $vol <= 431) {
-            $host = '03';
-        } elseif ($vol >= 432 && $vol <= 719) {
-            $host = '04';
-        } elseif ($vol >= 720 && $vol <= 1007) {
-            $host = '05';
-        } elseif ($vol >= 1008 && $vol <= 1061) {
-            $host = '06';
-        } elseif ($vol >= 1062 && $vol <= 1115) {
-            $host = '07';
-        } elseif ($vol >= 1116 && $vol <= 1169) {
-            $host = '08';
-        } elseif ($vol >= 1170 && $vol <= 1313) {
-            $host = '09';
-        } elseif ($vol >= 1314 && $vol <= 1601) {
-            $host = '10';
-        } elseif ($vol >= 1602 && $vol <= 1655) {
-            $host = '11';
-        } elseif ($vol >= 1656 && $vol <= 1919) {
-            $host = '12';
-        } elseif ($vol >= 1920 && $vol <= 2045) {
-            $host = '13';
-        } elseif ($vol >= 2046 && $vol <= 2189) {
-            $host = '14';
-        } elseif ($vol >= 2190 && $vol <= 2405) {
-            $host = '15';
-        } elseif ($vol >= 2406 && $vol <= 2621) {
-            $host = '16';
-        } elseif ($vol >= 2622 && $vol <= 2837) {
-            $host = '17';
-        } else {
-            $host = '18';
-        }
+        $host = $this->determineHost($vol);
 
         return [
             'vol' => $vol,
             'part' => $part,
-            'host' => $host,
+            'host' => $host
         ];
+    }
+
+    private function determineHost(int $vol): string
+    {
+        static $ranges = [
+            [0, 143, '01'],
+            [144, 287, '02'],
+            [288, 431, '03'],
+            [432, 719, '04'],
+            [720, 1007, '05'],
+            [1008, 1061, '06'],
+            [1062, 1115, '07'],
+            [1116, 1169, '08'],
+            [1170, 1313, '09'],
+            [1314, 1601, '10'],
+            [1602, 1655, '11'],
+            [1656, 1919, '12'],
+            [1920, 2045, '13'],
+            [2046, 2189, '14'],
+            [2190, 2405, '15'],
+            [2406, 2621, '16'],
+            [2622, 2837, '17'],
+            [2838, 3000, '18'],
+            [3001, 3279, '19'],
+            [3280, 3443, '20'],
+            [3444, 3623, '21'],
+            [3624, 3994, '22'],
+            [3995, PHP_INT_MAX, '23']
+        ];
+
+        foreach ($ranges as [$min, $max, $host]) {
+            if ($vol >= $min && $vol <= $max) {
+                return $host;
+            }
+        }
+
+        return '23'; // Фолбек для неучтенных случаев
     }
     private function fetchDescription(string $wbId): ?string
     {
@@ -426,6 +498,12 @@ class WBService extends BaseService
             $product     = $prepareData['product'];
             $this->productCheck($product_id);
             $productCheck = $this->checkShop($shop);
+
+//            if($prepareData['product']['images'] == null){
+//                $response = $this->formatResponse('false', 'Невозможно загрузить изображения товара, обратитесь в поддержку', 403);
+//                return $this->sendResponse($response);
+//            }
+
             if(!$productCheck)
             {
                 $response = $this->formatResponse('false', 'Данный товар принадлежит другому продавцу', 403);

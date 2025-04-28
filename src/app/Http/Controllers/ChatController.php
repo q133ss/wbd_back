@@ -381,6 +381,7 @@ class ChatController extends Controller
                 (new \App\Models\Buyback)->scopeWithFilter($query, $request);
             })
             ->with(['messages', 'ad']) // Добавляем загрузку объявления, если нужно
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function($buyback) {
                 $userId = $buyback->ad?->user_id;
