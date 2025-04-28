@@ -87,7 +87,6 @@ class WBService extends BaseService
             $reviewsData = Cache::get($cacheKey);
         } else {
             try {
-                // Получаем данные как раньше
                 $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$wbId}/info/ru/card.json";
                 $cardResponse = Http::get($cardUrl);
 
@@ -243,10 +242,31 @@ class WBService extends BaseService
             'host' => $host,
         ];
     }
-    private function fetchDescription($product_id)
+    private function fetchDescription(string $wbId): ?string
     {
-        // TODO Нужно найти способ получить описание!
-        return null;
+        $cacheKey = "wb_product_description_{$wbId}";
+
+        return Cache::remember($cacheKey, now()->addDay(), function() use ($wbId) {
+            $pathData = $this->generatePathData($wbId);
+
+            try {
+                $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$wbId}/info/ru/card.json";
+                $cardResponse = Http::retry(3, 100)->get($cardUrl);
+
+                if (!$cardResponse->successful()) {
+                    return null;
+                }
+
+                return $cardResponse->json()['description'] ?? null;
+
+            } catch (\Exception $exception) {
+                Log::error("Failed to fetch description for product {$wbId}", [
+                    'error' => $exception->getMessage(),
+                    'url' => $cardUrl ?? null
+                ]);
+                return null;
+            }
+        });
     }
 
     /**
@@ -278,7 +298,7 @@ class WBService extends BaseService
             'quantity_available' => $product['volume']     ?? 0,
             'supplier_id'        => $product['supplierId'] ?? null,
             'images'             => $this->generateImageUrls($product),
-            'description'        => $this->fetchDescription($product['id']),
+            'description'        => $this->fetchDescription($product['wb_id']),
             'supplier_rating'    => $product['supplierRating'] ?? 0,
             'category_id'        => $this->makeCategory($product['subjectId']),
         ];
