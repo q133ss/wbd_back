@@ -50,8 +50,6 @@ Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::clas
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
-    # TODO починить описание!
-    # TODO после получения фото их надо проверять!
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
     Route::get('/wb/product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'getProduct']);
 

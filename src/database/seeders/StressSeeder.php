@@ -46,19 +46,56 @@ class StressSeeder extends Seeder
 
         // 2. Создаем массово пользователей
         $this->command->info('Creating 10,000 users...');
-        $users = User::factory()->count(10000)->create([
-            'phone' => uniqid('u_').rand(1,999),
-            'role_id' => Role::where('slug', 'buyer')->first()->id,
-            'password' => bcrypt('password')
-        ]);
+
+        $progressBar = $this->command->getOutput()->createProgressBar(100);
+        $progressBar->setFormat('debug');
+        $progressBar->start();
+
+        $users = User::factory()->count(10000)->make()
+            ->each(function ($user, $index) use ($progressBar) {
+                do {
+                    $phone = 'u_' . Str::random(16) . mt_rand(0, 99);
+                } while (User::where('phone', $phone)->exists());
+
+                $user->forceFill([
+                    'phone' => $phone,
+                    'role_id' => Role::where('slug', 'buyer')->first()->id,
+                    'password' => bcrypt('password')
+                ])->save();
+
+                if (($index + 1) % 100 === 0) {
+                    $progressBar->advance();
+                    $this->command->info(" Создано " . ($index + 1) . " покупателей");
+                }
+            });
+
+        $progressBar->finish();
 
         // 3. Создаем 1000 продавцов с магазинами
         $this->command->info('Creating 1,000 sellers with shops...');
-        $sellers = User::factory()->count(1000)->create([
-            'phone' => uniqid('u_').rand(1,999),
-            'role_id' => Role::where('slug', 'seller')->first()->id,
-            'password' => bcrypt('password')
-        ]);
+        $sellerProgress = $this->command->getOutput()->createProgressBar(10);
+        $sellerProgress->setFormat('debug');
+        $sellerProgress->start();
+
+        $sellers = User::factory()->count(1000)->make()
+            ->each(function ($user, $index) use ($sellerProgress) {
+                do {
+                    $phone = 's_' . Str::random(16) . mt_rand(0, 99);
+                } while (User::where('phone', $phone)->exists());
+
+                $user->forceFill([
+                    'phone' => $phone,
+                    'role_id' => Role::where('slug', 'seller')->first()->id,
+                    'password' => bcrypt('password')
+                ])->save();
+
+                if (($index + 1) % 100 === 0) {
+                    $sellerProgress->advance();
+                    $this->command->info(" Created " . ($index + 1) . " sellers");
+                }
+            });
+
+        $sellerProgress->finish();
 
         $sellers->each(function ($seller) {
             Shop::create([
