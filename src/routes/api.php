@@ -2,7 +2,6 @@
 
 use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
-# TODO Для переключения аккаунтов, можно просто менять role_id и все!
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('seller')->group(function () {
         Route::apiResource('products', \App\Http\Controllers\Seller\ProductController::class)->except('show');
@@ -42,6 +41,7 @@ Route::post('register/complete', [\App\Http\Controllers\AuthController::class, '
 // Товары
 Route::get('/products', [\App\Http\Controllers\Front\ProductController::class, 'index']);
 Route::get('/product/{id}', [\App\Http\Controllers\Front\ProductController::class, 'show']);
+Route::get('/product/{id}/feedbacks/{page}', [\App\Http\Controllers\Front\ProductController::class, 'showFeedbacks']);
 Route::get('/product/related/{id}', [\App\Http\Controllers\Front\ProductController::class, 'related']);
 
 // Категории
@@ -50,6 +50,8 @@ Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::clas
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
+    # TODO починить описание!
+    # TODO после получения фото их надо проверять!
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
     Route::get('/wb/product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'getProduct']);
 
@@ -116,9 +118,3 @@ Route::post('/referral/{id}', [\App\Http\Controllers\ReferralController::class, 
 # TODO это для тестов, нужно убрать и перенести в крон!
 Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
-
-//todo
-/*
- * Админка
- * Платежка
- */

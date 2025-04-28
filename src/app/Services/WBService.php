@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\JsonException;
+use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
@@ -70,6 +71,105 @@ class WBService extends BaseService
         }
     }
 
+    // передаем артикул и получаем отзывы
+    public function getReviews(string $adsId, int $page = 1, int $perPage = 10)
+    {
+        $wbId = Ad::with('product:id,wb_id')->find($adsId)?->product?->wb_id;
+
+        if (!$wbId) {
+            return response()->json(['error' => 'Ad not found'], 404);
+        }
+
+        $pathData = $this->generatePathData($wbId);
+        $cacheKey = "wb_reviews_{$wbId}";
+
+        if (Cache::has($cacheKey)) {
+            $reviewsData = Cache::get($cacheKey);
+        } else {
+            try {
+                // Получаем данные как раньше
+                $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$wbId}/info/ru/card.json";
+                $cardResponse = Http::get($cardUrl);
+
+                if (!$cardResponse->successful()) {
+                    throw new \Exception("Failed to fetch card data");
+                }
+
+                $imtId = $cardResponse->json()['imt_id'] ?? null;
+                if (!$imtId) throw new \Exception("imt_id not found");
+
+                $reviewsUrl = "https://feedbacks2.wb.ru/feedbacks/v2/{$imtId}";
+                $reviewsResponse = Http::get($reviewsUrl);
+
+                if (!$reviewsResponse->successful()) {
+                    throw new \Exception("Failed to fetch reviews");
+                }
+
+                $reviewsData = $reviewsResponse->json();
+                Cache::put($cacheKey, $reviewsData, now()->addDay());
+
+            } catch (\Exception $e) {
+                \Log::error("WB Reviews Error: " . $e->getMessage());
+                return [
+                    'reviews' => [],
+                    'summary' => null,
+                    'pagination' => null
+                ];
+            }
+        }
+
+        // Формируем структурированный ответ
+        return $this->formatReviewsResponse($reviewsData, $page, $perPage);
+    }
+
+    private function formatReviewsResponse(array $reviewsData, int $page, int $perPage)
+    {
+        $allFeedbacks = $reviewsData['feedbacks'] ?? [];
+        $total = count($allFeedbacks);
+
+        // Пагинация
+        $paginated = array_slice($allFeedbacks, ($page - 1) * $perPage, $perPage);
+
+        // Форматируем каждый отзыв
+        $formattedReviews = array_map(function($feedback) {
+            return [
+                'id' => $feedback['id'],
+                'text' => $feedback['text'],
+                'rating' => $feedback['productValuation'],
+                'pros' => $feedback['pros'] ?? null,
+                'cons' => $feedback['cons'] ?? null,
+                'createdDate' => $feedback['createdDate'],
+                'user' => $feedback['wbUserDetails']['name'] ?? 'Аноним',
+                'answer' => $feedback['answer'],
+                'photos' => $this->getReviewPhotos($feedback),
+                'video' => $feedback['video'] ?? null
+            ];
+        }, $paginated);
+
+        return [
+            'reviews' => $formattedReviews,
+            'summary' => [
+                'averageRating' => $reviewsData['valuation'] ?? null,
+                'totalReviews' => $reviewsData['feedbackCount'] ?? 0,
+                'ratingDistribution' => $reviewsData['valuationDistributionPercent'] ?? null,
+                'withPhotos' => $reviewsData['feedbackCountWithPhoto'] ?? 0,
+                'withText' => $reviewsData['feedbackCountWithText'] ?? 0
+            ],
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+                'last_page' => ceil($total / $perPage)
+            ]
+        ];
+    }
+
+    private function getReviewPhotos(array $feedback): array
+    {
+        // Здесь можно добавить логику получения фото отзыва, если они есть
+        return []; // Заглушка
+    }
+
     /**
      * Генерирует URL-адреса изображений для товара Wildberries.
      *
@@ -82,6 +182,18 @@ class WBService extends BaseService
         $wbId      = (int) $product['wb_id'];
         $picsCount = $product['pics'] ?? 0;
 
+        $pathData = $this->generatePathData($wbId);
+
+        // Генерируем ссылки на изображения
+        for ($i = 1; $i <= $picsCount; $i++) {
+            $images[] = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$wbId}/images/big/{$i}.webp";
+        }
+
+        return $images;
+    }
+
+    private function generatePathData(int $wbId): array
+    {
         $vol  = (int) floor($wbId / 100000); // Считаем vol
         $part = (int) floor($wbId / 1000); // Считаем part
         $host = ''; // Инициализация host
@@ -125,14 +237,12 @@ class WBService extends BaseService
             $host = '18';
         }
 
-        // Генерируем ссылки на изображения
-        for ($i = 1; $i <= $picsCount; $i++) {
-            $images[] = "https://basket-{$host}.wbbasket.ru/vol{$vol}/part{$part}/{$wbId}/images/big/{$i}.webp";
-        }
-
-        return $images;
+        return [
+            'vol' => $vol,
+            'part' => $part,
+            'host' => $host,
+        ];
     }
-
     private function fetchDescription($product_id)
     {
         // TODO Нужно найти способ получить описание!

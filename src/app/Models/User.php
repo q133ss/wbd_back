@@ -246,11 +246,6 @@ class User extends Authenticatable
      */
     public function getIsOnlineAttribute(): bool
     {
-        // Если last_seen_at не загружен, подгружаем его
-        if (!array_key_exists('last_seen_at', $this->attributes)) {
-            $this->load('last_seen_at');
-        }
-
         return $this->last_seen_at &&
             $this->last_seen_at > now()->subMinutes(3);
     }

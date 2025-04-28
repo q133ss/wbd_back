@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ad;
+use App\Services\WBService;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -39,5 +40,11 @@ class ProductController extends Controller
         }
 
         return response()->json($related);
+    }
+
+    public function showFeedbacks(string $productId, int $page)
+    {
+        $service = new WBService();
+        return $service->getReviews($productId, $page);
     }
 }
