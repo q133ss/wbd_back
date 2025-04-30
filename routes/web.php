@@ -15,3 +15,7 @@ Route::middleware(['auth', 'is.admin'])->group(function () {
 
     Route::get('/sellers', [\App\Http\Controllers\Admin\SellerController::class, 'index'])->name('seller.index');
 });
+
+Route::get('/qq', function (){
+    dd(\App\Models\Category::where('name', 'Настольные игры')->get());
+});

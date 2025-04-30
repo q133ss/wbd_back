@@ -292,9 +292,35 @@ class WBService extends BaseService
     /**
      * Ищет категорию и возвращает ее
      */
-    private function makeCategory(string $subject_id): mixed
+    private function makeCategory(array $product): mixed
     {
-        return Category::where('id', $subject_id)
+        $id = $product['id'] ?? null;
+        $subjectId = $product['subjectId'] ?? null;
+        $brandId = $product['brandId'] ?? null;
+        $kindId = $product['kindId'] ?? null;
+
+        if (!$id || !$subjectId || !$brandId || !$kindId) {
+            return Category::where('name', 'Без категории')->pluck('id')->first();
+        }
+
+        $response = Http::get("https://www.wildberries.ru/webapi/product/{$id}/data", [
+            'subject' => $subjectId,
+            'kind' => $kindId,
+            'brand' => $brandId,
+            'lang' => 'ru',
+            'targetUrl' => 'SP',
+        ]);
+
+        if ($response->successful()) {
+            $sitePath = $response->json('value.data.sitePath');
+            if (is_array($sitePath) && count($sitePath) >= 2) {
+                $categoryName = $sitePath[count($sitePath) - 2]['name'] ?? null;
+            }
+        }
+
+        $categoryName = $categoryName ?? 'Без категории';
+
+        return Category::where('name', $categoryName)
             ->orWhere('name', 'Без категории')
             ->pluck('id')
             ->first();
@@ -320,7 +346,7 @@ class WBService extends BaseService
             'images'             => $this->generateImageUrls($product),
             'description'        => $this->fetchDescription($product['wb_id']),
             'supplier_rating'    => $product['supplierRating'] ?? 0,
-            'category_id'        => $this->makeCategory($product['subjectId']),
+            'category_id'        => $this->makeCategory($product),
         ];
     }
 
