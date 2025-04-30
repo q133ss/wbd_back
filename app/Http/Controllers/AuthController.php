@@ -60,6 +60,11 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $user  = User::where('phone', $request->phone)->first();
+
+        if($request->role_id != null){
+            $updated = $user->update(['role_id' => $request->role_id]);
+        }
+
         $token = $user->createToken('web');
 
         return [

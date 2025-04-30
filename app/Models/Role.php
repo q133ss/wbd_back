@@ -6,5 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    //
+    const USER_ROLES = [
+        'seller' => 2,
+        'buyer' => 3
+    ];
 }

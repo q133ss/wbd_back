@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\AuthController;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Rules\PhoneNumber;
 use Closure;
@@ -38,6 +39,15 @@ class LoginRequest extends FormRequest
                     }
                 },
             ],
+            'role_id'  => [
+                'nullable',
+                'exists:roles,id',
+                function ($attribute, $value, Closure $fail): void {
+                    if (! in_array($value, Role::USER_ROLES)) {
+                        $fail('Роль не найдена');
+                    }
+                }
+            ],
             'remember' => 'nullable|boolean',
         ];
     }
@@ -52,6 +62,8 @@ class LoginRequest extends FormRequest
             'password.required' => 'Укажите пароль',
             'password.max'      => 'Поле пароль не должно превышать 255 символов',
             'password.string'   => 'Пароль должен быть строкой',
+
+            'role_id.exists' => 'Роль не найдена',
 
             'remember.boolean' => 'Поле запомнить меня должно быть булевым значением',
         ];
