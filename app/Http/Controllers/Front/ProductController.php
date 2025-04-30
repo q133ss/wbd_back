@@ -4,18 +4,44 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ad;
+use App\Models\Category;
 use App\Services\WBService;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    private function getAllCategoryIds(?Category $category): array
+    {
+        if (!$category) return [];
+
+        $ids = [$category->id];
+
+        foreach ($category->children as $child) {
+            $ids = array_merge($ids, $this->getAllCategoryIds($child));
+        }
+
+        return $ids;
+    }
+
     public function index(Request $request)
     {
-        $adsQuery = Ad::withFilter($request)->where('ads.status', true)->withSorting($request);
-        $ads      = $adsQuery->paginate(18);
+        $adultCategoryIds = cache()->rememberForever('adult_category_ids', function () {
+            $adultRoot = Category::with('children')->where('name', 'Товары для взрослых')->first();
+            return $adultRoot ? $this->getAllCategoryIds($adultRoot) : [];
+        });
+        $adsQuery = Ad::with(['product'])
+        ->whereHas('product', function ($query) use ($adultCategoryIds) {
+            $query->whereNotIn('category_id', $adultCategoryIds);
+        })
+            ->withFilter($request)
+            ->where('ads.status', true)
+            ->withSorting($request);
+
+        $ads = $adsQuery->paginate(18);
 
         return response()->json($ads);
     }
+
 
     public function show(string $id)
     {
