@@ -154,7 +154,7 @@ class Ad extends Model
         }elseif ($sortField === 'cashback_percentage') {
             $query->orderBy('ads.cashback_percentage', $sortOrder);
         } else {
-            $query->orderBy($sortField, $sortOrder);
+            $query->orderBy('ads.'.$sortField, $sortOrder);
         }
 
         return $query;

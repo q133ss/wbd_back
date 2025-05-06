@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ad;
 use App\Models\Category;
 use Illuminate\Support\Facades\Cache;
 
@@ -81,5 +82,19 @@ class CategoryController extends Controller
         }
 
         return $ids;
+    }
+
+    public function indexProducts(string $id)
+    {
+        $category = Category::findOrFail($id);
+        $ids = $this->getAllCategoryIds($category);
+
+        return Ad::leftJoin('products', 'ads.product_id', '=', 'products.id')
+            ->whereIn('products.category_id', $ids)
+            ->where('ads.status', true)
+            ->where('ads.is_archived', false)
+            ->select('ads.*')
+            ->orderBy('created_at', 'desc')
+            ->paginate(18);
     }
 }

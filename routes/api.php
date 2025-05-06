@@ -52,6 +52,7 @@ Route::get('/product/related/{id}', [\App\Http\Controllers\Front\ProductControll
 // Категории
 Route::get('/category', [\App\Http\Controllers\CategoryController::class, 'index']);
 Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::class, 'indexSubCategory']);
+Route::get('/categories/{category}/products', [\App\Http\Controllers\CategoryController::class, 'indexProducts']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
