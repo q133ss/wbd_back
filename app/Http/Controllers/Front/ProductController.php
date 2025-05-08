@@ -54,14 +54,14 @@ class ProductController extends Controller
     {
         $ad = Ad::findOrFail($id);
         if ($ad->product?->category_id == null) {
-            $related = Ad::where('id', '!=', $id)->orderBy('created_at', 'desc')->take(6)->get();
+            $related = Ad::where('id', '!=', $id)->orderBy('created_at', 'desc')->take(8)->get();
         } else {
             $related = Ad::whereHas('product', function ($query) use ($ad) {
                 $query->where('category_id', $ad->product?->category_id);
             })
                 ->where('id', '!=', $id)
                 ->inRandomOrder()
-                ->take(6)
+                ->take(8)
                 ->get();
         }
 

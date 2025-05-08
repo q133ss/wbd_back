@@ -340,7 +340,7 @@ class WBService extends BaseService
             'price'              => $product['salePriceU'] / 100,
             'brand'              => $product['brand']      ?? null,
             'discount'           => $product['sale']       ?? 0,
-            'rating'             => $product['rating']     ?? 0,
+            'rating'             => $product['reviewRating'] ?? 0,
             'quantity_available' => $product['volume']     ?? 0,
             'supplier_id'        => $product['supplierId'] ?? null,
             'images'             => $this->generateImageUrls($product),

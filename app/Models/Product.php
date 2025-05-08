@@ -44,6 +44,16 @@ class Product extends Model
         static::addGlobalScope(new NotArchiveScope);
     }
 
+    public function getPriceAttribute($value)
+    {
+        return round($value, 2);
+    }
+
+    public function getRatingAttribute($value)
+    {
+        return round($value, 2);
+    }
+
     /**
      * Объявления
      */

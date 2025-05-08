@@ -13,7 +13,7 @@ class Ad extends Model
 {
     protected $guarded = [];
 
-    protected $with = ['product', 'shop', 'reviews'];
+    protected $with = ['product', 'shop'];
 
     // Указываем глобальный скоуп в методе `booted`
     protected static function booted()
@@ -208,6 +208,7 @@ class Ad extends Model
     {
         $data                           = parent::toArray();
         $data['price_without_cashback'] = $this->getPriceWithoutCashback();
+        $data['seller_rating']          = $this->user?->getRating();
 
         return $data;
     }

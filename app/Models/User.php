@@ -75,6 +75,7 @@ class User extends Authenticatable
         return $this->hasMany(Ad::class, 'user_id', 'id');
     }
 
+    // TODO проверить и удалить, это устарело!
     public function getRating()
     {
         $totalRating = 0;
