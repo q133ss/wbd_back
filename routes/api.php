@@ -4,9 +4,11 @@ use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
 
 # TODO
-# Весь битрикс
 # Админка
 
+# TODO WBService, метод prepareProductData! Если ввести неверный артикул (123435), то он пытается получить что-то
+# TODO при пустом ответе нужно выводить ошибку, а не пытаться получить данные
+# TODO если товар уже добавлен, то отдается 500, а не 403!!! Нужно все это исрправить
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('seller')->group(function () {
         Route::apiResource('products', \App\Http\Controllers\Seller\ProductController::class)->except('show');
@@ -41,7 +43,6 @@ Route::middleware([GuestOnly::class])->group(function () {
     Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
 });
 Route::get('/roles', [\App\Http\Controllers\AuthController::class, 'roles']);
-Route::post('register/complete', [\App\Http\Controllers\AuthController::class, 'completeRegistration']);
 
 // Товары
 Route::get('/products', [\App\Http\Controllers\Front\ProductController::class, 'index']);
@@ -55,6 +56,8 @@ Route::get('/sub-category/{id}', [\App\Http\Controllers\CategoryController::clas
 Route::get('/categories/{category}/products', [\App\Http\Controllers\CategoryController::class, 'indexProducts']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('register/complete', [\App\Http\Controllers\AuthController::class, 'completeRegistration']);
+
     Route::get('/wb/fetch-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'fetchProduct']);
     Route::post('/wb/add-product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'addProduct']);
     Route::get('/wb/product/{product_id}', [\App\Http\Controllers\WB\ProductController::class, 'getProduct']);

@@ -82,6 +82,12 @@ class Product extends Model
     {
         return $query
             ->when(
+                $request->query('search'),
+                function (Builder $query, $search) {
+                    return $query->whereAny(['name', 'description', 'price'], 'LIKE', '%'.$search.'%');
+                }
+            )
+            ->when(
                 $request->query('status'),
                 function (Builder $query, $status) {
                     return $query->where('status', $status);

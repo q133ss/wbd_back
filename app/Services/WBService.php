@@ -493,7 +493,7 @@ class WBService extends BaseService
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error adding product: '.$e->getMessage(), ['exception' => $e]);
-            $response = $this->formatResponse('false', $e->getMessage(), $e->getCode());
+            $response = $this->formatResponse('false', 'Ошибка, попробуйте еще раз', $e->getCode());
 
             return $this->sendResponse($response);
         }
