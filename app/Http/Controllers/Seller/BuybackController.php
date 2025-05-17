@@ -59,4 +59,11 @@ class BuybackController extends Controller
         return new ShowResource($buyback);
     }
 
+    public function count()
+    {
+        return response()->json([
+            'count' => auth()->user()->buybacks()->where('buybacks.status', 'pending')->count()
+        ]);
+    }
+
 }

@@ -13,4 +13,10 @@ class NotificationController extends Controller
         ReadNotificationsJob::dispatch($notifications->pluck('id')->all())->delay(now()->addSeconds(5));
         return $notifications;
     }
+
+    public function list()
+    {
+        return auth('sanctum')->user()->notifications()
+            ->paginate();
+    }
 }

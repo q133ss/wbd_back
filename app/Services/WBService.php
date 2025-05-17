@@ -21,13 +21,13 @@ class WBService extends BaseService
      *
      * @throws JsonException
      */
-    public function productCheck(string $id): ?array
+    public function productCheck(string $id): bool
     {
         if (Product::where('wb_id', $id)->exists()) {
-            $this->sendError('Товар уже добавлен', 403);
+            return false;
         }
 
-        return null;
+        return true;
     }
 
     public function getSupplier($supplier_id)
@@ -362,8 +362,6 @@ class WBService extends BaseService
             return Cache::get($cacheKey);
         }
 
-        $this->productCheck($product_id);
-
         $url = "https://card.wb.ru/cards/v1/detail?appType=1&curr=rub&dest=-1257786&spp=30&nm={$product_id}";
 
         try {
@@ -402,20 +400,34 @@ class WBService extends BaseService
      */
     private function prepareProductData(string $product_id): array
     {
+        $check = $this->productCheck($product_id);
+        if(!$check){
+            return [
+                'message' => 'Товар уже добавлен',
+                'status'  => 'false'
+            ];
+        }
+
         $product     = $this->loadProductData($product_id);
-        $getSupplier = $this->getSupplier($product['supplierId']);
-        $shop        = [
-            'supplier_id' => $product['supplierId'],
-            'inn'         => $getSupplier['inn'],
-            'legal_name'  => $getSupplier['supplierName'],
-            'wb_name'     => $getSupplier['trademark'] ?? $getSupplier['supplierName'],
-        ];
+        if($product != null){
+            $getSupplier = $this->getSupplier($product['supplierId']);
+            $shop        = [
+                'supplier_id' => $product['supplierId'],
+                'inn'         => $getSupplier['inn'],
+                'legal_name'  => $getSupplier['supplierName'],
+                'wb_name'     => $getSupplier['trademark'] ?? $getSupplier['supplierName'],
+            ];
 
-        $product = $this->formatProductData($product);
+            $product = $this->formatProductData($product);
 
+            return [
+                'product' => $product,
+                'shop'    => $shop,
+            ];
+        }
         return [
-            'product' => $product,
-            'shop'    => $shop,
+            'message' => 'Товар не найден',
+            'status'  => 'false'
         ];
     }
 
@@ -467,16 +479,22 @@ class WBService extends BaseService
     {
         try {
             DB::beginTransaction();
+
+            $check = $this->productCheck($product_id);
+            if(!$check){
+                $response = $this->formatResponse('false', 'Товар уже добавлен', 403);
+                return $this->sendResponse($response);
+            }
+
             $prepareData = $this->prepareProductData($product_id);
+            if(isset($prepareData['status'])){
+                $response = $this->formatResponse('false', $prepareData['message'], 403);
+                return $this->sendResponse($response);
+            }
+
             $shop        = $prepareData['shop'];
             $product     = $prepareData['product'];
-            $this->productCheck($product_id);
             $productCheck = $this->checkShop($shop);
-
-//            if($prepareData['product']['images'] == null){
-//                $response = $this->formatResponse('false', 'Невозможно загрузить изображения товара, обратитесь в поддержку', 403);
-//                return $this->sendResponse($response);
-//            }
 
             if(!$productCheck)
             {
@@ -492,6 +510,7 @@ class WBService extends BaseService
             return $this->sendResponse($response);
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             Log::error('Error adding product: '.$e->getMessage(), ['exception' => $e]);
             $response = $this->formatResponse('false', 'Ошибка, попробуйте еще раз', $e->getCode());
 
