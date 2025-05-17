@@ -29,6 +29,8 @@ return new class extends Migration
             $table->boolean('is_archived')->default(false);
             $table->boolean('has_review_by_seller')->default(false);
             $table->boolean('has_review_by_buyer')->default(false);
+            $table->boolean('is_order_photo_sent')->default(false)->comment('Фото заказа отправлено или нет');
+            $table->boolean('is_review_photo_sent')->default(false)->comment('Фото отзыва отправлено или нет');
             $table->timestamps();
         });
     }

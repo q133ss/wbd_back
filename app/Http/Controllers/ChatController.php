@@ -39,7 +39,7 @@ class ChatController extends Controller
 
         return Message::with('file')
             ->where('buyback_id', $buyback_id)
-            ->orderBy('created_at', 'desc')      // Сортировка по дате (новые внизу)
+            ->orderBy('created_at', 'asc')      // Сортировка по дате (новые внизу)
             ->paginate(30);
     }
 
@@ -132,6 +132,37 @@ class ChatController extends Controller
 
         DB::beginTransaction();
         try {
+            $data = [];
+
+            switch ($request->file_type) {
+                case 'send_photo':
+                    if($buyback->is_order_photo_sent){
+                        abort(403, 'Вы уже отправили фото');
+                    }
+
+                    if($buyback->status != 'pending'){
+                        abort(403, 'На данном этапе отправить фото невозможно');
+                    }
+
+                    // ждем 10 дней и отменяем
+                    $data = ['is_order_photo_sent' => true];
+                    DeliveryJob::dispatch($buyback)->delay(now()->addDays(10));
+                    break;
+                case 'review':
+                    // 72 часа ждем и принимаем!
+                    if($buyback->is_review_photo_sent){
+                        abort(403, 'Вы уже отправили фото');
+                    }
+
+                    if($buyback->status != 'awaiting_receipt'){
+                        abort(403, 'На данном этапе отправить фото невозможно');
+                    }
+
+                    $data = ['is_review_photo_sent' => true];
+                    ReviewJob::dispatch($buyback)->delay(now()->addHours(72));
+                    break;
+            }
+
             $files = [];
             foreach ($request->file('files') as $file) {
                 $imgMsg = Message::create([
@@ -151,16 +182,7 @@ class ChatController extends Controller
             }
             (new SocketService)->send($imgMsg, $buyback);
 
-            switch ($request->file_type) {
-                case 'send_photo':
-                    // ждем 10 дней и отменяем
-                    DeliveryJob::dispatch($buyback)->delay(now()->addDays(10));
-                    break;
-                case 'review':
-                    // 72 часа ждем и принимаем!
-                    ReviewJob::dispatch($buyback)->delay(now()->addHours(72));
-                    break;
-            }
+            $buyback->update($data);
 
             DB::commit();
 
@@ -170,11 +192,10 @@ class ChatController extends Controller
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-
             return response()->json([
                 'status'  => 'false',
-                'message' => 'Произошла ошибка, попробуйте еще раз',
-            ], 500);
+                'message' => $e->getMessage() ? $e->getMessage() : 'Произошла ошибка, попробуйте еще раз',
+            ], $e->getStatusCode() ? $e->getStatusCode() : 500);
         }
     }
 
@@ -279,7 +300,16 @@ class ChatController extends Controller
         $system_type = $checkFile['system_type'];
         $status = $checkFile['status'];
 
-        $buyback->update(['status' => $status]);
+        $data = [];
+        $data['status'] = $status;
+
+        if($system_type === 'send_photo'){
+            $data = ['is_order_photo_sent' => false];
+        }elseif($system_type === 'review'){
+            $data = ['is_review_photo_sent' => false];
+        }
+
+        $buyback->update($data);
 
         // отправляем сообщение
         $message = Message::create([
@@ -377,10 +407,11 @@ class ChatController extends Controller
     {
         $chats = auth('sanctum')->user()
             ->buybacks()
+            ->withFilter($request)
             ->where(function ($query) use ($request) {
                 (new \App\Models\Buyback)->scopeWithFilter($query, $request);
             })
-            ->with(['messages', 'ad']) // Добавляем загрузку объявления, если нужно
+            ->with(['ad'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function($buyback) {

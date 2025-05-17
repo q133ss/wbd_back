@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 # TODO WBService, метод prepareProductData! Если ввести неверный артикул (123435), то он пытается получить что-то
 # TODO при пустом ответе нужно выводить ошибку, а не пытаться получить данные
 # TODO если товар уже добавлен, то отдается 500, а не 403!!! Нужно все это исрправить
+# TODO https://pink-masters.ru/api/seller/ads фильтры работают криво!
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('seller')->group(function () {
         Route::apiResource('products', \App\Http\Controllers\Seller\ProductController::class)->except('show');
@@ -111,9 +112,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 // Профиль продавца
 Route::get('/seller/{id}', [\App\Http\Controllers\Front\SellerController::class, 'show']);
 Route::get('/buyer/{id}', [\App\Http\Controllers\Front\BuyerController::class, 'show']);
-
-// SSE route
-Route::get('/notifications/sse', [\App\Http\Controllers\SSEController::class, 'stream']);
 
 
 // Telegram webhook

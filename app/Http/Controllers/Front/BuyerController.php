@@ -11,9 +11,6 @@ class BuyerController extends Controller
     public function show(string $id)
     {
         $user = User::findOrFail($id);
-        if ($user->isSeller()) {
-            abort(404);
-        }
 
         // Получаем все выкупы пользователя
         $buybacks = $user->buybacks;

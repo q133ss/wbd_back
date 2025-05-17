@@ -73,7 +73,7 @@ class ProfileController extends Controller
             ->user()
             ->transactions()
             ->withFilter($request)
-            ->get();
+            ->paginate();
     }
 
     public function balance()
