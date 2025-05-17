@@ -22,7 +22,15 @@ class PhotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'files'     => 'required|array',
+            'files'     => [
+                'required',
+                'array',
+                function ($attribute, $value, $fail) {
+                    if ($this->file_type === 'review' && count($value) !== 2) {
+                        $fail('Необходимо загрузить два изображения.');
+                    }
+                }
+            ],
             'files.*'   => 'image|mimes:jpeg,png,jpg,gif|max:51200',
             'file_type' => 'required|in:send_photo,review', // Заказ сделан, оставил отзыв
         ];
