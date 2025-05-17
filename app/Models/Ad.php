@@ -46,55 +46,55 @@ class Ad extends Model
     {
         return $query
             ->when(
-                $request->query('status'),
-                function (Builder $query, $status) {
-                    return $query->where('status', $status);
+                $request->has('status'),
+                function (Builder $query) use ($request) {
+                    return $query->where('ads.status', $request->get('status'));
                 }
             )
             ->when(
-                $request->query('is_archived'),
-                function (Builder $query, $isArchived) {
-                    return static::withoutArchived()->where('is_archived', true);
+                $request->has('is_archived'),
+                function (Builder $query, $isArchived) use ($request) {
+                    return static::withoutArchived()->where('ads.is_archived', true);
                 }
             )
             ->when(
-                $request->query('price_from'),
-                function (Builder $query, $priceFrom) {
-                    return $query->where('price_with_cashback', '>=', $priceFrom);
+                $request->has('price_from'),
+                function (Builder $query) use ($request) {
+                    return $query->where('ads.price_with_cashback', '>=', $request->get('price_from'));
                 }
             )
             ->when(
-                $request->query('price_to'),
-                function (Builder $query, $priceTo) {
-                    return $query->where('price_with_cashback', '<=', $priceTo);
+                $request->has('price_to'),
+                function (Builder $query) use ($request) {
+                    return $query->where('ads.price_with_cashback', '<=', $request->get('price_to'));
                 }
             )
             ->when(
-                $request->query('cashback_from'),
-                function (Builder $query, $cashbackFrom) {
-                    return $query->where('cashback_percentage', '>=', $cashbackFrom);
+                $request->has('cashback_from'),
+                function (Builder $query, $cashbackFrom) use ($request) {
+                    return $query->where('ads.cashback_percentage', '>=', $request->get('cashback_from'));
                 }
             )
             ->when(
-                $request->query('cashback_to'),
-                function (Builder $query, $cashbackTo) {
-                    return $query->where('cashback_percentage', '<=', $cashbackTo);
+                $request->has('cashback_to'),
+                function (Builder $query, $cashbackTo) use ($request) {
+                    return $query->where('ads.cashback_percentage', '<=', $request->get('cashback_to'));
                 }
             )
             ->when(
-                $request->query('category_id'),
-                function (Builder $query, $categoryId) {
+                $request->has('category_id'),
+                function (Builder $query, $categoryId) use ($request) {
                     if (! $this->joined($query, 'products')) {
                         $query->join('products', 'products.id', '=', 'ads.product_id');
                     }
 
-                    return $query->where('products.category_id', '=', $categoryId);
+                    return $query->where('products.category_id', '=', $request->get('category_id'));
                 }
             )
             ->when(
-                $request->query('search'),
-                function (Builder $query, $search) {
-                    return $query->whereAny(['name', 'price_with_cashback'], 'LIKE', '%'.$search.'%');
+                $request->has('search'),
+                function (Builder $query) use ($request) {
+                    return $query->whereAny(['ads.name', 'ads.price_with_cashback'], 'LIKE', '%'.$request->get('search').'%');
                 }
             );
     }
