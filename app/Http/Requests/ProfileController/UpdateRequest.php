@@ -27,7 +27,6 @@ class UpdateRequest extends FormRequest
         return [
             'avatar'   => 'nullable|file|mimes:jpeg,png,jpg,gif,svg',
             'name'     => 'required|string|max:255',
-            'phone'    => ['required', 'string', 'max:255', 'exists:users,phone', new PhoneNumber],
             'email'    => [
                 'required',
                 'email',
@@ -45,10 +44,6 @@ class UpdateRequest extends FormRequest
             'name.required'      => 'Поле имя обязательно для заполнения.',
             'name.string'        => 'Имя должно быть строкой.',
             'name.max'           => 'Имя не может быть длиннее 255 символов.',
-            'phone.required'     => 'Поле телефон обязательно для заполнения.',
-            'phone.string'       => 'Телефон должен быть строкой.',
-            'phone.max'          => 'Телефон не может быть длиннее 255 символов.',
-            'phone.exists'       => 'Телефон не найден в системе.',
             'email.required'     => 'Поле email обязательно для заполнения.',
             'email.email'        => 'Неверный формат email.',
             'password.required'  => 'Поле пароль обязательно для заполнения.',

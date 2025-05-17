@@ -3,16 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileController\AvatarRequest;
+use App\Http\Requests\ProfileController\PhoneCodeRequest;
 use App\Http\Requests\ProfileController\TopupBuybacksRequest;
 use App\Http\Requests\ProfileController\TopUpRequest;
+use App\Http\Requests\ProfileController\UpdatePhoneRequest;
 use App\Http\Requests\ProfileController\UpdateRequest;
 use App\Http\Requests\ProfileController\WithdrawRequest;
 use App\Models\Buyback;
 use App\Models\Cashout;
+use App\Models\PhoneVerification;
 use App\Models\ReferralStat;
 use App\Models\Review;
 use App\Models\Tariff;
 use App\Models\Transaction;
+use App\Services\SmsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -290,5 +294,54 @@ class ProfileController extends Controller
                 'message' => 'Произошла ошибка, попробуйте еще раз'
             ], 500);
         }
+    }
+
+    public function phoneCode(PhoneCodeRequest $request)
+    {
+        $verification = PhoneVerification::where('phone_number', $request->phone)->first();
+        $code         = random_int(1000, 9999);
+
+        if ($verification) {
+            $verification->update([
+                'verification_code' => $code,
+                'expires_at'        => now()->addMinutes(10),
+            ]);
+        } else {
+            PhoneVerification::create([
+                'phone_number'      => $request->phone,
+                'verification_code' => $code,
+                'expires_at'        => now()->addMinutes(10),
+            ]);
+        }
+
+        $smsService = new SmsService;
+        $send       = $smsService->send($request->phone, $code);
+
+        if (! $send) {
+            return Response()->json([
+                'message' => 'При отправке СМС произошла ошибка',
+            ], 500);
+        }
+
+        return Response()->json([
+            'message' => 'Код успешно отправлен',
+        ]);
+    }
+
+    public function updatePhone(UpdatePhoneRequest $request)
+    {
+        $user = auth('sanctum')->user();
+        $user->update([
+            'phone' => $request->phone,
+        ]);
+        $verification = PhoneVerification::where('phone_number', $request->phone)->first();
+        if ($verification) {
+            $verification->delete();
+        }
+
+        return response()->json([
+            'status'  => 'true',
+            'message' => 'Телефон успешно изменен!',
+        ]);
     }
 }

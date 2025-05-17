@@ -25,9 +25,7 @@ class AuthController extends Controller
 
     public function sendCode(SendCodeRequest $request)
     {
-        $this->authService->sendVerificationCode($request->phone);
-
-        return response()->json(['message' => 'Код успешно отправлен']);
+        return $this->authService->sendVerificationCode($request->phone);
     }
 
     public function verifyCode(VerifyCodeRequest $request)

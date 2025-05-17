@@ -26,8 +26,13 @@ class AuthService
     {
         $verification = PhoneVerification::where('phone_number', $phoneNumber)->first();
         $code         = random_int(1000, 9999);
-
         if ($verification) {
+            if ($verification->updated_at > now()->subMinute()) {
+                return Response()->json([
+                    'message' => 'Отправлять код можно не чаще 1 раза в минуту',
+                ], 429);
+            }
+
             $verification->update([
                 'verification_code' => $code,
                 'expires_at'        => now()->addMinutes(self::CODE_EXPIRATION_TIME),
@@ -40,14 +45,14 @@ class AuthService
             ]);
         }
 
-        $smsService = new SmsService;
-        $send       = $smsService->send($phoneNumber, $code);
-
-        if (! $send) {
-            return Response()->json([
-                'message' => 'При отправке СМС произошла ошибка',
-            ], 500);
-        }
+//        $smsService = new SmsService;
+//        $send       = $smsService->send($phoneNumber, $code);
+//
+//        if (! $send) {
+//            return Response()->json([
+//                'message' => 'При отправке СМС произошла ошибка',
+//            ], 500);
+//        }
 
         return Response()->json([
             'message' => 'Код успешно отправлен',

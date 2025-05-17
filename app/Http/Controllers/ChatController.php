@@ -94,7 +94,7 @@ class ChatController extends Controller
         DB::beginTransaction();
         try {
             $buyback->update(['status' => 'cancelled']);
-            $isSeller = $user->isSeller();
+            $isSeller = $buyback->user_id != auth('sanctum')->id();
             $text     = '';
             if ($isSeller) {
                 $text = 'Выкуп отменен по инициативе продавца';
