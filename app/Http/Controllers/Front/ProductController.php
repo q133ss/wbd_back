@@ -30,9 +30,9 @@ class ProductController extends Controller
             return $adultRoot ? $this->getAllCategoryIds($adultRoot) : [];
         });
         $adsQuery = Ad::with(['product'])
-        ->whereHas('product', function ($query) use ($adultCategoryIds) {
-            $query->whereNotIn('category_id', $adultCategoryIds);
-        })
+            ->whereDoesntHave('product', function ($query) use ($adultCategoryIds) {
+                $query->whereIn('products.category_id', $adultCategoryIds);
+            })
             ->withFilter($request)
             ->where('ads.status', true)
             ->withSorting($request);

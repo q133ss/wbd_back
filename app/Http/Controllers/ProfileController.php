@@ -344,4 +344,18 @@ class ProfileController extends Controller
             'message' => 'Телефон успешно изменен!',
         ]);
     }
+
+    public function onlyBalance()
+    {
+        $user             = auth('sanctum')->user();
+        $accessBalance    = $user->balance;
+        $redemption_count = $user->redemption_count;
+
+        $data = [
+            'accessBalance'    => $accessBalance,
+            'redemption_count' => $redemption_count,
+        ];
+
+        return response()->json($data);
+    }
 }

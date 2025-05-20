@@ -92,6 +92,12 @@ class Ad extends Model
                 }
             )
             ->when(
+                $request->has('product_id'),
+                function (Builder $query, $productId) use ($request) {
+                    return $query->where('ads.product_id', '=', $request->get('product_id'));
+                }
+            )
+            ->when(
                 $request->has('search'),
                 function (Builder $query) use ($request) {
                     return $query->whereAny(['ads.name', 'ads.price_with_cashback'], 'LIKE', '%'.$request->get('search').'%');

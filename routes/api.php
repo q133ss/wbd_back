@@ -70,6 +70,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('transactions', [\App\Http\Controllers\ProfileController::class, 'transactions']);
     Route::get('/balance', [\App\Http\Controllers\ProfileController::class, 'balance']);
     Route::post('/balance', [\App\Http\Controllers\ProfileController::class, 'topup']);
+    Route::get('/balance/only', [\App\Http\Controllers\ProfileController::class, 'onlyBalance']);
     Route::post('/balance/buybacks', [\App\Http\Controllers\ProfileController::class, 'topupBuybacks']);
     Route::post('/withdraw', [\App\Http\Controllers\ProfileController::class, 'withdraw']);
     Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);
