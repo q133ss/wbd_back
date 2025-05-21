@@ -68,45 +68,45 @@ class DatabaseSeeder extends Seeder
             $this->command->info('Фото для категорий');
 
             // Список категорий
-            $categories_list = [
-                'Женщинам',
-                'Обувь',
-                'Детям',
-                'Мужчинам',
-                'Дом',
-                'Красота',
-                'Аксессуары',
-                'Электроника',
-                'Игрушки',
-                'Мебель',
-                'Товары для взрослых',
-                'Продукты',
-                'Цветы',
-                'Бытовая техника',
-                'Зоотовары',
-                'Спорт',
-                'Автотовары',
-                'Школа',
-                'Книги',
-                'Ювелирные изделия',
-                'Для ремонта',
-                'Сад и дача',
-                'Здоровье',
-                'Канцтовары',
-                'Акции',
-                'Культурный код',
-            ];
-
-            $categories = Category::whereIn('name', $categories_list)->get();
-            foreach ($categories as $category) {
-                File::create([
-                    'fileable_type' => 'App\Models\Category',
-                    'fileable_id'   => $category->id,
-                    'category'      => 'img',
-                    'src'           => 'images/categories/'.$category->name.'.png',
-                ]);
-                $this->command->info("Фото для категории: {$category->name}");
-            }
+//            $categories_list = [
+//                'Женщинам',
+//                'Обувь',
+//                'Детям',
+//                'Мужчинам',
+//                'Дом',
+//                'Красота',
+//                'Аксессуары',
+//                'Электроника',
+//                'Игрушки',
+//                'Мебель',
+//                'Товары для взрослых',
+//                'Продукты',
+//                'Цветы',
+//                'Бытовая техника',
+//                'Зоотовары',
+//                'Спорт',
+//                'Автотовары',
+//                'Школа',
+//                'Книги',
+//                'Ювелирные изделия',
+//                'Для ремонта',
+//                'Сад и дача',
+//                'Здоровье',
+//                'Канцтовары',
+//                'Акции',
+//                'Культурный код',
+//            ];
+//
+//            $categories = Category::whereIn('name', $categories_list)->get();
+//            foreach ($categories as $category) {
+//                File::create([
+//                    'fileable_type' => 'App\Models\Category',
+//                    'fileable_id'   => $category->id,
+//                    'category'      => 'img',
+//                    'src'           => 'images/categories/'.$category->name.'.jpg',
+//                ]);
+//                $this->command->info("Фото для категории: {$category->name}");
+//            }
         }
 
         $admin = User::create([

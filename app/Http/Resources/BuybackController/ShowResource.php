@@ -35,6 +35,8 @@ class ShowResource extends JsonResource
             'id' => $this->id,
             'has_review_by_buyer' => $this->has_review_by_buyer,
             'has_review_by_seller' => $this->has_review_by_seller,
+            'is_order_photo_sent' => $this->is_order_photo_sent,
+            'is_review_photo_sent' => $this->is_review_photo_sent,
             'is_archived' => $this->is_archived,
             'status' => $this->status,
             'ad' => $this->ad,
