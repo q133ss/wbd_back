@@ -69,7 +69,7 @@ class ChatController extends Controller
 
         $whoSend = $buyback->user_id == auth('sanctum')->id() ? 'buyer' : 'seller';
 
-        $msg = (new SocketService)->send($message, $buyback);
+        $msg = (new SocketService)->send($message, $buyback, false);
         if ($msg) {
             return response()->json([
                 'success' => true,
@@ -184,7 +184,7 @@ class ChatController extends Controller
                 ]);
                 $files[] = $fileModel;
             }
-            (new SocketService)->send($imgMsg, $buyback);
+            (new SocketService)->send($imgMsg, $buyback, false);
 
             $buyback->update($data);
 
@@ -266,15 +266,15 @@ class ChatController extends Controller
                     ->where('messages.buyback_id', $buyback_id)
                     ->count();
 
+                // Если все фото одобрены, отправляем сообщение в чат
+                $checkFile = $this->checkFileType($file->fileable?->system_type);
+
+                $text = $checkFile['text'];
+                $system_type = $checkFile['system_type'];
+                $status = $checkFile['status'];
+
                 // Проверяем, все-ли фото одобренны, у нас их 2
                 if($fileCount == 2){
-                    // Если все фото одобрены, отправляем сообщение в чат
-                    $checkFile = $this->checkFileType($file->fileable?->system_type);
-
-                    $text = $checkFile['text'];
-                    $system_type = $checkFile['system_type'];
-                    $status = $checkFile['status'];
-
                     $buyback->update(['status' => $status]);
 
                     $message = Message::create([
@@ -286,6 +286,9 @@ class ChatController extends Controller
                     ]);
 
                     (new SocketService)->send($message, $buyback);
+                    (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил ваш отзыв', true);
+
+                    (new BalanceService())->buybackPayment($buyback);
 
                     DB::commit();
 
@@ -297,6 +300,7 @@ class ChatController extends Controller
                 }
             }
 
+            $buyback->update(['status' => $status]);
             DB::commit();
 
             return response()->json([
@@ -352,7 +356,7 @@ class ChatController extends Controller
             $message = Message::create([
                 'buyback_id'  => $file->fileable?->buyback_id,
                 'sender_id'   => auth('sanctum')->id(),
-                'text'        => $request->comment,
+                'text'        => 'Продавец отклонил ваш скриншот: '.$request->comment,
                 'type'        => 'text',
                 'system_type' => $system_type,
             ]);
@@ -429,28 +433,49 @@ class ChatController extends Controller
 
         if($buyback->user_id == $user->id){
             // оставляем продавцу
-            if($buyback->has_review_by_seller){
-                abort(403, 'Отзыв уже оставлен');
-            }
-            $buyback->update(['has_review_by_seller' => true]);
-            $user_id = $buyback->ad?->user?->id;
-            $notification = 'Покупатель оставил отзыв о выкупе #'.$id;
-        }else{
-            // для покупателя
             if($buyback->has_review_by_buyer){
                 abort(403, 'Отзыв уже оставлен');
             }
             $user_id = $buyback->user_id;
             $buyback->update(['has_review_by_buyer' => true]);
+            $notification = 'Покупатель оставил отзыв о выкупе #'.$id;
+
+            $notificationModel = (new NotificationService)->send($buyback->ad?->user?->id, $id, $notification, true);
+
+            $message = Message::create([
+                'buyback_id'  => $id,
+                'sender_id'   => auth('sanctum')->id(),
+                'text'        => 'Покупатель оставил отзыв о выкупе: '.$text,
+                'type'        => 'system',
+                'system_type' => 'review',
+                'color'       => $rating // TODO ИСРАВИТЬ, НУЖНО ОТДЕЛЬНОЕ ПОЛЕ СДЕЛАТЬ!
+            ]);
+        }else{
+            // для покупателя
+            if($buyback->has_review_by_seller){
+                abort(403, 'Отзыв уже оставлен');
+            }
+            $buyback->update(['has_review_by_seller' => true]);
+            $user_id = $buyback->ad?->user?->id;
             $notification = 'Продавец оставил отзыв о выкупе #'.$id;
+            $notificationModel = (new NotificationService)->send($buyback->user_id, $id, $notification, true);
+
+            $message = Message::create([
+                'buyback_id'  => $id,
+                'sender_id'   => auth('sanctum')->id(),
+                'text'        => 'Продавец оставил отзыв о выкупе: '.$text,
+                'type'        => 'system',
+                'system_type' => 'review',
+                'color'       => $rating // TODO ИСРАВИТЬ, НУЖНО ОТДЕЛЬНОЕ ПОЛЕ СДЕЛАТЬ!
+            ]);
         }
 
-        // Уведомление и создание отзыва
-        $notification = (new NotificationService)->send($user_id, $id, $notification, true);
+        // Сообщение и создание отзыва
         $review = (new ReviewService())->create($ads_id, $rating, $text, $type, $user_id);
+        (new SocketService)->send($message, $buyback, false);
 
         return response()->json([
-            'notification' => $notification,
+            'notification' => $notificationModel,
             'review' => $review,
             'buyback' => $buyback
         ], 201);

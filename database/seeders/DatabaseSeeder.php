@@ -209,5 +209,25 @@ class DatabaseSeeder extends Seeder
         $this->command->call('categories:import');
 
         $this->call(ReviewSeed::class);
+
+        $testBuyer = User::create([
+            'name'             => 'Иван',
+            'email'            => 'ivan123@email.net',
+            'redemption_count' => 10000,
+            'balance'          => 10000,
+            'phone'            => '+7(555)555-55-55',
+            'password'         => bcrypt('password'),
+            'role_id'          => Role::where('slug', 'buyer')->pluck('id')->first(),
+        ]);
+
+        $testSeller = User::create([
+            'name'             => 'Сергей',
+            'email'            => 'serget@email.net',
+            'redemption_count' => 10000,
+            'balance'          => 10000,
+            'phone'            => '+7(666)666-66-66',
+            'password'         => bcrypt('password'),
+            'role_id'          => Role::where('slug', 'seller')->pluck('id')->first(),
+        ]);
     }
 }
