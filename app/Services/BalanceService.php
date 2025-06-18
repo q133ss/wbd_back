@@ -20,25 +20,26 @@ class BalanceService extends BaseService
     {
         try {
             $frozenBalance = FrozenBalance::where('ad_id', $buyback->ads_id)->first();
+            $cashback = (($buyback->price * $buyback->ad?->cashback_percentage) / 100);
             // Снимает деньги за выкуп
             $frozenBalance->update([
-                'amount' => $frozenBalance->amount - $buyback->price,
+                'amount' => $frozenBalance->amount - $cashback,
             ]);
             $user = $buyback->user;
             $user->update([
-                'balance' => $user->balance + $buyback->price,
+                'balance' => $user->balance + $cashback,
             ]);
 
             Transaction::create([
-                'amount'           => $buyback->price,
+                'amount'           => $cashback,
                 'transaction_type' => 'deposit',
                 'currency_type'    => 'cash',
-                'description'      => 'Кешбек за выкуп #'.$buyback->id.'. Сумма: '.$buyback->price.' ₽',
+                'description'      => 'Кешбек за выкуп #'.$buyback->id.'. Сумма: '.$cashback.' ₽',
                 'user_id'          => $user->id,
             ]);
 
             // Делаем 2 уведомления
-            (new NotificationService)->send($buyback->user_id, $buyback->id, 'Вы получили кешбек '.$buyback->price.' ₽ за выкуп #'.$buyback->id, true);
+            (new NotificationService)->send($buyback->user_id, $buyback->id, 'Вы получили кешбек '.$cashback.' ₽ за выкуп #'.$buyback->id, true);
             (new NotificationService)->send($buyback->user_id, $buyback->id, 'Кешбек за выкуп #'.$buyback->id.' выплачен', true);
         } catch (\Exception $e) {
             \Log::info('ОШИБКА ПРИ НАЧИСЛЕНИИ БАЛАНСА');

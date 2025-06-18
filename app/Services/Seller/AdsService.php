@@ -16,11 +16,10 @@ class AdsService extends BaseService
     {
         try {
             DB::beginTransaction();
-
-            $productPrice       = Product::find($data['product_id'])->pluck('price')->first();
+            $productPrice       = Product::find($data['product_id'])?->price;
             $cashbackPercentage = $data['cashback_percentage'];
 
-            $cashbackAmount              = ($productPrice * $cashbackPercentage) / 100;
+            $cashbackAmount              = ($productPrice * $cashbackPercentage) / 100; // Это кэшбек юзеру!
             $data['price_with_cashback'] = $productPrice - $cashbackAmount;
 
             $user = auth('sanctum')->user();
@@ -53,7 +52,9 @@ class AdsService extends BaseService
 
             // Заморозка баланса
             // цену для юзера умножаем ее на кол-во выкупов
-            $priceForUser = $data['price_with_cashback'] * $data['redemption_count'];
+            //$priceForUser = $data['price_with_cashback'] * $data['redemption_count'];
+            $priceForUser = $cashbackAmount * $data['redemption_count'];
+
             $newBalance   = $user->balance - $priceForUser;
             if ($newBalance < 0) {
                 $this->sendError('У вас недостаточно средств', 400);
