@@ -35,14 +35,6 @@ class NotificationService
 
         $pusher->trigger('notification-'.$user_id, 'MessageSent', $data);
 
-//        Redis::rpush('user_notifications:'.$user_id, json_encode([
-//            'user_id'    => $user_id,
-//            'type'       => 'notification',
-//            'buyback_id' => $buyback_id,
-//            'text'       => $text,
-//            'timestamp'  => $notification->created_at->toIso8601String(),
-//        ]));
-
         // Отправка уведомления в телеграм
         if($sendTelegram){
             (new TelegramService())->sendNotification($user_id, $text);

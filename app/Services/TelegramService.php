@@ -110,9 +110,14 @@ class TelegramService
 
     public function sendNotification(string $user_id, string $text): void
     {
-        $chatId = User::where('id',$user_id)->pluck('telegram_id')->first();
-        if($chatId != null){
-            $this->sendMessage($chatId, $text);
+        try{
+            $chatId = User::where('id',$user_id)->pluck('telegram_id')->first();
+            if($chatId != null){
+                $this->sendMessage($chatId, $text);
+            }
+        }catch (\Exception $exception){
+            \Log::error('TelegramService sendNotification error: ' . $exception->getMessage());
+            return;
         }
     }
 

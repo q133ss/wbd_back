@@ -37,7 +37,7 @@ class ChatController extends Controller
             ->where('is_read', false)             // Только непрочитанные
             ->update(['is_read' => true]);
 
-        return Message::with('file')
+        return Message::with('files')
             ->where('buyback_id', $buyback_id)
             ->orderBy('created_at', 'asc')      // Сортировка по дате (новые внизу)
             ->paginate(30);
@@ -168,13 +168,13 @@ class ChatController extends Controller
             }
 
             $files = [];
+            $imgMsg = Message::create([
+                'sender_id'   => $user->id,
+                'buyback_id'  => $buyback_id,
+                'type'        => 'image',
+                'system_type' => $request->file_type,
+            ]);
             foreach ($request->file('files') as $file) {
-                $imgMsg = Message::create([
-                    'sender_id'   => $user->id,
-                    'buyback_id'  => $buyback_id,
-                    'type'        => 'image',
-                    'system_type' => $request->file_type,
-                ]);
                 $fileSrc = $file->store('files', 'public');
                 $fileModel = File::create([
                     'fileable_type' => 'App\Models\Message',
@@ -213,7 +213,7 @@ class ChatController extends Controller
                 break;
             case 'review':
                 $text = 'Продавец подтвердил ваш отзыв';
-                $system_type = 'review';
+                $system_type = null;
                 $status = 'cashback_received';
                 break;
             default:
@@ -257,13 +257,14 @@ class ChatController extends Controller
             $system_type = $checkFile['system_type'];
             $status = $checkFile['status'];
 
-            if($system_type == 'review'){
+            if($file->fileable?->system_type == 'review'){
                 // Ищем 2 файла!
                 $fileCount = File::leftJoin('messages', 'messages.id', '=', 'files.fileable_id')
+                    ->where('files.fileable_id', $file->fileable_id)
                     ->where('files.fileable_type', 'App\Models\Message')
                     ->where('messages.system_type', $file->fileable?->system_type)
-                    ->where('files.status', 1)
                     ->where('messages.buyback_id', $buyback_id)
+                    ->where('messages.sender_id', $buyback->user_id)
                     ->count();
 
                 // Если все фото одобрены, отправляем сообщение в чат
@@ -300,6 +301,16 @@ class ChatController extends Controller
                 }
             }
 
+            $message = Message::create([
+                'buyback_id'  => $file->fileable?->buyback_id,
+                'sender_id'   => auth('sanctum')->id(),
+                'text'        => $text,
+                'type'        => 'system',
+                'system_type' => $system_type,
+            ]);
+            (new SocketService)->send($message, $buyback);
+            (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил скриншот вашего заказа', true);
+
             $buyback->update(['status' => $status]);
             DB::commit();
 
@@ -335,22 +346,18 @@ class ChatController extends Controller
                 abort(403, 'Нельзя отклонить файл из другого заказа');
             }
 
+            // TODO соседний тоже отклонить, если это отзыв!
             $file->update(['status' => false, 'status_comment' => $request->comment]);
-            $checkFile = $this->checkFileType($file->fileable?->system_type);
-
-            $system_type = $checkFile['system_type'];
-            $status = $checkFile['status'];
+            File::where('fileable_id', $file->fileable_id)
+                ->where('fileable_type', $file->fileable_type)
+                ->update(['status' => false, 'status_comment' => $request->comment]);
 
             $data = [];
-            $data['status'] = $status;
-
-            if($system_type === 'send_photo'){
-                $data = ['is_order_photo_sent' => false];
-            }elseif($system_type === 'review'){
-                $data = ['is_review_photo_sent' => false];
+            if($file->fileable?->system_type == 'send_photo'){
+                $buyback->update(['is_order_photo_sent' => false]);
+            }elseif($file->fileable?->system_type == 'review'){
+                $buyback->update(['is_review_photo_sent' => false]);
             }
-
-            $buyback->update($data);
 
             // отправляем сообщение
             $message = Message::create([
@@ -358,7 +365,7 @@ class ChatController extends Controller
                 'sender_id'   => auth('sanctum')->id(),
                 'text'        => 'Продавец отклонил ваш скриншот: '.$request->comment,
                 'type'        => 'text',
-                'system_type' => $system_type,
+                'system_type' => 'send_photo',
             ]);
 
             // Прикрепляем файл к сообщению
@@ -369,6 +376,8 @@ class ChatController extends Controller
             $attachFile->save();
 
             (new SocketService)->send($message, $buyback);
+
+            (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец отклонил скриншот', true);
 
             DB::commit();
 
