@@ -82,7 +82,7 @@ class ImportCategories extends Command
             if($parentId == null){
                 if(in_array($category['name'], $imgCategories)){
                     File::create([
-                        'src' => 'images/categories/'.$category['name'].'.png',
+                        'src' => 'images/categories/'.$category['name'].'.jpg',
                         'fileable_type' => 'App\Models\Category',
                         'fileable_id' => $newCategory->id,
                         'category' => 'img'
