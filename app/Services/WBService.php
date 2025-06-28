@@ -382,7 +382,6 @@ class WBService extends BaseService
 
                     // Кешируем на 10 мин, что бы не делать лишних запросов
                     Cache::put($cacheKey, $product, 600);
-
                     return $product;
                 }
             }

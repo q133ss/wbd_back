@@ -68,7 +68,13 @@ class ImportCategories extends Command
             'Цветы',
             'Школа',
             'Электроника',
-            'Ювелирные изделия'
+            'Ювелирные изделия',
+            'Лекарственные препараты',
+            'Грузовая доставка',
+            'Цифровые товары',
+            'Сделано в России',
+            'Экспресс',
+            'Транспортные средства'
         ];
         foreach ($categories as $category) {
             $newCategory = Category::updateOrCreate(

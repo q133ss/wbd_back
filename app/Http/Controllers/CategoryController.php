@@ -11,7 +11,10 @@ class CategoryController extends Controller
     public function index()
     {
         return Cache::remember('categories_index', 600, function () {
-            $categories = Category::with(['img', 'children.products'])->whereNull('parent_id')->get();
+            $categories = Category::with(['img', 'children.products'])
+                ->whereNull('parent_id')
+                ->whereNotIn('id', ['1234', '1235', '1237', '131841', '131925'])
+                ->get();
 
             $adultCategory = Category::where('name', 'Товары для взрослых')->first();
             $adultCategoryIds = $this->getAllCategoryIds($adultCategory);
