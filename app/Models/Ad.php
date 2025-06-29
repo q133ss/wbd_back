@@ -215,7 +215,7 @@ class Ad extends Model
         $data                           = parent::toArray();
         $data['price_without_cashback'] = $this->getPriceWithoutCashback();
         $data['seller_rating']          = $this->user?->getRating();
-
+        $data['buybacks_count'] = $this->buybacks()->whereIn('status', ['cashback_received', 'completed'])->count();
         return $data;
     }
 }

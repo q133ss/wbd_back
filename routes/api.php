@@ -77,6 +77,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/withdraw/{id}', [\App\Http\Controllers\ProfileController::class, 'withdrawCancel']);
     Route::get('/profile/statistic', [\App\Http\Controllers\ProfileController::class, 'statistic']);
     Route::get('/referral', [\App\Http\Controllers\ReferralController::class, 'index']);
+    Route::post('payment-methods', [\App\Http\Controllers\ProfileController::class, 'updatePayment']);
 
     // Корзина и избранное
     Route::post('/add-to-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'add']);

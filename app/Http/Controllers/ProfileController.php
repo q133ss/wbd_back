@@ -6,11 +6,13 @@ use App\Http\Requests\ProfileController\AvatarRequest;
 use App\Http\Requests\ProfileController\PhoneCodeRequest;
 use App\Http\Requests\ProfileController\TopupBuybacksRequest;
 use App\Http\Requests\ProfileController\TopUpRequest;
+use App\Http\Requests\ProfileController\UpdatePaymentRequest;
 use App\Http\Requests\ProfileController\UpdatePhoneRequest;
 use App\Http\Requests\ProfileController\UpdateRequest;
 use App\Http\Requests\ProfileController\WithdrawRequest;
 use App\Models\Buyback;
 use App\Models\Cashout;
+use App\Models\PaymentMethod;
 use App\Models\PhoneVerification;
 use App\Models\ReferralStat;
 use App\Models\Review;
@@ -83,41 +85,27 @@ class ProfileController extends Controller
     public function balance()
     {
         $user             = auth('sanctum')->user();
-        $accessBalance    = $user->balance;
         $role             = auth('sanctum')->user()->role;
         $redemption_count = $user->redemption_count;
 
         $data = [
-            'accessBalance'    => $accessBalance,
-            'onConfirmation'   => 0, // На подтверждении, либо заморожено
             'redemption_count' => $redemption_count,
         ];
 
-        if ($role->slug == 'buyer') {
-            // Покупатель
-            $onConfirmation = $user->buybacks()->whereIn('buybacks.status', [
-                'pending',
-                'awaiting_receipt',
-                'on_confirmation',
-            ])->sum('buybacks.price');
-        } else {
-            // Продавец
-            $today           = Carbon::today();
-            $yesterday       = Carbon::yesterday();
-            $last7Days       = Carbon::now()->subDays(7);
-            $transactionData = Transaction::where('user_id', $user->id)
-                ->where('transaction_type', 'withdraw')
-                ->where('currency_type', 'cash')
-                ->select([
-                    DB::raw("SUM(CASE WHEN DATE(created_at) = '{$today}' THEN amount ELSE 0 END) as today"),
-                    DB::raw("SUM(CASE WHEN DATE(created_at) = '{$yesterday}' THEN amount ELSE 0 END) as yesterday"),
-                    DB::raw("SUM(CASE WHEN created_at >= '{$last7Days}' THEN amount ELSE 0 END) as last_7_days"),
-                ])
-                ->first();
-            $onConfirmation          = $user->frozenBalance()->where('status', 'reserved')->sum('amount');
-            $data['transactionData'] = $transactionData;
-        }
-        $data['onConfirmation'] = $onConfirmation;
+        // Продавец
+        $today           = Carbon::today();
+        $yesterday       = Carbon::yesterday();
+        $last7Days       = Carbon::now()->subDays(7);
+        $transactionData = Transaction::where('user_id', $user->id)
+            ->where('transaction_type', 'withdraw')
+            ->where('currency_type', 'buyback')
+            ->select([
+                DB::raw("SUM(CASE WHEN DATE(created_at) = '{$today}' THEN amount ELSE 0 END) as today"),
+                DB::raw("SUM(CASE WHEN DATE(created_at) = '{$yesterday}' THEN amount ELSE 0 END) as yesterday"),
+                DB::raw("SUM(CASE WHEN created_at >= '{$last7Days}' THEN amount ELSE 0 END) as last_7_days"),
+            ])
+            ->first();
+        $data['transactionData'] = $transactionData;
 
         return response()->json($data);
     }
@@ -357,5 +345,28 @@ class ProfileController extends Controller
         ];
 
         return response()->json($data);
+    }
+
+    public function updatePayment(UpdatePaymentRequest $request)
+    {
+        PaymentMethod::updateOrCreate(
+            ['user_id' => auth('sanctum')->id()],
+            [
+                'sbp' => $request->input('sbp'),
+                'sbp_comment' => $request->input('sbp_comment'),
+                'sber' => $request->input('sber'),
+                'tbank' => $request->input('tbank'),
+                'ozon' => $request->input('ozon'),
+                'alfa' => $request->input('alfa'),
+                'vtb' => $request->input('vtb'),
+                'raiffeisen' => $request->input('raiffeisen'),
+                'gazprombank' => $request->input('gazprombank'),
+                'active' => $request->input('active'),
+            ]
+        );
+        return response()->json([
+            'status'  => 'true',
+            'message' => 'Способ оплаты успешно обновлен!',
+        ]);
     }
 }

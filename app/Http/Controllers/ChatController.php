@@ -138,6 +138,7 @@ class ChatController extends Controller
         try {
             $data = [];
 
+            $text = 'Файл успешно отправлен, ожидайте подтверждения от продавца';
             switch ($request->file_type) {
                 case 'send_photo':
                     if($buyback->is_order_photo_sent){
@@ -187,6 +188,14 @@ class ChatController extends Controller
             (new SocketService)->send($imgMsg, $buyback, false);
 
             $buyback->update($data);
+
+            $afterMsg = Message::create([
+                'sender_id'   => $buyback->ad?->user?->id,
+                'buyback_id'  => $buyback_id,
+                'text'        => $text,
+                'type'        => 'text'
+            ]);
+            (new SocketService)->send($afterMsg, $buyback, false);
 
             DB::commit();
 
