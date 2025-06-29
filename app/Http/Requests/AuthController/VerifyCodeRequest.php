@@ -3,6 +3,7 @@
 namespace App\Http\Requests\AuthController;
 
 use App\Models\Role;
+use App\Models\User;
 use App\Rules\PhoneNumber;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -25,7 +26,7 @@ class VerifyCodeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone'   => ['required', 'max:255', 'unique:users,phone', 'exists:phone_verifications,phone_number', new PhoneNumber],
+            'phone'   => ['required', 'max:255', 'exists:phone_verifications,phone_number', new PhoneNumber],
             'code'    => ['required', 'string'],
             'role_id' => [
                 'required',
@@ -34,6 +35,10 @@ class VerifyCodeRequest extends FormRequest
                     $role = Role::find($value);
                     if (! $role || $role->slug == 'admin') {
                         $fail('Указана неверная роль');
+                    }
+
+                    if(User::where('phone', $this->phone)->where('role_id', $value)->exists()) {
+                        $fail('Пользователь с таким телефоном уже существует');
                     }
                 },
             ],

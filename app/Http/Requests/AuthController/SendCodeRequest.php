@@ -23,7 +23,7 @@ class SendCodeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'max:255', 'unique:users,phone', new PhoneNumber],
+            'phone' => ['required', 'max:255', new PhoneNumber],
         ];
     }
 
@@ -31,8 +31,7 @@ class SendCodeRequest extends FormRequest
     {
         return [
             'phone.required' => 'Укажите номер телефона',
-            'phone.max'      => 'Поле номер телефона не должно превышать 255 символов',
-            'phone.unique'   => 'Пользователь с таким телефоном уже существует',
+            'phone.max'      => 'Поле номер телефона не должно превышать 255 символов'
         ];
     }
 }
