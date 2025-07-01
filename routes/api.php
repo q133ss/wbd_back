@@ -71,7 +71,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/balance', [\App\Http\Controllers\ProfileController::class, 'balance']);
     Route::post('/balance', [\App\Http\Controllers\ProfileController::class, 'topup']);
     Route::get('/balance/only', [\App\Http\Controllers\ProfileController::class, 'onlyBalance']);
-    Route::post('/balance/buybacks', [\App\Http\Controllers\ProfileController::class, 'topupBuybacks']);
+    Route::post('/balance/buybacks/{tariff_id}', [\App\Http\Controllers\ProfileController::class, 'topupBuybacks']);
     Route::post('/withdraw', [\App\Http\Controllers\ProfileController::class, 'withdraw']);
     Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);
     Route::post('/withdraw/{id}', [\App\Http\Controllers\ProfileController::class, 'withdrawCancel']);
@@ -122,6 +122,22 @@ Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramController::clas
 // Реферальная ссылка
 Route::post('/referral/{id}', [\App\Http\Controllers\ReferralController::class, 'store']);
 
+// Вебхуки CloudPayments
+//Pay
+//http://wbd-back.ru/api/payment/handle/pay
+//Fail
+//http://wbd-back.ru/api/payment/handle/fail
+//Cancel
+//http://wbd-back.ru/api/payment/handle/cancel
+Route::post('/payment/handle/pay', [\App\Http\Controllers\PaymentController::class, 'handlePay']);
+Route::post('/payment/handle/fail', [\App\Http\Controllers\PaymentController::class, 'handleFail']);
+Route::post('/payment/handle/cancel', [\App\Http\Controllers\PaymentController::class, 'handleCancel']);
+
 # TODO это для тестов, нужно убрать и перенести в крон!
 Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
+
+Route::get('qq', function (){
+    $u = auth('sanctum')->user()->paymentMethod;
+    dd($u);
+});

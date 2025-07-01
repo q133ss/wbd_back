@@ -30,50 +30,12 @@ class AdsService extends BaseService
 
             if ($data['redemption_count'] > $user->redemption_count) {
                 // если выкупов не хватает!
-                $buybacks_count = $data['redemption_count'] - $user->redemption_count;
-                $userData            = [];
-                $price = $buybacks_count * config('price.buyback_price');
-                $userData['balance'] = $user->balance - $price;
-
-                if($userData['balance'] < 0){
-                    $this->sendError('У вас недостаточно выкупов', 400);
-                }
-
-                $depositTransaction = Transaction::create([
-                    'amount'           => $price,
-                    'transaction_type' => 'deposit',
-                    'currency_type'    => 'buyback',
-                    'description'      => 'Начисление выкупов (оплата балансом): '.$buybacks_count.' выкупов',
-                    'user_id'          => $user->id,
-                ]);
-                $user->update($userData);
-                $redemption = $redemption + $buybacks_count;
+                $this->sendError('У вас недостаточно выкупов', 400);
             }
 
-            // Заморозка баланса
-            // цену для юзера умножаем ее на кол-во выкупов
-            //$priceForUser = $data['price_with_cashback'] * $data['redemption_count'];
-            $priceForUser = $cashbackAmount * $data['redemption_count'];
-
-            $newBalance   = $user->balance - $priceForUser;
-            if ($newBalance < 0) {
-                $this->sendError('У вас недостаточно средств', 400);
-            }
-            $user->update(['balance' => $newBalance, 'redemption_count' => $redemption]);
+            $user->update(['redemption_count' => $redemption]);
 
             $ad = Ad::create($data);
-
-            FrozenBalance::create([
-                'user_id' => $user->id,
-                'ad_id'   => $ad->id,
-                'amount'  => $priceForUser,
-                'reason'  => 'Создание объявления #'.$ad->id,
-            ]);
-
-            if (isset($depositTransaction)) {
-                $depositTransaction->update(['ads_id' => $ad->id]);
-            }
-
 
             Transaction::create([
                 'amount'           => $data['redemption_count'],

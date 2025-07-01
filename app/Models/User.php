@@ -250,4 +250,9 @@ class User extends Authenticatable
         return $this->last_seen_at &&
             $this->last_seen_at > now()->subMinutes(3);
     }
+
+    public function paymentMethod()
+    {
+        return $this->hasOne(PaymentMethod::class, 'user_id', 'id');
+    }
 }

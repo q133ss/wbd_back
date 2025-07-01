@@ -412,8 +412,6 @@ class ChatController extends Controller
         try {
             $buyback->update(['status' => 'completed']);
 
-            (new BalanceService())->buybackPayment($buyback);
-
             $message = Message::create([
                 'buyback_id'  => $id,
                 'sender_id'   => auth('sanctum')->id(),

@@ -45,5 +45,11 @@ return [
     'telegram' => [
         'token' => env('TELEGRAM_BOT_TOKEN'),
         'username' => env('TELEGRAM_BOT_USERNAME')
+    ],
+
+    'cloudpayments' => [
+        'base_uri'    => env('CLOUDPAYMENTS_BASE_URI', 'https://api.cloudpayments.ru'),
+        'public_key'  => env('CLOUDPAYMENTS_PUBLIC_KEY'),
+        'secret_key'  => env('CLOUDPAYMENTS_SECRET_KEY'),
     ]
 ];

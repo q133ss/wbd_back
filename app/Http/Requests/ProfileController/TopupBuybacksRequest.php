@@ -34,7 +34,7 @@ class TopupBuybacksRequest extends FormRequest
                     $balance = auth('sanctum')->user()->balance;
                     $sum = Tariff::where('buybacks_count', $value)->pluck('price')->first();
                     if($balance - $sum < 0){
-                        $fail('У вас недостаточно денег');
+                        //$fail('У вас недостаточно денег');
                     }
                 }
             ]

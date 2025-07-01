@@ -16,6 +16,11 @@ class OrderService extends BaseService
 {
     public function createOrder(string $ad_id)
     {
+        $payMethod = auth('sanctum')->user()->paymentMethod;
+        if($payMethod == null){
+            abort(403, 'У вас не указаны платежные данные. Укажите данные в настройках профиля.');
+        }
+
         DB::beginTransaction();
         $ad = Ad::findOrFail($ad_id);
         if ($ad->user_id == auth('sanctum')->id()) {

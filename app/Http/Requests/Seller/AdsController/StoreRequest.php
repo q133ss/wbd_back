@@ -51,24 +51,8 @@ class StoreRequest extends FormRequest
                 'integer',
                 'min:1',
                 function (string $attribute, mixed $value, Closure $fail) use ($user): void {
-                    $priceBuybacks = 0;
                     if ($value > $user->redemption_count) {
-                        // Если выкупов не хватает на балансе
-                        $buybacksCount = $value - $user->redemption_count;
-                        $priceBuybacks = $buybacksCount * config('price.buyback_price');
-                    }
-
-                    $productPrice       = Product::find($this->product_id)->pluck('price')->first();
-                    $cashbackPercentage = $this->cashback_percentage;
-                    $cashbackAmount = ($productPrice * $cashbackPercentage) / 100;
-                    $price_with_cashback = $productPrice - $cashbackAmount;
-
-                    $priceForUser = $price_with_cashback * $value;
-                    $totalPrice = $priceBuybacks + $priceForUser;
-                    $newBalance   = $user->balance - $totalPrice;
-
-                    if($newBalance < 0){
-                        //$fail('На балансе недостаточно средств');
+                        $fail('У вас недостаточно выкупов для создания объявления');
                     }
                 },
             ],

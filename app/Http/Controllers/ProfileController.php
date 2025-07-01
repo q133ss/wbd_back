@@ -10,6 +10,7 @@ use App\Http\Requests\ProfileController\UpdatePaymentRequest;
 use App\Http\Requests\ProfileController\UpdatePhoneRequest;
 use App\Http\Requests\ProfileController\UpdateRequest;
 use App\Http\Requests\ProfileController\WithdrawRequest;
+use App\Jobs\CheckPayJob;
 use App\Models\Buyback;
 use App\Models\Cashout;
 use App\Models\PaymentMethod;
@@ -18,6 +19,7 @@ use App\Models\ReferralStat;
 use App\Models\Review;
 use App\Models\Tariff;
 use App\Models\Transaction;
+use App\Services\PaymentService;
 use App\Services\SmsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -26,6 +28,11 @@ use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
+    public function __construct(PaymentService $pay)
+    {
+        $this->pay = $pay;
+    }
+
     public function index()
     {
         return auth('sanctum')->user();
@@ -259,29 +266,63 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function topupBuybacks(TopupBuybacksRequest $request): \Illuminate\Http\JsonResponse
+    public function topupBuybacks(string $tariff_id): \Illuminate\Http\JsonResponse
     {
-        try{
-            DB::beginTransaction();
-            $user = auth('sanctum')->user();
-            $amount = $request->amount;
-            $sum = Tariff::where('buybacks_count', $amount)->pluck('price')->first();
-            $user->update([
-                'balance' => $user->balance -= $sum,
-                'redemption_count' => $user->redemption_count += $amount
-            ]);
-            DB::commit();
+        $tariff = Tariff::findOrFail($tariff_id);
+
+        $transaction = Transaction::create([
+            'user_id' => auth('sanctum')->id(),
+            'amount'  => $tariff->price,
+            'transaction_type' => 'deposit',
+            'currency_type' => 'buyback',
+            'description' => 'Пополнение баланса на '.$tariff->buybacks_count.' выкупов'
+        ]);
+
+        $invoice = $this->pay->createInvoice(
+            $tariff->price, // Сумма в копейках (1000 = 10.00 RUB)
+            'RUB',
+            'Оплата выкупов. Кол-во: '.$tariff->buybacks_count,
+            [
+                'Email' => auth('sanctum')->user()->email,
+                'InvoiceId' => $transaction->id, // Уникальный идентификатор транзакции
+            ]
+        );
+
+        if(isset($invoice['Id'])){
             return response()->json([
-                'message' => 'Баланс успешно пополнен!',
-                'balance' => $user->balance,
-                'redemption_count' => $user->redemption_count
+                'message' => 'Ссылка для оплаты успешно создана',
+                'invoice' => $invoice,
             ]);
-        }catch (\Exception $e){
-            DB::rollBack();
+        }else{
             return response()->json([
-                'message' => 'Произошла ошибка, попробуйте еще раз'
+                'message' => 'Произошла ошибка при создании ссылки для оплаты',
             ], 500);
         }
+
+
+
+        // TODO это вынести в проверку оплаты!
+//        try{
+//            DB::beginTransaction();
+//            $user = auth('sanctum')->user();
+//            $amount = $request->amount;
+//            $sum = Tariff::where('buybacks_count', $amount)->pluck('price')->first();
+//            $user->update([
+//                'balance' => $user->balance -= $sum,
+//                'redemption_count' => $user->redemption_count += $amount
+//            ]);
+//            DB::commit();
+//            return response()->json([
+//                'message' => 'Баланс успешно пополнен!',
+//                'balance' => $user->balance,
+//                'redemption_count' => $user->redemption_count
+//            ]);
+//        }catch (\Exception $e){
+//            DB::rollBack();
+//            return response()->json([
+//                'message' => 'Произошла ошибка, попробуйте еще раз'
+//            ], 500);
+//        }
     }
 
     public function phoneCode(PhoneCodeRequest $request)
