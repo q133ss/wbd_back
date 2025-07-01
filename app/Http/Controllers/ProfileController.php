@@ -298,31 +298,6 @@ class ProfileController extends Controller
                 'message' => 'Произошла ошибка при создании ссылки для оплаты',
             ], 500);
         }
-
-
-
-        // TODO это вынести в проверку оплаты!
-//        try{
-//            DB::beginTransaction();
-//            $user = auth('sanctum')->user();
-//            $amount = $request->amount;
-//            $sum = Tariff::where('buybacks_count', $amount)->pluck('price')->first();
-//            $user->update([
-//                'balance' => $user->balance -= $sum,
-//                'redemption_count' => $user->redemption_count += $amount
-//            ]);
-//            DB::commit();
-//            return response()->json([
-//                'message' => 'Баланс успешно пополнен!',
-//                'balance' => $user->balance,
-//                'redemption_count' => $user->redemption_count
-//            ]);
-//        }catch (\Exception $e){
-//            DB::rollBack();
-//            return response()->json([
-//                'message' => 'Произошла ошибка, попробуйте еще раз'
-//            ], 500);
-//        }
     }
 
     public function phoneCode(PhoneCodeRequest $request)

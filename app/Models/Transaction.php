@@ -10,6 +10,11 @@ class Transaction extends Model
 {
     protected $guarded = [];
 
+    public function user()
+    {
+        return $this->hasOne(User::class);
+    }
+
     public function scopeWithFilter($query, Request $request)
     {
         return $query

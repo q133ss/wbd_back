@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Tariff;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -11,7 +13,7 @@ class PaymentController extends Controller
     //[2025-07-01 14:52:18] local.INFO: PaymentController handleFail {"TransactionId":"2922685408","Amount":"1900.00","Currency":"RUB","PaymentAmount":"1900.00","PaymentCurrency":"RUB","OperationType":"Payment","InvoiceId":"2","AccountId":"alexey@email.net","SubscriptionId":null,"Name":null,"Email":"alexey@email.net","DateTime":"2025-07-01 14:52:14","IpAddress":"45.130.213.28","IpCountry":null,"IpCity":null,"IpRegion":null,"IpDistrict":null,"IpLatitude":null,"IpLongitude":null,"CardId":"6863f61e4f0dd01eb92232a1","CardFirstSix":"220412","CardLastFour":"1661","CardType":"MIR","CardExpDate":"12/22","Issuer":"\"YooMoney\", NBCO LLC","IssuerBankCountry":"RU","Description":"Оплата выкупов. Кол-во: 20","TestMode":"1","Status":"Declined","StatusCode":"5","Reason":"AuthenticationFailed","ReasonCode":"5206","PaymentMethod":null,"InstallmentTerm":null,"InstallmentMonthlyPayment":null,"CustomFields":null}
     //[2025-07-01 14:52:35] local.INFO: PaymentController handleFail {"TransactionId":"2922685835","Amount":"1900.00","Currency":"RUB","PaymentAmount":"1900.00","PaymentCurrency":"RUB","OperationType":"Payment","InvoiceId":"2","AccountId":"alexey@email.net","SubscriptionId":null,"Name":null,"Email":"alexey@email.net","DateTime":"2025-07-01 14:52:32","IpAddress":"45.130.213.28","IpCountry":null,"IpCity":null,"IpRegion":null,"IpDistrict":null,"IpLatitude":null,"IpLongitude":null,"CardId":"6863f6304f0dd01eb92232a4","CardFirstSix":"220412","CardLastFour":"1661","CardType":"MIR","CardExpDate":"12/32","Issuer":"\"YooMoney\", NBCO LLC","IssuerBankCountry":"RU","Description":"Оплата выкупов. Кол-во: 20","TestMode":"1","Status":"Declined","StatusCode":"5","Reason":"AuthenticationFailed","ReasonCode":"5206","PaymentMethod":null,"InstallmentTerm":null,"InstallmentMonthlyPayment":null,"CustomFields":null}
 
-    private function formatData(array $data, string $type): void
+    private function updateTransaction(array $data, string $type)
     {
         $transactionId = $data['TransactionId'] ?? null;
         $amount = $data['Amount'] ?? null;
@@ -21,7 +23,7 @@ class PaymentController extends Controller
 
         $invoiceId = $data['InvoiceId'] ?? null;
 
-        Transaction::findOrCreate(
+        return Transaction::findOrCreate(
             ['transaction_id' => $transactionId],
             [
                 'amount' => $amount,
@@ -36,21 +38,37 @@ class PaymentController extends Controller
     public function handlePay(Request $request)
     {
         $data = $request->all();
-        $this->formatData($data, 'completed');
-        return true;
+        $transaction = $this->updateTransaction($data, 'completed');
+
+        try{
+            DB::beginTransaction();
+
+            $user = $transaction->user;
+            $amount = $transaction->amount;
+
+            $buybacksCount = Tariff::where('price', $amount)->pluck('buybacks_count')->first();
+
+            $user->update([
+                'redemption_count' => $user->redemption_count += $buybacksCount
+            ]);
+            DB::commit();
+        }catch (\Exception $e){
+            DB::rollBack();
+            \Log::error('PaymentController handlePay error: ' . $e->getMessage());
+        }
     }
 
     public function handleFail(Request $request)
     {
         $data = $request->all();
-        $this->formatData($data, 'failed');
+        $this->updateTransaction($data, 'failed');
         return true;
     }
 
     public function handleCancel(Request $request)
     {
         $data = $request->all();
-        $this->formatData($data, 'failed');
+        $this->updateTransaction($data, 'failed');
         return true;
     }
 

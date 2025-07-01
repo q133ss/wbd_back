@@ -21,9 +21,9 @@ return new class extends Migration
             $table->foreignId('ads_id')->nullable()->constrained('ads')->onDelete('cascade');
             $table->enum('status', ['pending', 'completed', 'failed'])->default('pending');
 
-            $table->string('transaction_id')->unique(); // ID транзакции на стороне платежной системы
-            $table->timestamp('date_time'); // 2025-07-01 14:51:38
-            $table->ipAddress('ip_address'); // 45.130.213.28
+            $table->string('transaction_id')->unique()->nullable(); // ID транзакции на стороне платежной системы
+            $table->timestamp('date_time')->nullable(); // 2025-07-01 14:51:38
+            $table->ipAddress('ip_address')->nullable(); // 45.130.213.28
             $table->timestamps();
         });
     }
