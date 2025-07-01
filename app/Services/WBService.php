@@ -334,6 +334,11 @@ class WBService extends BaseService
     {
         $product['wb_id'] = $product['id'];
 
+        if(!isset($product['salePriceU'])){
+            // Товара нет в наличии
+            return [];
+        }
+
         return [
             'wb_id'              => $product['id'],
             'name'               => $product['name'],
@@ -418,6 +423,13 @@ class WBService extends BaseService
             ];
 
             $product = $this->formatProductData($product);
+
+            if(empty($product)){
+                return [
+                    'message' => 'Товара нет в наличии',
+                    'status'  => 'false'
+                ];
+            }
 
             return [
                 'product' => $product,

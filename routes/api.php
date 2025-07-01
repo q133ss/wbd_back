@@ -123,12 +123,6 @@ Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramController::clas
 Route::post('/referral/{id}', [\App\Http\Controllers\ReferralController::class, 'store']);
 
 // Вебхуки CloudPayments
-//Pay
-//http://wbd-back.ru/api/payment/handle/pay
-//Fail
-//http://wbd-back.ru/api/payment/handle/fail
-//Cancel
-//http://wbd-back.ru/api/payment/handle/cancel
 Route::post('/payment/handle/pay', [\App\Http\Controllers\PaymentController::class, 'handlePay']);
 Route::post('/payment/handle/fail', [\App\Http\Controllers\PaymentController::class, 'handleFail']);
 Route::post('/payment/handle/cancel', [\App\Http\Controllers\PaymentController::class, 'handleCancel']);
