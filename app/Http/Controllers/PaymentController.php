@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tariff;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -23,7 +24,8 @@ class PaymentController extends Controller
 
         $invoiceId = $data['InvoiceId'] ?? null;
 
-        return Transaction::find($invoiceId)->update(
+        $transaction = Transaction::find($invoiceId);
+        $updated = $transaction->update(
             [
                 'transaction_id' => $transactionId,
                 'amount' => $amount,
@@ -32,16 +34,29 @@ class PaymentController extends Controller
                 'description' => $descr,
                 'status' => $type
             ]);
+
+        return $transaction;
     }
+
+    private function test()
+    {
+        $transaction = Transaction::find(1);
+        $updated = $transaction->update(['transaction_id' => 111]);
+        return $transaction;
+    }
+
     public function handlePay(Request $request)
     {
         $data = $request->all();
-        $transaction = $this->updateTransaction($data, 'completed');
+
+        # TODO
+        //$transaction = $this->updateTransaction($data, 'completed');
+        $transaction = $this->test();
 
         try{
             DB::beginTransaction();
 
-            $user = $transaction->user;
+            $user = User::findOrFail($transaction->user_id);
             $amount = $transaction->amount;
 
             $buybacksCount = Tariff::where('price', $amount)->pluck('buybacks_count')->first();

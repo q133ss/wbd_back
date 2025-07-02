@@ -285,6 +285,8 @@ class ProfileController extends Controller
             [
                 'Email' => auth('sanctum')->user()->email,
                 'InvoiceId' => $transaction->id, // Уникальный идентификатор транзакции
+                'successRedirectUrl' => 'https://wbdiscount.pro/payment/success',
+                'failRedirectUrl' => 'https://wbdiscount.pro/payment/fail'
             ]
         );
 
