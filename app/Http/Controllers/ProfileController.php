@@ -363,6 +363,10 @@ class ProfileController extends Controller
         return response()->json($data);
     }
 
+    public function getPayment()
+    {
+        return auth('sanctum')->user()->paymentMethod;
+    }
     public function updatePayment(UpdatePaymentRequest $request)
     {
         PaymentMethod::updateOrCreate(

@@ -82,7 +82,7 @@ class WBService extends BaseService
         }
 
         $pathData = $this->generatePathData($wbId);
-        $cacheKey = "wb_reviews_{$wbId}";
+        $cacheKey = "1wb_reviews_{$wbId}";
 
         if (Cache::has($cacheKey)) {
             $reviewsData = Cache::get($cacheKey);
@@ -99,6 +99,8 @@ class WBService extends BaseService
                 if (!$imtId) throw new \Exception("imt_id not found");
 
                 $reviewsUrl = "https://feedbacks2.wb.ru/feedbacks/v2/{$imtId}";
+                $reviewsUrlFallback = "https://feedbacks1.wb.ru/feedbacks/v2/{$imtId}";
+
                 $reviewsResponse = Http::get($reviewsUrl);
 
                 if (!$reviewsResponse->successful()) {
@@ -106,7 +108,20 @@ class WBService extends BaseService
                 }
 
                 $reviewsData = $reviewsResponse->json();
-                Cache::put($cacheKey, $reviewsData, now()->addDay());
+
+                if(empty($reviewsData['feedbacks'])) {
+                    $reviewsResponseFallback = Http::get($reviewsUrlFallback);
+                    if (!$reviewsResponseFallback->successful()) {
+                        throw new \Exception("Failed to fetch reviews");
+                    }
+
+                    $reviewsFallbackData = $reviewsResponseFallback->json();
+                    Cache::put($cacheKey, $reviewsFallbackData, now()->addDay());
+
+                    return $this->formatReviewsResponse($reviewsFallbackData, $page, $perPage);
+                }else{
+                    Cache::put($cacheKey, $reviewsData, now()->addDay());
+                }
 
             } catch (\Exception $e) {
                 \Log::error("WB Reviews Error: " . $e->getMessage());

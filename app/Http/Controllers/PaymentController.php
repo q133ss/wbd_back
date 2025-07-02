@@ -23,17 +23,15 @@ class PaymentController extends Controller
 
         $invoiceId = $data['InvoiceId'] ?? null;
 
-        return Transaction::findOrCreate(
-            ['transaction_id' => $transactionId],
+        return Transaction::find($invoiceId)->update(
             [
+                'transaction_id' => $transactionId,
                 'amount' => $amount,
                 'date_time' => $dateTime,
                 'ip_address' => $ip,
                 'description' => $descr,
-                'invoice_id' => $invoiceId,
-                'status' => $type,
-            ]
-        );
+                'status' => $type
+            ]);
     }
     public function handlePay(Request $request)
     {

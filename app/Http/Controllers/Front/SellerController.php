@@ -33,7 +33,8 @@ class SellerController extends Controller
             ->where('products.shop_id', function ($query) use ($user) {
                 return $query->select('id')
                     ->from('shops')
-                    ->where('shops.user_id', $user->id);
+                    ->where('shops.user_id', $user->id)
+                    ->limit(1);
             })
             ->where('reviews.reviewable_type', 'App\Models\Product');
 

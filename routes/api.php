@@ -78,6 +78,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/profile/statistic', [\App\Http\Controllers\ProfileController::class, 'statistic']);
     Route::get('/referral', [\App\Http\Controllers\ReferralController::class, 'index']);
     Route::post('payment-methods', [\App\Http\Controllers\ProfileController::class, 'updatePayment']);
+    Route::get('payment-methods', [\App\Http\Controllers\ProfileController::class, 'getPayment']);
 
     // Корзина и избранное
     Route::post('/add-to-{type}', [\App\Http\Controllers\CartFavoriteController::class, 'add']);
