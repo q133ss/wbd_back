@@ -131,8 +131,3 @@ Route::post('/payment/handle/cancel', [\App\Http\Controllers\PaymentController::
 # TODO это для тестов, нужно убрать и перенести в крон!
 Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
-
-Route::get('qq', function (){
-    $u = auth('sanctum')->user()->paymentMethod;
-    dd($u);
-});

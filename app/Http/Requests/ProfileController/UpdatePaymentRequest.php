@@ -40,7 +40,22 @@ class UpdatePaymentRequest extends FormRequest
             'active' => [
                 'nullable',
                 'string',
-                'in:sbp,sber,tbank,ozon,alfa,vtb,raiffeisen,gazprombank'
+                'in:sbp,sber,tbank,ozon,alfa,vtb,raiffeisen,gazprombank',
+                function ($attribute, $value, $fail) {
+                    $banks = [
+                        'sbp' => 'Система быстрых платежей',
+                        'sber' => 'Сбербанк',
+                        'tbank' => 'Т-банк',
+                        'ozon' => 'Ozon',
+                        'alfa' => 'Альфа',
+                        'vtb' => 'ВТБ',
+                        'raiffeisen' => 'Райфайзен',
+                        'gazprombank' => 'Газпром',
+                    ];
+                    if (empty($this->$value)) {
+                        $fail("Для выбранного банка '{$banks[$value]}' не указан номер карты.");
+                    }
+                }
             ],
         ];
     }

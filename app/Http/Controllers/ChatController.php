@@ -240,6 +240,20 @@ class ChatController extends Controller
         return true;
     }
 
+    protected function getBankName(string $bankCode): string
+    {
+        return match($bankCode) {
+            'sber' => 'Сбербанк',
+            'tbank' => 'Тинькофф',
+            'ozon' => 'Ozon Card',
+            'alfa' => 'Альфа-Банк',
+            'vtb' => 'ВТБ',
+            'raiffeisen' => 'Райффайзенбанк',
+            'gazprombank' => 'Газпромбанк',
+            default => $bankCode,
+        };
+    }
+
     public function fileApprove(string $buyback_id,string $file_id)
     {
         $buyback = Buyback::findOrFail($buyback_id);
@@ -295,10 +309,32 @@ class ChatController extends Controller
                         'system_type' => $system_type,
                     ]);
 
+                    $cashback = $buyback->price - $buyback->ad?->price_with_cashback;
+                    $methods = $buyback->user?->paymentMethod;
+                    $active = $methods->active;
+                    $card = (string)$methods->$active;
+
+                    $paymentMethodText = match($active) {
+                        'sbp' => "по номеру {$card} ({$methods->sbp_comment})",
+                        default => "на карту {$card} (" . $this->getBankName($active) . ")", // Добавляем человекочитаемое название банка
+                    };
+
+                    $cashbackAmount = number_format($cashback, 0, '.', ' ') . ' ₽'; // Форматируем сумму с пробелом между тысячами
+                    $paymentText = "Переведите кэшбек в размере {$cashbackAmount} {$paymentMethodText}";
+
+                    $paymentMessage = Message::create([
+                        'buyback_id'  => $file->fileable?->buyback_id,
+                        'sender_id'   => $buyback->user_id,
+                        'text'        => $paymentText,
+                        'type'        => 'text'
+                    ]);
+
                     (new SocketService)->send($message, $buyback);
+                    (new SocketService)->send($paymentMessage, $buyback);
                     (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил ваш отзыв', true);
 
-                    (new BalanceService())->buybackPayment($buyback);
+                    // Это не надо уже!
+                    //(new BalanceService())->buybackPayment($buyback);
 
                     DB::commit();
 
