@@ -158,12 +158,8 @@ class User extends Authenticatable
     {
         $userId = $this->id;
 
-        $foundCount = Ad::select('ads.id')
-            ->leftJoin('products', 'ads.product_id', '=', 'products.id')
-            ->leftJoin('shops', 'products.shop_id', '=', 'shops.id')
-            ->leftJoin('users', 'shops.user_id', '=', 'users.id')
-            ->where('users.id', $userId)
-            ->whereIn('ads.id', $adsIds)
+        $foundCount = Ad::whereIn('id', $adsIds)
+            ->where('user_id', $userId)
             ->count();
 
         return $foundCount === count($adsIds);

@@ -81,9 +81,39 @@ class ProductController extends Controller
             $currentStatus = Product::whereIn('id', $productIds)->value('status');
             $newStatus = is_null($currentStatus) ? false : !$currentStatus;
 
+            $missingAds = DB::table('products')
+                ->whereIn('id', $productIds)
+                ->whereNotExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('ads')
+                        ->whereRaw('ads.product_id = products.id');
+                })
+                ->pluck('id');
+
+            if(!$missingAds->isEmpty()){
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Нельзя изменить статус товарам, которые не имеют объявлений',
+                ], 400);
+            }
+
             if ($newStatus) {
                 // Активация (только товары)
                 Product::whereIn('id', $productIds)->update(['status' => true]);
+
+                $allInactive = DB::table('ads')
+                    ->join('products', 'ads.product_id', '=', 'products.id')
+                    ->whereIn('products.id', $productIds)
+                    ->where('ads.status', true) // Ищем активные объявления
+                    ->doesntExist(); // Вернет true, если НЕТ активных объявлений
+
+                if ($allInactive) {
+                    return response()->json([
+                       'message' => 'Нельзя активировать товары, у которых нет активных объявлений',
+                       'status'  => false
+                    ], 400);
+                }
+
                 $message = 'Товары активированы';
             } else {
                 // Деактивация (товары + объявления) — 2 запроса, но в одной транзакции
