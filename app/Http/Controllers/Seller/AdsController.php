@@ -10,6 +10,7 @@ use App\Models\Ad;
 use App\Models\Buyback;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Services\NotificationService;
 use App\Services\Seller\AdsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -184,7 +185,7 @@ class AdsController extends Controller
             DB::beginTransaction();
 
             $buybacks = Buyback::whereIn('ads_id', $request->ad_ids)
-                ->whereNotIn('status', ['cancelled', 'completed'])
+                ->whereNotIn('status', ['cancelled', 'completed', 'cashback_received'])
                 ->exists();
 
             if ($buybacks) {
@@ -201,13 +202,15 @@ class AdsController extends Controller
 
             $ads = Ad::whereIn('id', $request->ad_ids);
 
-            $product_ids = $ads->pluck('product_id')->all();
+//            $hasActive = $ads->where('status', true)->exists();
+            $hasActive = (clone $ads)->where('status', true)->exists();
+            if ($hasActive) {
+                return response()->json([
+                    'status'  => 'false',
+                    'message' => 'Невозможно архивировать активные объявления',
+                ], 403);
+            }
 
-            // Думаю, что не нужно архивировать товар
-//            $products = Product::whereIn('id', $product_ids);
-//            $products->update(['is_archived' => true]);
-
-            $totalBalance         += $ads->sum('balance');
             $totalRedemptionCount += $ads->sum('redemption_count');
 
             $user->update(
@@ -217,16 +220,6 @@ class AdsController extends Controller
                 ]
             );
 
-            if ($totalBalance != 0) {
-                Transaction::create([
-                    'amount'           => $totalBalance,
-                    'transaction_type' => 'deposit',
-                    'currency_type'    => 'cash',
-                    'description'      => 'Возврат средств при архивации: '.$totalBalance.' ₽',
-                    'user_id'          => $user->id,
-                ]);
-            }
-
             if ($totalRedemptionCount != 0) {
                 Transaction::create([
                     'amount'           => $totalRedemptionCount,
@@ -235,6 +228,8 @@ class AdsController extends Controller
                     'description'      => 'Возврат выкупов при архивации: '.$totalRedemptionCount.' выкупов',
                     'user_id'          => $user->id,
                 ]);
+
+                (new NotificationService)->send($user->id, null, 'При архивации объявлений к вам на баланс вернулось '.$totalRedemptionCount.' выкупов', false);
             }
 
             $ads->update([

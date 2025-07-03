@@ -41,8 +41,10 @@ class AuthController extends Controller
         $data['is_configured'] = true;
         $updated               = $user->update($data);
 
-        $template = new Template();
-        $template->createDefault($user->id);
+        if($user->role?->slug === 'seller') {
+            $template = new Template();
+            $template->createDefault($user->id);
+        }
 
         return Response()->json([
             'message' => 'true',

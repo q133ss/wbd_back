@@ -8,7 +8,7 @@ use Pusher\Pusher;
 
 class NotificationService
 {
-    public function send(string $user_id, string $buyback_id, string $text, $sendTelegram = false)
+    public function send(string $user_id, string|null $buyback_id, string $text, $sendTelegram = false)
     {
         $notification = Notification::create([
             'user_id'    => $user_id,

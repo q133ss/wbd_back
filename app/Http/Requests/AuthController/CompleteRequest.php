@@ -22,8 +22,24 @@ class CompleteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'     => 'required|string|max:255',
-            'email'    => 'nullable|string|max:255|email|unique:users,email',
+            'name'     => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $isSeller = auth('sanctum')->user()->role?->slug === 'seller';
+                    if ($isSeller && !$this->email) {
+                        $fail('Email обязателен для заполнения для продавцов.');
+                    }
+                }
+            ],
+            'email'    => [
+                'nullable',
+                'string',
+                'max:255',
+                'email',
+                'unique:users,email'
+            ],
             'password' => 'required|string|min:8|max:255|confirmed',
         ];
     }
