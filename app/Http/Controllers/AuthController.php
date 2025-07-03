@@ -60,7 +60,6 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $user  = User::where('phone', $request->phone)->where('role_id', $request->role_id)->first();
-
         $token = $user->createToken('web');
 
         return [

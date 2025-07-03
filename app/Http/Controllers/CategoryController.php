@@ -50,7 +50,7 @@ class CategoryController extends Controller
 
         return Cache::remember($cacheKey, 600, function () use ($id) {
             $parentCategory = Category::with([
-                'children.children.children', // загружаем детей вглубь
+                'children', // загружаем детей вглубь
                 'children.products',
                 'children.img',
                 'children' => function ($query) {

@@ -222,13 +222,13 @@ class ProfileController extends Controller
         } else {
             // Покупатель
             $successBuybacks = Buyback::selectRaw('
-                ROUND((
-                    SUM(CASE
-                        WHEN buybacks.status IN ("completed", "cashback_received") THEN 1
-                        ELSE 0
-                    END) /
-                    COUNT(buybacks.id)
-                * 100, 1) as percentage')
+    ROUND((
+        SUM(CASE
+            WHEN buybacks.status IN ("completed", "cashback_received") THEN 1
+            ELSE 0
+        END) /
+        COUNT(buybacks.id)
+    ) * 100, 1) as percentage')
                 ->where('buybacks.user_id', $user->id)
                 ->first();
 
