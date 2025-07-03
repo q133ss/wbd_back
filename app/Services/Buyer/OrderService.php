@@ -26,6 +26,16 @@ class OrderService extends BaseService
         if ($ad->user_id == auth('sanctum')->id()) {
             abort(403, 'Вы не можете купить товар у самого себя');
         }
+
+        $hasBuyback = Buyback::where('ads_id', $ad_id)
+            ->where('user_id', auth('sanctum')->id())
+            ->whereIn('status', ['pending'])
+            ->exists();
+
+        if($hasBuyback) {
+            abort(403, 'У вас уже есть активный выкуп по этому объявлению');
+        }
+
         try {
             $buyback = Buyback::create([
                 'ads_id'  => $ad_id,

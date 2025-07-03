@@ -186,37 +186,74 @@ class ProfileController extends Controller
         $user     = auth('sanctum')->user();
         $userData = [];
 
-        $completedBuybacks = $user->buybacks?->where('status', 'completed');
-        $cashbackPaid = $completedBuybacks->sum('price');
+        $completedBuybacks = $user->buybacks?->whereIn('status', ['cashback_received', 'completed']);
+        $cashbackPaid = $completedBuybacks->sum(function ($buyback) {
+            return $buyback->product_price - $buyback->price_with_cashback;
+        });
+
+        $userRating = Review::where('reviews.reviewable_type', 'App\Models\User')
+            ->where('reviews.reviewable_id', $user->id)
+            ->selectRaw('AVG(reviews.rating) as rating')
+            ->first();
 
         if ($user->isSeller()) {
             // Продавец
             $successBuybacks = Buyback::leftJoin('ads', 'ads.id', '=', 'buybacks.ads_id')
-                ->selectRaw('ROUND((SUM(CASE WHEN buybacks.status = "completed" THEN 1 ELSE 0 END) / COUNT(buybacks.id)) * 100, 1) as percentage')
+                ->selectRaw('ROUND((SUM(CASE WHEN buybacks.status IN ("cashback_received", "completed") THEN 1 ELSE 0 END) / COUNT(buybacks.id)) * 100, 1) as percentage')
                 ->where('ads.user_id', $user->id)
                 ->first();
 
-            $productRating = Review::join('products', 'products.id', '=', 'reviews.reviewable_id')
-                ->where('products.shop_id', function ($query) use ($user) {
-                    return $query->select('id')
-                        ->from('shops')
-                        ->where('shops.user_id', $user->id);
+            $averageResponseTime = DB::table('messages as m1')
+                ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, m1.created_at, m2.created_at)) as avg_response_time')
+                ->join('messages as m2', function($join) use ($user) {
+                    $join->on('m1.buyback_id', '=', 'm2.buyback_id')
+                        ->where('m2.sender_id', '=', $user->id)  // Ответ продавца
+                        ->where('m2.created_at', '>', DB::raw('m1.created_at'));
                 })
-                ->where('reviews.reviewable_type', 'App\Models\Product');
+                ->where('m1.sender_id', '!=', $user->id)
+                ->whereIn('m1.buyback_id', function($query) use ($user) {
+                    $query->select('buybacks.id')
+                        ->from('buybacks')
+                        ->join('ads', 'ads.id', '=', 'buybacks.ads_id')
+                        ->where('ads.user_id', $user->id);
+                })
+                ->first()
+                ->avg_response_time ?? 0;
         } else {
             // Покупатель
-            $successBuybacks = Buyback::selectRaw('ROUND((SUM(CASE WHEN buybacks.status = "completed" THEN 1 ELSE 0 END) / COUNT(buybacks.id)) * 100, 1) as percentage')
+            $successBuybacks = Buyback::selectRaw('
+                ROUND((
+                    SUM(CASE
+                        WHEN buybacks.status IN ("completed", "cashback_received") THEN 1
+                        ELSE 0
+                    END) /
+                    COUNT(buybacks.id)
+                * 100, 1) as percentage')
                 ->where('buybacks.user_id', $user->id)
                 ->first();
-            $productRating = Review::where('reviews.user_id', $user->id)
-                ->where('reviews.reviewable_type', 'App\Models\Product')
-                ->orWhere('reviews.reviewable_type', 'App\Models\Ad');
+
+            // Среднее время ответа покупателя (разница между сообщением продавца и ответом покупателя)
+            $averageResponseTime = DB::table('messages as m1')
+                ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, m1.created_at, m2.created_at)) as avg_response_time')
+                ->join('messages as m2', function($join) use ($user) {
+                    $join->on('m1.buyback_id', '=', 'm2.buyback_id')
+                        ->where('m2.sender_id', '=', $user->id)  // Ответ покупателя
+                        ->where('m2.created_at', '>', DB::raw('m1.created_at'));
+                })
+                ->where('m1.sender_id', '!=', $user->id)
+                ->whereIn('m1.buyback_id', function($query) use ($user) {
+                    $query->select('id')
+                        ->from('buybacks')
+                        ->where('user_id', $user->id);
+                })
+                ->first()
+                ->avg_response_time ?? 0;
         }
 
-        $userData['success_buybacks'] = round($successBuybacks->percentage, 1); // % успешных выкупов
-        $userData['cashback_paid']    = round($cashbackPaid, 1); // Кол-во выплаченного кешбека
-        $userData['total_reviews']    = round($productRating->count(), 1); // Кол-во оценок товаров
-        $userData['product_rating']   = round($productRating->avg('reviews.rating'), 1); // Рейтинг товаров
+        $userData['success_buybacks'] = round($successBuybacks->percentage); // % успешных выкупов
+        $userData['cashback_paid']    = round($cashbackPaid); // Кол-во выплаченного кешбека
+        $userData['user_rating']   = round($userRating->rating,1) ?? 0; // Рейтинг пользователя
+        $userData['average_response_time']   = round($averageResponseTime / 60, 1) ?? 0; // Среднее время ответа в минутах
 
         return $userData;
     }

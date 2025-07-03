@@ -133,44 +133,5 @@ Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class,
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
 
 Route::get('/qq', function (){
-    $user = auth('sanctum')->user();
-
-    $bankMap = [
-        'sber' => 'Сбербанк',
-        'tbank' => 'Тинькофф',
-        'ozon' => 'Ozon',
-        'alfa' => 'Альфа-Банк',
-        'vtb' => 'ВТБ',
-        'raiffeisen' => 'Райффайзен',
-        'gazprombank' => 'Газпромбанк',
-        'sbp' => 'СБП',
-    ];
-
-    $lines = [];
-
-    $cashback = 111;
-    $methods = $user?->paymentMethod;
-    foreach ($bankMap as $key => $name) {
-        $card = $methods->$key ?? null;
-
-        if (!$card) {
-            continue;
-        }
-
-        if ($key === 'sbp') {
-            $comment = $methods->sbp_comment ?? '';
-            $lines[] = "По СБП: $card" . ($comment ? " ({$comment})" : '');
-        } else {
-            // Форматируем номер карты по 4 цифры
-            $formattedCard = trim(chunk_split($card, 4, ' '));
-            $lines[] = "Карта {$name}: {$formattedCard}";
-        }
-    }
-
-    $paymentMethodText = implode("\n", $lines);
-
-    $cashbackAmount = number_format($cashback, 0, '.', ' ') . ' ₽'; // Форматируем сумму с пробелом между тысячами
-    $paymentText = "Переведите кэшбек в размере {$cashbackAmount}\n{$paymentMethodText}";
-
-    dd($paymentText);
+    //
 });
