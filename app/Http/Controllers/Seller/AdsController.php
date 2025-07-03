@@ -31,7 +31,7 @@ class AdsController extends Controller
         $ads->getCollection()->transform(function ($ad) {
             $ad->completed_buybacks_count = $ad->buybacks()->where('status', 'completed')->count();
             unset($ad->buybacks_count);
-            $inDeal              = Buyback::where('ads_id', $ad->id)->sum('price');
+            $inDeal              = Buyback::where('ads_id', $ad->id)->sum('product_price');
             $ad->in_deal         = $inDeal; // В сделках
             $cr                  = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1)); // Защита от деления на 0
             $ad->cr              = $cr;

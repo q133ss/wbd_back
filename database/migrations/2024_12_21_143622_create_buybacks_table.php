@@ -25,7 +25,9 @@ return new class extends Migration
                 'completed',       // Завершено
                 'archive',          // Архив
             ])->default('pending');
-            $table->double('price');
+            $table->double('product_price')->comment('Цена товара');
+            $table->double('price_with_cashback')->comment('Цена товара с кешбеком');
+            $table->double('cashback_percentage')->comment('Процент кешбека');
             $table->boolean('is_archived')->default(false);
             $table->boolean('has_review_by_seller')->default(false);
             $table->boolean('has_review_by_buyer')->default(false);

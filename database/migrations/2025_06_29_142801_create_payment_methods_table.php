@@ -25,16 +25,6 @@ return new class extends Migration
             $table->string('raiffeisen')->nullable();
             $table->string('gazprombank')->nullable();
 
-            $table->enum('active', [
-                'sbp',
-                'sber',
-                'tbank',
-                'ozon',
-                'alfa',
-                'vtb',
-                'raiffeisen',
-                'gazprombank'
-            ])->nullable(); // выбранный по умолчанию метод
             $table->timestamps();
         });
     }

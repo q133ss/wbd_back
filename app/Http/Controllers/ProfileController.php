@@ -382,8 +382,7 @@ class ProfileController extends Controller
                 'alfa' => $request->input('alfa'),
                 'vtb' => $request->input('vtb'),
                 'raiffeisen' => $request->input('raiffeisen'),
-                'gazprombank' => $request->input('gazprombank'),
-                'active' => $request->input('active'),
+                'gazprombank' => $request->input('gazprombank')
             ]
         );
         return response()->json([

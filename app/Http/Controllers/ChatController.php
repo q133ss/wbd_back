@@ -240,20 +240,6 @@ class ChatController extends Controller
         return true;
     }
 
-    protected function getBankName(string $bankCode): string
-    {
-        return match($bankCode) {
-            'sber' => 'Сбербанк',
-            'tbank' => 'Тинькофф',
-            'ozon' => 'Ozon Card',
-            'alfa' => 'Альфа-Банк',
-            'vtb' => 'ВТБ',
-            'raiffeisen' => 'Райффайзенбанк',
-            'gazprombank' => 'Газпромбанк',
-            default => $bankCode,
-        };
-    }
-
     public function fileApprove(string $buyback_id,string $file_id)
     {
         $buyback = Buyback::findOrFail($buyback_id);
@@ -309,18 +295,43 @@ class ChatController extends Controller
                         'system_type' => $system_type,
                     ]);
 
-                    $cashback = $buyback->price - $buyback->ad?->price_with_cashback;
-                    $methods = $buyback->user?->paymentMethod;
-                    $active = $methods->active;
-                    $card = (string)$methods->$active;
+                    $cashback = $buyback->product_price - $buyback->price_with_cashback;
 
-                    $paymentMethodText = match($active) {
-                        'sbp' => "по номеру {$card} ({$methods->sbp_comment})",
-                        default => "на карту {$card} (" . $this->getBankName($active) . ")", // Добавляем человекочитаемое название банка
-                    };
+                    $bankMap = [
+                        'sber' => 'Сбербанк',
+                        'tbank' => 'Тинькофф',
+                        'ozon' => 'Ozon',
+                        'alfa' => 'Альфа-Банк',
+                        'vtb' => 'ВТБ',
+                        'raiffeisen' => 'Райффайзен',
+                        'gazprombank' => 'Газпромбанк',
+                        'sbp' => 'СБП',
+                    ];
+
+                    $lines = [];
+
+                    $methods = $buyback->user?->paymentMethod;
+                    foreach ($bankMap as $key => $name) {
+                        $card = $methods->$key ?? null;
+
+                        if (!$card) {
+                            continue;
+                        }
+
+                        if ($key === 'sbp') {
+                            $comment = $methods->sbp_comment ?? '';
+                            $lines[] = "По СБП: $card" . ($comment ? " ({$comment})" : '');
+                        } else {
+                            // Форматируем номер карты по 4 цифры
+                            $formattedCard = trim(chunk_split($card, 4, ' '));
+                            $lines[] = "Карта {$name}: {$formattedCard}";
+                        }
+                    }
+
+                    $paymentMethodText = implode("\n", $lines);
 
                     $cashbackAmount = number_format($cashback, 0, '.', ' ') . ' ₽'; // Форматируем сумму с пробелом между тысячами
-                    $paymentText = "Переведите кэшбек в размере {$cashbackAmount} {$paymentMethodText}";
+                    $paymentText = "Переведите кэшбек в размере {$cashbackAmount}\n{$paymentMethodText}";
 
                     $paymentMessage = Message::create([
                         'buyback_id'  => $file->fileable?->buyback_id,

@@ -31,7 +31,9 @@ class OrderService extends BaseService
                 'ads_id'  => $ad_id,
                 'user_id' => auth('sanctum')->id(),
                 'status'  => 'pending',
-                'price'   => $ad->product?->price,
+                'product_price'   => $ad->product?->price,
+                'cashback_percentage' => $ad->cashback_percentage,
+                'price_with_cashback' => $ad->price_with_cashback
             ]);
 
             // Плашка "у покупателя есть 30 мин.." делается на фронте по статусу заказа!

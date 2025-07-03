@@ -36,27 +36,7 @@ class UpdatePaymentRequest extends FormRequest
             'alfa' => ['nullable', 'string', 'regex:/^\d{16}$/'],
             'vtb' => ['nullable', 'string', 'regex:/^\d{16}$/'],
             'raiffeisen' => ['nullable', 'string', 'regex:/^\d{16}$/'],
-            'gazprombank' => ['nullable', 'string', 'regex:/^\d{16}$/'],
-            'active' => [
-                'nullable',
-                'string',
-                'in:sbp,sber,tbank,ozon,alfa,vtb,raiffeisen,gazprombank',
-                function ($attribute, $value, $fail) {
-                    $banks = [
-                        'sbp' => 'Система быстрых платежей',
-                        'sber' => 'Сбербанк',
-                        'tbank' => 'Т-банк',
-                        'ozon' => 'Ozon',
-                        'alfa' => 'Альфа',
-                        'vtb' => 'ВТБ',
-                        'raiffeisen' => 'Райфайзен',
-                        'gazprombank' => 'Газпром',
-                    ];
-                    if (empty($this->$value)) {
-                        $fail("Для выбранного банка '{$banks[$value]}' не указан номер карты.");
-                    }
-                }
-            ],
+            'gazprombank' => ['nullable', 'string', 'regex:/^\d{16}$/']
         ];
     }
 
@@ -74,10 +54,7 @@ class UpdatePaymentRequest extends FormRequest
             'alfa.regex' => 'Номер карты Альфа-Банк должен содержать ровно 16 цифр.',
             'vtb.regex' => 'Номер карты ВТБ должен содержать ровно 16 цифр.',
             'raiffeisen.regex' => 'Номер карты Райффайзен должен содержать ровно 16 цифр.',
-            'gazprombank.regex' => 'Номер карты Газпромбанк должен содержать ровно 16 цифр.',
-
-            'active.string' => 'Поле активный банк должно быть строкой.',
-            'active.in' => 'Выбранный активный банк недопустим.',
+            'gazprombank.regex' => 'Номер карты Газпромбанк должен содержать ровно 16 цифр.'
         ];
     }
 }
