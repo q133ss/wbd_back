@@ -129,38 +129,25 @@ class Ad extends Model
 
         // Применяем сортировку
         if ($sortField === 'rating_product') {
-            $subQuery = DB::table('ads')
-                ->leftJoin('reviews', function ($join) {
-                    $join->on('ads.id', '=', 'reviews.reviewable_id')
-                        ->where('reviews.reviewable_type', 'App\Models\Ad');
-                })
-                ->select('ads.id', DB::raw('COALESCE(AVG(reviews.rating), 0) as avg_rating'))
-                ->groupBy('ads.id');
-
-            $query->joinSub($subQuery, 'sub', function ($join) {
-                $join->on('ads.id', '=', 'sub.id');
-            })->orderBy('sub.avg_rating', $sortOrder);
+            // Рейтинг товара
+            $query->leftJoin('products', 'ads.product_id', '=', 'products.id')
+                  ->orderBy('products.rating', $sortOrder);
         } elseif ($sortField === 'rating_seller') {
-            $subQuery = DB::table('ads')
+            // Рейтинг продавца
+            $query->leftJoin('users', 'ads.user_id', '=', 'users.id')
                 ->leftJoin('reviews', function ($join) {
-                    $join->on('ads.user_id', '=', 'reviews.reviewable_id')
-                        ->where('reviews.reviewable_type', 'App\Models\User');
+                    $join->on('users.id', '=', 'reviews.reviewable_id')
+                        ->where('reviews.reviewable_type', '=', \App\Models\User::class);
                 })
-                ->select('ads.id', DB::raw('COALESCE(AVG(reviews.rating), 0) as avg_rating'))
-                ->groupBy('ads.id');
-
-            $query->joinSub($subQuery, 'sub', function ($join) {
-                $join->on('ads.id', '=', 'sub.id');
-            })->orderBy('sub.avg_rating', $sortOrder);
+                ->select('ads.*', DB::raw('AVG(reviews.rating) as avg_rating'))
+                ->groupBy('ads.id', 'ads.product_id', 'ads.name', 'ads.cashback_percentage', 'ads.price_with_cashback', 'ads.status', 'ads.created_at', 'ads.user_id', 'ads.order_conditions', 'ads.is_archived', 'ads.keywords', 'ads.views_count', 'ads.redemption_instructions', 'wbd.ads.review_criteria', 'ads.redemption_count', 'ads.one_per_user', 'ads.balance', 'ads.in_favorite', 'ads.color', 'ads.size', 'ads.updated_at', 'ads.created_at')
+                ->orderBy('avg_rating', $sortOrder);
         } elseif ($sortField === 'popular') {
-            $subQuery = DB::table('buybacks')
-                ->select('ads_id', DB::raw('COUNT(*) as buyback_count'))
-                ->groupBy('ads_id');
-
-            $query->leftJoinSub($subQuery, 'buyback_counts', function ($join) {
-                $join->on('ads.id', '=', 'buyback_counts.ads_id');
-            })
-                ->orderBy(DB::raw('COALESCE(buyback_counts.buyback_count, 0)'), $sortOrder);
+            // По кол-ву заказов
+            $query->leftJoin('buybacks', 'ads.id', '=', 'buybacks.ads_id')
+                  ->select('ads.*', DB::raw('COUNT(buybacks.id) as buyback_count'))
+                  ->groupBy('ads.id', 'ads.product_id', 'ads.name', 'ads.cashback_percentage', 'ads.price_with_cashback', 'ads.status', 'ads.created_at', 'ads.user_id', 'ads.order_conditions', 'ads.is_archived', 'ads.keywords', 'ads.views_count', 'ads.redemption_instructions', 'wbd.ads.review_criteria', 'ads.redemption_count', 'ads.one_per_user', 'ads.balance', 'ads.in_favorite', 'ads.color', 'ads.size', 'ads.updated_at', 'ads.created_at')
+                  ->orderBy('buyback_count', $sortOrder);
         }elseif ($sortField === 'cashback_percentage') {
             $query->orderBy('ads.cashback_percentage', $sortOrder);
         } else {
