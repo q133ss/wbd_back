@@ -16,6 +16,7 @@ use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Http;
 
 class DatabaseSeeder extends Seeder
 {
@@ -65,7 +66,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Без категории',
             ]);
 
-            $this->command->info('Фото для категорий');
+            //$this->command->info('Фото для категорий');
 
             // Список категорий
 //            $categories_list = [

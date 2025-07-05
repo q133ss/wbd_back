@@ -340,33 +340,27 @@ class WBService extends BaseService
     private function makeCategory(array $product): mixed
     {
         $id = $product['id'] ?? null;
-        $subjectId = $product['subjectId'] ?? null;
-        $brandId = $product['brandId'] ?? null;
-        $kindId = $product['kindId'] ?? null;
 
-        if (!$id || !$subjectId || !$brandId || !$kindId) {
-            return Category::where('name', 'Без категории')->pluck('id')->first();
+        $pathData = $this->generatePathData($id);
+        $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$id}/info/ru/card.json";
+        $cardResponse = Http::get($cardUrl);
+
+        if (!$cardResponse->successful()) {
+            throw new \Exception("Failed to fetch card data");
         }
 
-        $response = Http::get("https://www.wildberries.ru/webapi/product/{$id}/data", [
-            'subject' => $subjectId,
-            'kind' => $kindId,
-            'brand' => $brandId,
-            'lang' => 'ru',
-            'targetUrl' => 'SP',
-        ]);
+        $subcategoryName = $cardResponse->json()['subj_name'] ?? null; // Дочерняя категория
+        $categoryName = $cardResponse->json()['subj_root_name'] ?? null; // Родительская категория
 
-        if ($response->successful()) {
-            $sitePath = $response->json('value.data.sitePath');
-            if (is_array($sitePath) && count($sitePath) >= 2) {
-                $categoryName = $sitePath[count($sitePath) - 2]['name'] ?? null;
-            }
+        if (!empty($subcategoryName)) {
+            $finalCategory = $subcategoryName;
+        } elseif (!empty($categoryName)) {
+            $finalCategory = $categoryName;
+        } else {
+            $finalCategory = 'Без категории';
         }
 
-        $categoryName = $categoryName ?? 'Без категории';
-
-        return Category::where('name', $categoryName)
-            ->orWhere('name', 'Без категории')
+        return Category::where('name', $finalCategory)
             ->pluck('id')
             ->first();
     }
@@ -586,11 +580,11 @@ class WBService extends BaseService
         try {
             DB::beginTransaction();
 
-            $check = $this->productCheck($product_id);
-            if(!$check){
-                $response = $this->formatResponse('false', 'Товар уже добавлен', 403);
-                return $this->sendResponse($response);
-            }
+//            $check = $this->productCheck($product_id);
+//            if(!$check){
+//                $response = $this->formatResponse('false', 'Товар уже добавлен', 403);
+//                return $this->sendResponse($response);
+//            }
 
             $prepareData = $this->prepareProductData($product_id);
             if(isset($prepareData['status'])){
