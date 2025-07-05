@@ -16,7 +16,8 @@ class AdsService extends BaseService
     {
         try {
             DB::beginTransaction();
-            $productPrice       = Product::find($data['product_id'])?->price;
+            $product = Product::where('id', $data['product_id'])->select('price','wb_id')->first();
+            $productPrice       = $product?->price;
             $cashbackPercentage = $data['cashback_percentage'];
 
             $cashbackAmount              = ($productPrice * $cashbackPercentage) / 100; // Это кэшбек юзеру!
@@ -35,6 +36,9 @@ class AdsService extends BaseService
                 }
 
                 $redemption = $user->redemption_count - $count;
+
+                $redemptionInstructions = '⚠️ Выкуп по ключевым словам\nДля участия в акции вам необходимо найти товар через поиск по ключевому слову "{word}", а не по артикулу.\nПерейдите по ссылке: {search_link}, найдите нужный товар и оформите заказ именно с этой страницы.\n\nЭто важно — так система зафиксирует, что вы пришли по нужному поисковому запросу.';
+                $data['redemption_instructions'] = $redemptionInstructions;
             }else{
                 $redemption = $user->redemption_count - $data['redemption_count'];
 
@@ -42,8 +46,12 @@ class AdsService extends BaseService
                     // если выкупов не хватает!
                     $this->sendError('У вас недостаточно выкупов', 400);
                 }
+
+                $redemptionInstructions = str_replace('{wb_id}', $product->wb_id, $data['redemption_instructions']);
+                $data['redemption_instructions'] = $redemptionInstructions;
             }
 
+            // redemption_instructions
             $user->update(['redemption_count' => $redemption]);
 
             $ad = Ad::create($data);
@@ -68,7 +76,6 @@ class AdsService extends BaseService
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            dd($e);
             return $this->sendError('Произошла ошибка, попробуйте еще раз', $e->getCode());
         }
     }

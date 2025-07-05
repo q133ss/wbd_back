@@ -33,6 +33,7 @@ return new class extends Migration
             $table->boolean('has_review_by_buyer')->default(false);
             $table->boolean('is_order_photo_sent')->default(false)->comment('Фото заказа отправлено или нет');
             $table->boolean('is_review_photo_sent')->default(false)->comment('Фото отзыва отправлено или нет');
+            $table->string('keyword')->nullable()->comment('Ключевое слово, по которому покупатель должен сделать заказ');
             $table->timestamps();
         });
     }

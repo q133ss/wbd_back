@@ -37,14 +37,35 @@ class OrderService extends BaseService
         }
 
         try {
-            $buyback = Buyback::create([
+            $buybackData = [
                 'ads_id'  => $ad_id,
                 'user_id' => auth('sanctum')->id(),
                 'status'  => 'pending',
                 'product_price'   => $ad->product?->price,
                 'cashback_percentage' => $ad->cashback_percentage,
                 'price_with_cashback' => $ad->price_with_cashback
-            ]);
+            ];
+
+            if(!empty($ad->keywords)){
+                // 1. Выбрать случайное ключевое слово
+                $randomKeyword = collect($ad->keywords)->random();
+                $word = $randomKeyword['word'];
+
+                // 2. Сформировать ссылку поиска на Wildberries
+                $encodedWord = urlencode($word);
+                $searchLink = "https://www.wildberries.ru/catalog/0/search.aspx?search={$encodedWord}";
+
+                // 3. Заменить плейсхолдеры в инструкции
+                $ad->redemption_instructions = str_replace(
+                    ['{word}', '{search_link}'],
+                    [$word, $searchLink],
+                    $ad->redemption_instructions
+                );
+
+                $buybackData['keyword'] = $word; // Сохраняем выбранное ключевое слово
+            }
+
+            $buyback = Buyback::create($buybackData);
 
             // Плашка "у покупателя есть 30 мин.." делается на фронте по статусу заказа!
             // В зависимости от статуса меняется текст

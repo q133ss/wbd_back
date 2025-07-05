@@ -344,6 +344,29 @@ class ChatController extends Controller
                     (new SocketService)->send($paymentMessage, $buyback);
                     (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил ваш отзыв', true);
 
+                    $ad = $buyback->ad;
+                    // Удаляем выкуп со слова, которое использовалось
+                    if(!empty($ad->keywords)){
+                        $usedKeyword = $buyback->keyword ?? null;
+
+                        $ad->keywords = collect($ad->keywords)
+                            // 1. Уменьшаем счётчик, если слово совпадает
+                            ->map(function ($item) use ($usedKeyword) {
+                                if ($item['word'] === $usedKeyword && $item['redemption_count'] > 0) {
+                                    $item['redemption_count']--;
+                                }
+                                return $item;
+                            })
+                            // 2. Удаляем слова, у которых выкупов не осталось
+                            ->filter(function ($item) {
+                                return $item['redemption_count'] > 0;
+                            })
+                            ->values() // сбрасываем ключи, чтобы остался нормальный JSON-массив
+                            ->toArray();
+
+                        $ad->save();
+                    }
+
                     // Это не надо уже!
                     //(new BalanceService())->buybackPayment($buyback);
 
