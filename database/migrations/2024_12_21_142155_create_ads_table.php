@@ -30,6 +30,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('color')->nullable()->comment('Цвет товара');
             $table->string('size')->nullable()->comment('Размер товара');
+            $table->json('keywords')->nullable()->comment('Ключевые слова');
             $table->timestamps();
         });
     }

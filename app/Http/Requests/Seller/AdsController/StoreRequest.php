@@ -47,7 +47,7 @@ class StoreRequest extends FormRequest
             'redemption_instructions' => 'required|string',
             'review_criteria'         => 'required|string',
             'redemption_count'        => [
-                'required',
+                'nullable',
                 'integer',
                 'min:1',
                 function (string $attribute, mixed $value, Closure $fail) use ($user): void {
@@ -59,6 +59,9 @@ class StoreRequest extends FormRequest
             'one_per_user' => 'nullable|boolean',
             'color'        => 'nullable|string|max:50',
             'size'         => 'nullable|string|max:50',
+            'keywords' => 'nullable|array',
+            'keywords.*.word' => 'required|string|max:50',
+            'keywords.*.redemption_count' => 'required|integer|min:1',
         ];
     }
 
@@ -82,6 +85,14 @@ class StoreRequest extends FormRequest
             'redemption_count.integer'         => 'Количество выкупов должно быть числом.',
             'redemption_count.min'             => 'Количество выкупов должно быть не менее 1.',
             'one_per_user.boolean'             => 'Поле "Один на товар на покупателя" неверное.',
+
+            'keywords.array' => 'Поле ключевых слов должно быть массивом.',
+            'keywords.*.word.required' => 'Каждое ключевое слово обязательно для заполнения.',
+            'keywords.*.word.string' => 'Ключевое слово должно быть строкой.',
+            'keywords.*.word.max' => 'Ключевое слово не должно превышать :max символов.',
+            'keywords.*.redemption_count.required' => 'Поле "Количество выкупов" обязательно.',
+            'keywords.*.redemption_count.integer' => 'Количество выкупов должно быть целым числом.',
+            'keywords.*.redemption_count.min' => 'Количество выкупов не может быть меньше :min.',
         ];
     }
 }

@@ -15,6 +15,10 @@ class Ad extends Model
 
     protected $with = ['product', 'shop'];
 
+    protected $casts = [
+        'keywords' => 'array'
+    ];
+
     // Указываем глобальный скоуп в методе `booted`
     protected static function booted()
     {

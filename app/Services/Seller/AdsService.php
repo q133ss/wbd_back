@@ -26,11 +26,22 @@ class AdsService extends BaseService
 
             $data['status']  = true;
             $data['user_id'] = $user->id;
-            $redemption = $user->redemption_count - $data['redemption_count'];
 
-            if ($data['redemption_count'] > $user->redemption_count) {
-                // если выкупов не хватает!
-                $this->sendError('У вас недостаточно выкупов', 400);
+            if(isset($data['keywords'])) {
+                $count = 0;
+                foreach ($data['keywords'] as $keyword) {
+                    $keyword['word'] = mb_strtolower($keyword['word']);
+                    $count += $keyword['redemption_count'];
+                }
+
+                $redemption = $user->redemption_count - $count;
+            }else{
+                $redemption = $user->redemption_count - $data['redemption_count'];
+
+                if ($data['redemption_count'] > $user->redemption_count) {
+                    // если выкупов не хватает!
+                    $this->sendError('У вас недостаточно выкупов', 400);
+                }
             }
 
             $user->update(['redemption_count' => $redemption]);
