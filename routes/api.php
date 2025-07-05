@@ -133,5 +133,7 @@ Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class,
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
 
 Route::get('/qq', function (){
-    //
+    $aa = new App\Services\WBService();
+    $a = $aa->create('309473936',66);
+    dd($a);
 });

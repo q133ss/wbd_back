@@ -18,7 +18,7 @@ class OrderService extends BaseService
     {
         $payMethod = auth('sanctum')->user()->paymentMethod;
         if($payMethod == null){
-            abort(403, 'У вас не указаны платежные данные. Укажите данные в настройках профиля.');
+            abort(400, 'У вас не указаны платежные данные. Укажите данные в настройках профиля.');
         }
 
         DB::beginTransaction();

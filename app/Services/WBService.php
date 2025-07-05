@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\JsonException;
+use App\Jobs\LoadProductVariationsJob;
 use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Product;
@@ -72,6 +73,35 @@ class WBService extends BaseService
         }
     }
 
+    // Получает все вариации товара по артикулу
+    public function getAllVariations(string $wbId)
+    {
+        $pathData = $this->generatePathData($wbId);
+        try {
+            $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$wbId}/info/ru/card.json";
+            $cardResponse = Http::get($cardUrl);
+
+            if (!$cardResponse->successful()) {
+                throw new \Exception("Failed to fetch card data");
+            }
+
+            $variations = $cardResponse->json()['colors'] ?? [];
+            if( empty($variations)) {
+                throw new \Exception("Вариации не найдены");
+            }
+
+            return $variations;
+
+        } catch (\Exception $e) {
+            \Log::error("WB Reviews Error: " . $e->getMessage());
+            return [
+                'reviews' => [],
+                'summary' => null,
+                'pagination' => null
+            ];
+        }
+    }
+
     // передаем артикул и получаем отзывы
     public function getReviews(string $adsId, int $page = 1, int $perPage = 10)
     {
@@ -82,7 +112,7 @@ class WBService extends BaseService
         }
 
         $pathData = $this->generatePathData($wbId);
-        $cacheKey = "1wb_reviews_{$wbId}";
+        $cacheKey = "wb_reviews_{$wbId}";
 
         if (Cache::has($cacheKey)) {
             $reviewsData = Cache::get($cacheKey);
@@ -483,7 +513,7 @@ class WBService extends BaseService
         return [
             'name'               => $product['name'],
             'is_archived'        => false,
-            'shop_id'            => auth('sanctum')->user()->shop?->id,
+            'shop_id'            => auth()->check() ? auth('sanctum')->user()->shop?->id : null,
             'wb_id'              => $product['wb_id'],
             'category_id'        => $product['category_id'],
             'price'              => $product['price'],
@@ -496,6 +526,47 @@ class WBService extends BaseService
             'images'             => $product['images'],
             'brand'              => $product['brand'],
         ];
+    }
+
+    public function create($product_id, $shop_id): bool
+    {
+        $check = $this->productCheck($product_id);
+        if(!$check){
+            return false;
+        }
+
+        $wb = new WBService();
+        try{
+            $prepareData = $wb->prepareProductData($product_id);
+            $product     = $prepareData['product'];
+
+            if(isset($prepareData['status'])){
+                return false;
+            }
+
+            $productService = new ProductService;
+            $createData     = $wb->getProductFieldsArray($product);
+            $createData['shop_id'] = $shop_id;
+            $createProduct  = $productService->create($createData);
+            return true;
+        }catch (\Exception $e){
+            Log::error('Error adding product: '.$e->getMessage(), ['exception' => $e]);
+            return false;
+        }
+    }
+
+    public function createAllVariations(string $product_id): true
+    {
+        // Получаем все вариации
+        $variationIds = $this->getAllVariations($product_id);
+
+        // Удаляем сам product_id из массива (если он там есть)
+        $variationIds = array_filter($variationIds, fn($id) => (string) $id !== (string) $product_id);
+
+        $shopId = Product::where('wb_id', $product_id)->value('shop_id');
+
+        LoadProductVariationsJob::dispatch($variationIds, $shopId)->delay(10);
+        return true;
     }
 
     /**
@@ -532,6 +603,8 @@ class WBService extends BaseService
             $createProduct  = $productService->create($createData);
             $response       = $this->formatResponse('true', $createProduct['product'], 201, 'product');
             DB::commit();
+
+            $this->createAllVariations($product_id);
 
             return $this->sendResponse($response);
         } catch (\Exception $e) {

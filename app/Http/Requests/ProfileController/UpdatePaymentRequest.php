@@ -27,9 +27,25 @@ class UpdatePaymentRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:255',
-                new PhoneNumber()
+                new PhoneNumber(),
+                function ($attribute, $value, $fail) {
+                    if($value != null && $this->sbp_comment == null) {
+                        $fail('Укажите банки для СБП.');
+                    }
+                }
             ],
-            'sbp_comment' => 'nullable|string|max:255',
+            'sbp_comment' => [
+                'nullable',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    if($value != null && $this->sbp == null) {
+                        if($value != null && $this->sbp == null) {
+                            $fail('Укажите номер телефона для СБП.');
+                        }
+                    }
+                }
+            ],
             'sber' => ['nullable', 'string', 'regex:/^\d{16}$/'],
             'tbank' => ['nullable', 'string', 'regex:/^\d{16}$/'],
             'ozon' => ['nullable', 'string', 'regex:/^\d{16}$/'],

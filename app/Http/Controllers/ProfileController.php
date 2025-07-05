@@ -408,20 +408,45 @@ class ProfileController extends Controller
     }
     public function updatePayment(UpdatePaymentRequest $request)
     {
-        PaymentMethod::updateOrCreate(
-            ['user_id' => auth('sanctum')->id()],
-            [
-                'sbp' => $request->input('sbp'),
-                'sbp_comment' => $request->input('sbp_comment'),
-                'sber' => $request->input('sber'),
-                'tbank' => $request->input('tbank'),
-                'ozon' => $request->input('ozon'),
-                'alfa' => $request->input('alfa'),
-                'vtb' => $request->input('vtb'),
-                'raiffeisen' => $request->input('raiffeisen'),
-                'gazprombank' => $request->input('gazprombank')
-            ]
-        );
+        // Список всех банковских полей
+        $fields = [
+            'sbp',
+            'sbp_comment',
+            'sber',
+            'tbank',
+            'ozon',
+            'alfa',
+            'vtb',
+            'raiffeisen',
+            'gazprombank',
+        ];
+
+        // Присваиваем null по умолчанию, если поле не передано
+        $data = collect($fields)->mapWithKeys(function ($field) use ($request) {
+            return [$field => $request->input($field, null)];
+        })->toArray();
+
+        // Проверка: все ли поля равны null
+        $allNull = collect($data)->every(fn($value) => is_null($value));
+        if ($allNull) {
+            // Удаляем запись, если она есть
+            PaymentMethod::where('user_id', auth('sanctum')->id())->delete();
+        }else{
+            PaymentMethod::updateOrCreate(
+                ['user_id' => auth('sanctum')->id()],
+                [
+                    'sbp' => $request->input('sbp'),
+                    'sbp_comment' => $request->input('sbp_comment'),
+                    'sber' => $request->input('sber'),
+                    'tbank' => $request->input('tbank'),
+                    'ozon' => $request->input('ozon'),
+                    'alfa' => $request->input('alfa'),
+                    'vtb' => $request->input('vtb'),
+                    'raiffeisen' => $request->input('raiffeisen'),
+                    'gazprombank' => $request->input('gazprombank')
+                ]
+            );
+        }
         return response()->json([
             'status'  => 'true',
             'message' => 'Способ оплаты успешно обновлен!',

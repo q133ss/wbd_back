@@ -27,6 +27,8 @@ return new class extends Migration
             $table->boolean('is_archived')->default(false);
             $table->foreignId('shop_id')->constrained('shops')->onDelete('cascade');
             $table->json('images');
+            $table->json('colors')->nullable();
+            $table->json('sizes')->nullable();
             $table->boolean('status')->default(false);
             $table->timestamps();
         });
