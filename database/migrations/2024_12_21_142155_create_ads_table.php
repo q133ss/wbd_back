@@ -28,6 +28,8 @@ return new class extends Migration
             $table->decimal('balance', 10, 2)->default(0)->comment('Зарезервированный баланс на выкупы');
             $table->smallInteger('in_favorite')->default(0)->comment('В избранном');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('color')->nullable()->comment('Цвет товара');
+            $table->string('size')->nullable()->comment('Размер товара');
             $table->timestamps();
         });
     }

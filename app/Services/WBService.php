@@ -384,6 +384,11 @@ class WBService extends BaseService
             return [];
         }
 
+        $sizes = $product['sizes'] ?? [];
+        if (!empty($sizes) && empty($sizes[0]['name'])) {
+            $sizes = [];
+        }
+
         return [
             'wb_id'              => $product['id'],
             'name'               => $product['name'],
@@ -397,6 +402,8 @@ class WBService extends BaseService
             'description'        => $this->fetchDescription($product['wb_id']),
             'supplier_rating'    => $product['supplierRating'] ?? 0,
             'category_id'        => $this->makeCategory($product),
+            'colors'             => $product['colors'] ?? [],
+            'sizes'              => $sizes ?? [],
         ];
     }
 
@@ -525,6 +532,8 @@ class WBService extends BaseService
             'description'        => $product['description'],
             'images'             => $product['images'],
             'brand'              => $product['brand'],
+            'colors'             => $product['colors'] ?? [],
+            'sizes'              => $product['sizes'] ?? [],
         ];
     }
 

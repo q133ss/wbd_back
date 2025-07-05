@@ -57,6 +57,8 @@ class StoreRequest extends FormRequest
                 },
             ],
             'one_per_user' => 'nullable|boolean',
+            'color'        => 'nullable|string|max:50',
+            'size'         => 'nullable|string|max:50',
         ];
     }
 

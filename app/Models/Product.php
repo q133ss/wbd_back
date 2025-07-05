@@ -15,6 +15,8 @@ class Product extends Model
 
     protected $casts = [
         'images' => 'array',
+        'colors' => 'array',
+        'sizes' => 'array',
     ];
 
     protected $with = ['category'];

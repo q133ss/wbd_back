@@ -57,6 +57,7 @@ class AdsService extends BaseService
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             return $this->sendError('Произошла ошибка, попробуйте еще раз', $e->getCode());
         }
     }
