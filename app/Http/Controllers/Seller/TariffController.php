@@ -12,6 +12,11 @@ class TariffController extends Controller
         return Tariff::get();
     }
 
+    public function landingTariffs()
+    {
+        return Tariff::get();
+    }
+
     public function show(string $buybacks_count)
     {
         $tariff = Tariff::where('buybacks_count', '>=', $buybacks_count)->first();

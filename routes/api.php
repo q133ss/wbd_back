@@ -128,6 +128,9 @@ Route::post('/payment/handle/pay', [\App\Http\Controllers\PaymentController::cla
 Route::post('/payment/handle/fail', [\App\Http\Controllers\PaymentController::class, 'handleFail']);
 Route::post('/payment/handle/cancel', [\App\Http\Controllers\PaymentController::class, 'handleCancel']);
 
+// Тарифы для лендинга
+Route::get('/landing/tariffs', [\App\Http\Controllers\Seller\TariffController::class, 'landingTariffs']);
+
 # TODO это для тестов, нужно убрать и перенести в крон!
 Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);

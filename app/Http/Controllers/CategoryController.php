@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ad;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
@@ -48,33 +49,31 @@ class CategoryController extends Controller
     {
         $cacheKey = 'categories_sub_' . $id;
 
-        return Cache::remember($cacheKey, 600, function () use ($id) {
-            $parentCategory = Category::with([
-                'children', // загружаем детей вглубь
-                'children.products',
-                'children.img',
-                'children' => function ($query) {
-                    $query->with('products');
-                },
-            ])->findOrFail($id);
+        $categoriesData = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($id) {
+            $categories = Category::with('children')->where('parent_id', $id)->get();
 
-            $categories = $parentCategory->children;
+            return $categories->map(function ($category) {
+                // 1. Собрать ID всех потомков
+                $descendantIds = $category->getAllDescendantIds();
+                $allCategoryIds = $descendantIds->push($category->id);
 
-            // Фильтрация: убираем категории без товаров и без товаров у подкатегорий
-            $categories = $categories->filter(function ($category) {
-                return $this->countProductsWithChildren($category) > 0;
+                // 2. Получить ID всех продуктов в этих категориях
+                $productIds = \App\Models\Product::whereIn('category_id', $allCategoryIds)->pluck('id');
+
+                // 3. Посчитать активные объявления
+                $adCount = \App\Models\Ad::whereIn('product_id', $productIds)
+                    ->where('status', true)
+                    ->count();
+
+                return [
+                    'category_id' => $category->id,
+                    'category_name' => $category->name,
+                    'product_count' => $adCount,
+                ];
             });
-
-            $adultCategory = Category::where('name', 'Товары для взрослых')->first();
-            $adultCategoryIds = $this->getAllCategoryIds($adultCategory);
-
-            $categoryProductCounts = $this->getProductsCount($categories);
-
-            return collect($categoryProductCounts)->map(function ($category) use ($adultCategoryIds) {
-                $category['requires_age_confirmation'] = in_array($category['category_id'], $adultCategoryIds);
-                return $category;
-            })->values();
         });
+
+        return $categoriesData;
     }
 
     private function getProductsCount($categories)
@@ -119,15 +118,25 @@ class CategoryController extends Controller
 
     public function indexProducts(string $id)
     {
-        $category = Category::findOrFail($id);
-        $ids = $this->getAllCategoryIds($category);
+        $page = request('page', 1); // учитываем пагинацию
+        $cacheKey = "category_{$id}_ads_page_{$page}";
 
-        return Ad::leftJoin('products', 'ads.product_id', '=', 'products.id')
-            ->whereIn('products.category_id', $ids)
-            ->where('ads.status', true)
-            ->where('ads.is_archived', false)
-            ->select('ads.*')
-            ->orderBy('created_at', 'desc')
-            ->paginate(18);
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($id) {
+            // 1. Найти категорию
+            $category = Category::with('children')->findOrFail($id);
+
+            // 2. Собрать ID всех вложенных категорий (включая саму категорию)
+            $descendantIds = $category->getAllDescendantIds();
+            $allCategoryIds = $descendantIds->push($category->id);
+
+            // 3. Найти продукты в этих категориях
+            $productIds = Product::whereIn('category_id', $allCategoryIds)->pluck('id');
+
+            // 4. Получить активные объявления
+            return Ad::whereIn('product_id', $productIds)
+                ->where('status', true)
+                ->with('product')
+                ->paginate(18);
+        });
     }
 }

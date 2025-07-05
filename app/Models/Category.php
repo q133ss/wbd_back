@@ -58,4 +58,21 @@ class Category extends Model
                 'updated_at' => null,
             ]);
     }
+
+    public function allChildren()
+    {
+        return $this->children()->with('allChildren');
+    }
+
+    public function getAllDescendantIds()
+    {
+        $ids = collect();
+
+        foreach ($this->children as $child) {
+            $ids->push($child->id);
+            $ids = $ids->merge($child->getAllDescendantIds());
+        }
+
+        return $ids;
+    }
 }

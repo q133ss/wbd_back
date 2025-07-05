@@ -31,6 +31,8 @@ class UpdateRequest extends FormRequest
             'review_criteria'         => 'required|string',
             'one_per_user'            => 'nullable|boolean',
             'is_archived'             => 'nullable|min:0|max:1',
+            'color'        => 'nullable|string|max:50',
+            'size'         => 'nullable|string|max:50',
         ];
     }
 
