@@ -52,17 +52,29 @@ class ProductController extends Controller
 
     public function related(string $id)
     {
-        $ad = Ad::findOrFail($id);
-        if ($ad->product?->category_id == null) {
-            $related = Ad::where('id', '!=', $id)->orderBy('created_at', 'desc')->take(8)->get();
-        } else {
-            $related = Ad::whereHas('product', function ($query) use ($ad) {
-                $query->where('category_id', $ad->product?->category_id);
-            })
-                ->where('id', '!=', $id)
-                ->inRandomOrder()
-                ->take(8)
+        $ad = Ad::with('product')->findOrFail($id);
+        $query = Ad::where('id', '!=', $id)->with('product');
+
+        // Если у товара есть категория, ищем в той же категории
+        if ($ad->product?->category_id) {
+            $query->whereHas('product', function ($q) use ($ad) {
+                $q->where('category_id', $ad->product->category_id);
+            });
+        }
+
+        // Получаем 8 случайных товаров
+        $related = $query->inRandomOrder()->take(8)->get();
+
+        // Если товаров меньше 8, добираем последними добавленными
+        if ($related->count() < 8) {
+            $remaining = 8 - $related->count();
+            $additionalAds = Ad::where('id', '!=', $id)
+                ->whereNotIn('id', $related->pluck('id'))
+                ->orderBy('created_at', 'desc')
+                ->take($remaining)
                 ->get();
+
+            $related = $related->merge($additionalAds);
         }
 
         return response()->json($related);

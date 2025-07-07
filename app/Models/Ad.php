@@ -116,7 +116,7 @@ class Ad extends Model
         $sortOrder = $request->input('order');
 
         // Проверка допустимых значений
-        $validColumns = ['created_at', 'price_with_cashback', 'rating_product', 'rating_seller', 'popular', 'cashback_percentage'];
+        $validColumns = ['created_at', 'price_with_cashback', 'rating_product', 'rating_seller', 'popular', 'cashback_percentage', 'price', 'discount'];
         $validOrders = ['asc', 'desc'];
 
         if (!in_array($sortField, $validColumns)) {
@@ -150,6 +150,13 @@ class Ad extends Model
                   ->orderBy('buyback_count', $sortOrder);
         }elseif ($sortField === 'cashback_percentage') {
             $query->orderBy('ads.cashback_percentage', $sortOrder);
+        } elseif ($sortField === 'price') {
+            // Сортировка по цене без кэшбэка
+            $query->select('ads.*', DB::raw('ROUND(ads.price_with_cashback / (1 - ads.cashback_percentage / 100), 2) as price_without_cashback'))
+                  ->orderBy('price_without_cashback', $sortOrder);
+        } elseif ($sortField === 'discount') {
+            $query->select('ads.*', DB::raw('ROUND(ads.price_with_cashback * (1 - ads.cashback_percentage / 100), 2) as discounted_price'))
+                  ->orderBy('discounted_price', $sortOrder);
         } else {
             $query->orderBy('ads.'.$sortField, $sortOrder);
         }

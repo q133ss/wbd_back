@@ -572,6 +572,29 @@ class WBService extends BaseService
         return true;
     }
 
+    public function clearCategoryCache(Category $category)
+    {
+        $ids = collect();
+
+        // Добавляем текущую категорию
+        $ids->push($category->id);
+
+        // Добавляем всех предков
+        $ids = $ids->merge($category->getAllAncestorIds());
+
+        // Добавляем всех потомков
+        $ids = $ids->merge($category->getAllDescendantIds());
+
+        // Удаляем кэш для всех этих категорий
+        foreach ($ids->unique() as $id) {
+            // Важно: если пагинация разная, можно или указать список страниц вручную, или динамически
+            for ($page = 1; $page <= 5; $page++) { // можно увеличить лимит при необходимости
+                Cache::forget("category_{$id}_ads_page_{$page}");
+            }
+        }
+    }
+
+
     /**
      * Добавляет новый товар по артикулу из ВБ
      */
@@ -605,6 +628,13 @@ class WBService extends BaseService
             $createData     = $this->getProductFieldsArray($product);
             $createProduct  = $productService->create($createData);
             $response       = $this->formatResponse('true', $createProduct['product'], 201, 'product');
+
+            $category = Category::find($createData['category_id']);
+            if($category != null) {
+                $this->clearCategoryCache($category);
+            }
+            Cache::forget('categories_index');
+
             DB::commit();
 
             $this->createAllVariations($product_id);

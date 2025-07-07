@@ -75,4 +75,18 @@ class Category extends Model
 
         return $ids;
     }
+
+    public function getAllAncestorIds()
+    {
+        $ids = collect();
+        $category = $this;
+
+        while ($category->parent) {
+            $ids->push($category->parent?->id);
+            $category = $category->parent;
+        }
+
+        return $ids;
+    }
+
 }
