@@ -22,6 +22,7 @@ class CategoryController extends Controller
 
     public function index()
     {
+
         return Cache::remember('categories_index', 600, function () {
             $categories = Category::with(['img', 'children', 'children.products', 'products']) // рекурсивно подгружаем
             ->whereNull('parent_id')

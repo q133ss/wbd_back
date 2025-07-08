@@ -56,6 +56,8 @@ class AdsService extends BaseService
 
             $ad = Ad::create($data);
 
+            $product = $ad->product()->update(['status' => true]);
+
             Transaction::create([
                 'amount'           => $data['redemption_count'],
                 'transaction_type' => 'withdraw',

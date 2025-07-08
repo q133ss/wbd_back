@@ -5,6 +5,7 @@ namespace App\Http\Controllers\WB;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\WBService;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -20,9 +21,9 @@ class ProductController extends Controller
         return $this->service->fetchProduct($id);
     }
 
-    public function addProduct(string $id)
+    public function addProduct(Request $request, string $id)
     {
-        return $this->service->addProduct($id);
+        return $this->service->addProduct($request, $id);
     }
 
     public function getProduct(string $id)

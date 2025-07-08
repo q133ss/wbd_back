@@ -23,8 +23,10 @@ class TelegramService
             $chatId = $update['message']['chat']['id'];
             $text = $update['message']['text'] ?? '';
 
-            if ($text === '/start') {
-                $this->startCommand($chatId);
+            // Проверяем, является ли текст командой /start с параметром
+            if (strpos($text, '/start') === 0) {
+                $startPayload = trim(str_replace('/start', '', $text));
+                $this->startCommand($chatId, $startPayload);
             } else {
                 $this->sendMessage($chatId, 'Неизвестная команда');
             }

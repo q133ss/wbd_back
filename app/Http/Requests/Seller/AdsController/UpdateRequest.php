@@ -33,6 +33,9 @@ class UpdateRequest extends FormRequest
             'is_archived'             => 'nullable|min:0|max:1',
             'color'        => 'nullable|string|max:50',
             'size'         => 'nullable|string|max:50',
+            'keywords' => 'nullable|array',
+            'keywords.*.word' => 'required|string|max:50',
+            'keywords.*.redemption_count' => 'required|integer|min:1'
         ];
     }
 
@@ -55,6 +58,14 @@ class UpdateRequest extends FormRequest
             'one_per_user.boolean'             => 'Поле "Один на товар на покупателя" неверное.',
             'is_archived.min'                  => 'Поле "архивный" должно быть не меньше 0',
             'is_archived.max'                  => 'Поле "архивный" должно быть не больше 1',
+
+            'keywords.array' => 'Поле ключевых слов должно быть массивом.',
+            'keywords.*.word.required' => 'Каждое ключевое слово обязательно для заполнения.',
+            'keywords.*.word.string' => 'Ключевое слово должно быть строкой.',
+            'keywords.*.word.max' => 'Ключевое слово не должно превышать :max символов.',
+            'keywords.*.redemption_count.required' => 'Поле "Количество выкупов" обязательно.',
+            'keywords.*.redemption_count.integer' => 'Количество выкупов должно быть целым числом.',
+            'keywords.*.redemption_count.min' => 'Количество выкупов не может быть меньше :min.',
         ];
     }
 }

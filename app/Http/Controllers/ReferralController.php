@@ -12,10 +12,12 @@ class ReferralController extends Controller
     public function index()
     {
         $stat = auth('sanctum')->user()->referralStat;
+
         $statistic = [
             'clicks_count' => $stat->clicks_count ?? 0,
             'registrations_count' => $stat->registrations_count ?? 0,
-            'topup_count' => $stat->topup_count ?? 0
+            'topup_count' => $stat->topup_count ?? 0,
+            'earnings' => $stat->earnings ?? 0
         ];
         return response()->json($statistic);
     }

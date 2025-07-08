@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Shop;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -598,8 +599,11 @@ class WBService extends BaseService
     /**
      * Добавляет новый товар по артикулу из ВБ
      */
-    public function addProduct(string $product_id): JsonResponse
+    public function addProduct(Request $request, string $product_id): JsonResponse
     {
+        if($request->loadRelated == true) {
+            $this->createAllVariations($product_id);
+        }
         try {
             DB::beginTransaction();
 
@@ -637,7 +641,9 @@ class WBService extends BaseService
 
             DB::commit();
 
-            $this->createAllVariations($product_id);
+            if($request->loadRelated == true) {
+                $this->createAllVariations($product_id);
+            }
 
             return $this->sendResponse($response);
         } catch (\Exception $e) {
