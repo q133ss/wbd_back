@@ -23,7 +23,6 @@ class Template extends Model
             'user_id' => $userId,
             "type" => "redemption_instructions",
             "text" => "Здравствуйте! Для участия в акции просим вас выполнить следующие шаги:\n
-\n
 1) Найти товар на Wildberries по следующему артикулу - {wb_id}\n
 2) Посмотреть карточки продавцов\n
 2) Добавить магазин и товар в избранное\n

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ReferralStat;
 use App\Models\Tariff;
 use App\Models\Transaction;
 use App\Models\User;
@@ -49,9 +50,7 @@ class PaymentController extends Controller
     {
         $data = $request->all();
 
-        # TODO
-        //$transaction = $this->updateTransaction($data, 'completed');
-        $transaction = $this->test();
+        $transaction = $this->updateTransaction($data, 'completed');
 
         try{
             DB::beginTransaction();
@@ -65,6 +64,17 @@ class PaymentController extends Controller
                 'redemption_count' => $user->redemption_count += $buybacksCount
             ]);
             DB::commit();
+
+            $refState = ReferralStat::where(['user_id' => $user->referral_id])->first();
+            if($refState) {
+                // Рассчитываем 10% от $request->amount
+                $bonusAmount = $request->amount * 0.1;
+                $refState->update([
+                    'topup_count' => $refState->topup_count + 1,
+                    'earnings' => $refState->earnings + $bonusAmount
+                ]);
+            }
+
         }catch (\Exception $e){
             DB::rollBack();
             \Log::error('PaymentController handlePay error: ' . $e->getMessage());

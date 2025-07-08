@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\Http;
 class TelegramService
 {
     private string $token;
+    private string $clientToken;
 
     public function __construct()
     {
         $this->token = config('services.telegram.token');
+        $this->clientToken = config('services.telegram.client_token');
     }
 
     // Метод для обработки входящих сообщений (вебхук)
@@ -32,7 +34,13 @@ class TelegramService
     // Метод для отправки сообщения
     public function sendMessage($chatId, $text, $keyboard = []): void
     {
-        $token = $this->token;
+        $role_id = User::where('telegram_id', $chatId)->pluck('role_id')->first();
+        if($role_id == 3){
+            $token = $this->token;
+        }else{
+            $token = $this->clientToken;
+        }
+
         $url = "https://api.telegram.org/bot$token/sendMessage";
 
         // Создаем базовый массив данных для отправки

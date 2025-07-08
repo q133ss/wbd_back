@@ -136,5 +136,6 @@ Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class,
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
 
 Route::get('/qq', function (){
-    //
+    $role_id = App\Models\User::where('telegram_id', 461612832)->pluck('role_id')->first();
+    dd($role_id === 3);
 });

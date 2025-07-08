@@ -44,7 +44,9 @@ return [
 
     'telegram' => [
         'token' => env('TELEGRAM_BOT_TOKEN'),
-        'username' => env('TELEGRAM_BOT_USERNAME')
+        'username' => env('TELEGRAM_BOT_USERNAME'),
+        'client_token' => env('TELEGRAM_CLIENT_TOKEN'),
+        'client_username' => env('TELEGRAM_CLIENT_USERNAME'),
     ],
 
     'cloudpayments' => [

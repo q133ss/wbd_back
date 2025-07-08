@@ -39,6 +39,16 @@ class StoreRequest extends FormRequest
                     if (Ad::where('product_id', $value)->where('status', true)->exists()) {
                         $fail('У вас уже есть активное объявление с этим товаром');
                     }
+
+                    if ($this->keywords !== null) {
+                        $totalRedemptionCount = collect($this->keywords)
+                            ->pluck('redemption_count')
+                            ->sum();
+
+                        if ($totalRedemptionCount > $user->redemption_count) {
+                            $fail('У вас недостаточно выкупов для указанных ключевых слов (нужно: ' . $totalRedemptionCount . ', доступно: ' . $user->redemption_count . ')');
+                        }
+                    }
                 },
             ],
             'name'                    => 'required|string|max:255',
