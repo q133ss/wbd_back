@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChatController\FileRejectRequest;
+use App\Http\Requests\ChatController\PaymentScreenRequest;
 use App\Http\Requests\ChatController\PhotoRequest;
 use App\Http\Requests\ChatController\ReviewRequest;
 use App\Http\Requests\ChatController\SendRequest;
@@ -125,6 +126,19 @@ class ChatController extends Controller
         }
     }
 
+    // TODO
+    //Покупатель:
+    //1) Заказ сделан, покупатель отправил фото
+    //2) INFO Продавец получил подтверждение вашего заказа.
+    //Он проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически.
+    //Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом
+    //3) Спасибо из админки
+    //4) Критерии отзыва
+    //
+    //Продавец:
+    //1) Спасибо из админки
+    //2) Критерии отзыва
+    //3) INFO У покупателя есть 14 дней с момента заказа, чтобы получить товар и оставить отзыв. Вы получите подтверждение оставленного отзыва в этом чате от покупателя как только он получит товар.
     public function photo(PhotoRequest $request, string $buyback_id)
     {
         $buyback = Buyback::findOrFail($buyback_id);
@@ -155,8 +169,11 @@ class ChatController extends Controller
                     }
 
                     $successText = 'Заказ сделан, покупатель отправил фото';
-                    $infoText = 'Продавец получил подтверждение вашего заказа.\n
+                    $buyerInfoText = 'Продавец получил подтверждение вашего заказа.\n
 Он проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом';
+
+
+                    $sellerInfoText = 'У покупателя есть 14 дней с момента заказа, чтобы получить товар и оставить отзыв. Вы получите подтверждение оставленного отзыва в этом чате от покупателя как только он получит товар. ';
 
                     // ждем 10 дней и отменяем
                     $data = ['is_order_photo_sent' => true, 'status' => 'awaiting_receipt'];
@@ -177,7 +194,9 @@ class ChatController extends Controller
                     }
 
                     $successText = 'Покупатель оставил отзыв и порезал штрихкод';
-                    $infoText = 'У продавца есть 24 часа чтобы проверить ваши материалы и подтвердить получение кэшбека. Если по истечению времени перевод не будет получен, свяжитесь с продавцом в этом чате, а так же с поддержкой через три точки в верхнем меню чата';
+                    $sellerSuccessText = 'Покупатель оставил отзыв и порезал штрихкод. Внимательно посмотрите фотографии и переведите кэшбек в размере 300 руб на счет пкупателя по реквизитам в чате.';
+
+                    $buyerInfoText = 'У продавца есть 24 часа чтобы проверить ваши материалы и подтвердить получение кэшбека. Если по истечению времени перевод не будет получен, свяжитесь с продавцом в этом чате, а так же с поддержкой через три точки в верхнем меню чата';
 
                     $data = ['is_review_photo_sent' => true, 'status' => 'on_confirmation'];
 
@@ -220,18 +239,39 @@ class ChatController extends Controller
             ]);
             (new SocketService)->send($successMsg, $buyback, false);
 
-            //2) info
-
-            $infoMsg = Message::create([
+            $sellerSuccessMsg = Message::create([
                 'sender_id'   => $buyback->ad?->user?->id,
                 'buyback_id'  => $buyback_id,
-                'text'        => $infoText,
+                'text'        => $sellerSuccessText,
+                'type'        => 'system',
+                'system_type' => 'success',
+                'created_at' => now(),
+            ]);
+            (new SocketService)->send($sellerSuccessMsg, $buyback, false);
+
+            //2) info
+
+            $buyerInfoMsg = Message::create([
+                'sender_id'   => $buyback->ad?->user?->id,
+                'buyback_id'  => $buyback_id,
+                'text'        => $buyerInfoText,
                 'type'        => 'system',
                 'system_type' => 'info',
                 'created_at' => now(),
             ]);
 
-            (new SocketService)->send($infoMsg, $buyback, false);
+            $sellerInfoMsg = Message::create([
+                'sender_id'   => $buyback->ad?->user?->id,
+                'buyback_id'  => $buyback_id,
+                'text'        => $sellerInfoText,
+                'type'        => 'system',
+                'system_type' => 'info',
+                'hide_for'    => 'user',
+                'created_at' => now(),
+            ]);
+
+            (new SocketService)->send($buyerInfoMsg, $buyback, false);
+            (new SocketService)->send($sellerInfoMsg, $buyback, false);
 
             // 3) Спасибо за заказ!
             $thxMsg = Message::create([
@@ -652,5 +692,108 @@ class ChatController extends Controller
             });
 
         return response()->json($chats);
+    }
+
+    public function paymentScreen(PaymentScreenRequest $request, string $buyback_id)
+    {
+        $buyback = Buyback::findOrFail($buyback_id);
+        $user = auth('sanctum')->user();
+        $user->checkBuyback($buyback);
+        //СКРЫТЬ У ЮЗЕРА (Вывести через JS) | Вы подтвердили материалы покупателя, теперь переведите сумму кэшбека на реквизиты покупателя.
+
+        $message = Message::create([
+            'buyback_id'  => $buyback_id,
+            'sender_id'   => auth('sanctum')->id(),
+            'text'        => 'Кэшбек переведен, прошу подтвердить поступление!',
+            'type'        => 'image',
+        ]);
+
+        $fileSrc = $request->file('file')->store('files', 'public');
+        $fileModel = File::create([
+            'fileable_type' => 'App\Models\Message',
+            'fileable_id'   => $message->id,
+            'src'           => $fileSrc,
+            'category'      => 'image'
+        ]);
+
+        $userMsg = Message::create([
+            'buyback_id'  => $buyback_id,
+            'sender_id'   => auth('sanctum')->id(),
+            'text'        => 'Подтвердите получение кэшбека. Если вы не получили кэшбек, свяжитесь с продавцом в этом чате. Если возник спор или продавец не отвечает, напишите в поддержку и мы решим вопрос',
+            'type'        => 'system',
+            'system_type' => 'info',
+            'hide_for'    => 'seller'
+        ]);
+
+        $sellerMsg = Message::create([
+            'buyback_id' => $buyback_id,
+            'sender_id' => auth('sanctum')->id,
+            'text' => 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически',
+            'type'        => 'system',
+            'system_type' => 'success',
+            'hide_for'    => 'user'
+        ]);
+
+        (new SocketService)->send($message, $buyback, false);
+        (new SocketService)->send($sellerMsg, $buyback, false);
+
+    }
+
+    // Подтверидть оплату (юзером)
+    public function acceptPayment(string $buyback_id)
+    {
+        $buyback = Buyback::findOrFail($buyback_id);
+        $user = auth('sanctum')->user();
+        $user->checkBuyback($buyback);
+
+        $messageSeller = Message::create([
+            'buyback_id' => $buyback_id,
+            'sender_id' => auth('sanctum')->id,
+            'text' => 'Покупатель подтвердил получение кэшбека. Оставьте отзыв о покупателе, чтобы увидеть отзыв покупателя о вас.',
+            'type'        => 'system',
+            'system_type' => 'success',
+            'hide_for'    => 'user'
+        ]);
+
+        $messageUser = Message::create([
+            'buyback_id' => $buyback_id,
+            'sender_id' => auth('sanctum')->id,
+            'text' => 'Вы подтвердили получение кэшбека. Оставьте отзыв о продавце, чтобы увидеть отзыв продавца о вас.',
+            'type'        => 'system',
+            'system_type' => 'success',
+            'hide_for'    => 'seller'
+        ]);
+
+        if($buyback->has_review_by_buyer == false){
+            $msgReviewSeller = Message::create([
+                'buyback_id' => $buyback_id,
+                'sender_id' => auth('sanctum')->id,
+                'text' => 'Покупатель еще не оставил отзыв о вас. Мы сообщим вам сразу же как покупатель напишет отзыв.',
+                'type'        => 'system',
+                'system_type' => 'success',
+                'hide_for'    => 'user'
+            ]);
+            (new SocketService)->send($msgReviewSeller, $buyback, false);
+        }
+
+        if($buyback->has_review_by_seller == false){
+            $msgReviewUser = Message::create([
+                'buyback_id' => $buyback_id,
+                'sender_id' => auth('sanctum')->id,
+                'text' => 'Продавец еще не оставил отзыв о вас. Мы сообщим вам сразу же как продавец напишет отзыв.',
+                'type'        => 'system',
+                'system_type' => 'success',
+                'hide_for'    => 'seller'
+            ]);
+            (new SocketService)->send($msgReviewUser, $buyback, false);
+        }
+
+        (new SocketService)->send($messageSeller, $buyback, false);
+        (new SocketService)->send($messageUser, $buyback, false);
+    }
+
+    public function rejectPayment()
+    {
+        //
     }
 }

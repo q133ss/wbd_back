@@ -23,6 +23,7 @@ return new class extends Migration
             )->nullable();
             $table->boolean('is_read')->default(false);
             $table->string('color')->default('#7F56D9')->comment('Цвет сообщения');
+            $table->enum('hide_for', ['seller', 'user'])->nullable()->comment('Скрыть для селлера или юзера');
             $table->timestamps();
         });
     }

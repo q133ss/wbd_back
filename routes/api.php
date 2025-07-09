@@ -24,6 +24,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/buybacks/{id}', [\App\Http\Controllers\Seller\BuybackController::class, 'show']);
         Route::post('/chat/{buyback}/file/{file}/approve', [\App\Http\Controllers\ChatController::class, 'fileApprove']);
         Route::post('/chat/{buyback}/file/{file}/reject', [\App\Http\Controllers\ChatController::class, 'fileReject']);
+        Route::post('/chat/{id}/payment/screen', [\App\Http\Controllers\ChatController::class, 'paymentScreen']);
         Route::post('/chat/{buyback}/complete', [\App\Http\Controllers\ChatController::class, 'complete']);
         Route::get('/buybacks-count', [\App\Http\Controllers\Seller\BuybackController::class, 'count']);
     });
@@ -103,6 +104,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/buyback/{id}/cancel', [\App\Http\Controllers\ChatController::class, 'cancel']);
     Route::post('/chat/{id}/photo', [\App\Http\Controllers\ChatController::class, 'photo']);
     Route::post('/chat/{id}/review', [\App\Http\Controllers\ChatController::class, 'review']);
+    Route::post('/chat/{id}/accept/payment', [\App\Http\Controllers\ChatController::class, 'acceptPayment']);
     // Шаблоны
     Route::apiResource('template', \App\Http\Controllers\TemplateController::class)->except('store', 'destroy');
 
