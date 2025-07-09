@@ -6,6 +6,7 @@ use App\Models\Ad;
 use App\Models\Shop;
 use App\Models\User;
 use App\Services\WBService;
+use http\Env\Request;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Auth;
@@ -92,9 +93,10 @@ class ReviewSeed extends Seeder
             // 2 Авторизуемся под пользователем
             Auth::login($user);
 
+            $request = new \Illuminate\Http\Request();
             try {
                 // 3. Создаем товар через WBService
-                $response = $wbService->addProduct($article);
+                $response = $wbService->addProduct($request, $article);
 
                 if ($response->getData()->status !== 'true') {
                     $this->command->error("Failed to create product for article {$article}: " . $response->getData()->message);
