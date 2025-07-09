@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Ad;
+use App\Models\Admin\Settings;
 use App\Models\Category;
 use App\Models\File;
 use App\Models\Product;
@@ -25,6 +26,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->command->info('Создание ролей');
         $roles = [
             ['slug' => 'admin', 'name' => 'Админ'],
             ['slug' => 'buyer', 'name' => 'Покупатель'],
@@ -32,103 +34,6 @@ class DatabaseSeeder extends Seeder
         ];
         Role::insert($roles);
 
-        $alexey = User::factory()->create([
-            'name'             => 'Алексей',
-            'email'            => 'alexey@email.net',
-            'phone'            => '+7(951)867-70-86',
-            'redemption_count' => 100,
-            'balance'          => 10000,
-            'password'         => bcrypt('password'),
-            'role_id'          => Role::where('slug', 'seller')->pluck('id')->first(),
-            'telegram_id'      => '461612832'
-        ]);
-
-        $template = new Template();
-        $template->createDefault($alexey->id);
-
-        Shop::create([
-            'user_id'     => User::where('email', 'alexey@email.net')->pluck('id')->first(),
-            'supplier_id' => '23274',
-            'inn'         => '7724409915',
-            'legal_name'  => 'УЗКОТТОН ООО',
-            'wb_name'     => 'UZcotton',
-        ]);
-
-        if (env('APP_ENV') === 'production') {
-            $this->command->info('Импорт категорий..');
-            Artisan::call('categories:import');
-
-            Category::create([
-                'name' => 'Школа',
-            ]);
-
-            Category::create([
-                'name' => 'Без категории',
-            ]);
-
-            //$this->command->info('Фото для категорий');
-
-            // Список категорий
-//            $categories_list = [
-//                'Женщинам',
-//                'Обувь',
-//                'Детям',
-//                'Мужчинам',
-//                'Дом',
-//                'Красота',
-//                'Аксессуары',
-//                'Электроника',
-//                'Игрушки',
-//                'Мебель',
-//                'Товары для взрослых',
-//                'Продукты',
-//                'Цветы',
-//                'Бытовая техника',
-//                'Зоотовары',
-//                'Спорт',
-//                'Автотовары',
-//                'Школа',
-//                'Книги',
-//                'Ювелирные изделия',
-//                'Для ремонта',
-//                'Сад и дача',
-//                'Здоровье',
-//                'Канцтовары',
-//                'Акции',
-//                'Культурный код',
-//            ];
-//
-//            $categories = Category::whereIn('name', $categories_list)->get();
-//            foreach ($categories as $category) {
-//                File::create([
-//                    'fileable_type' => 'App\Models\Category',
-//                    'fileable_id'   => $category->id,
-//                    'category'      => 'img',
-//                    'src'           => 'images/categories/'.$category->name.'.jpg',
-//                ]);
-//                $this->command->info("Фото для категории: {$category->name}");
-//            }
-        }
-
-        $admin = User::create([
-            'name'             => 'admin',
-            'email'            => 'admin@email.net',
-            'redemption_count' => 100,
-            'balance'          => 10000,
-            'phone'            => '+7(999)999-99-99',
-            'password'         => bcrypt('password'),
-            'role_id'          => Role::where('slug', 'admin')->pluck('id')->first(),
-        ]);
-
-        Shop::create([
-            'user_id'     => User::where('email', 'admin@email.net')->pluck('id')->first(),
-            'supplier_id' => '83274',
-            'inn'         => '772440935',
-            'legal_name'  => 'Магазин 123',
-            'wb_name'     => 'shop123',
-        ]);
-
-        $template->createDefault($admin->id);
 
         $this->command->info('Создаем тарифы');
 
@@ -176,18 +81,54 @@ class DatabaseSeeder extends Seeder
             'redemption_price' => 80
         ]);
 
-        // Промокод
 
-        Promocode::create([
-            'name'           => 'Тестовый промокод',
-            'promocode'      => 'test2025',
-            'start_date'     => now(),
-            'end_date'       => now()->addDays(30),
-            'buybacks_count' => 10,
-            'max_usage'      => 5,
+        $this->command->info('Создаем настройки');
+        $settings = [
+            [
+                'key' => 'review_cashback_instructions ',  // Инструкция покупателю (текст сообщения после отправки скрина)
+                'value' => 'Спасибо за заказ!\n\nЧтобы получить кэшбек в размере {cashback}Р, вам нужно получить товар и написать отзыв.\n\nЗатем вам нужно загрузить 2 медиафайла:1) Фото с порезаным штрихкодом (чтобы не было возможности сдать товар обратно).\n\n2) Скрин из кабинета Вб, где виден текст оставленного вами отзыва на наш товар'
+            ],
+            [
+                'key' => 'cashback_review_message', // После отправки 2х скринов!
+                'value' => 'Спасибо за материалы! Мы проверим их, и если все корректно, то переведем кэшбека в размере {cashback} Рублей на ваши реквизиты!'
+            ]
+        ];
+
+        foreach ($settings as $setting) {
+            Settings::updateOrCreate(
+                ['key' => $setting['key']],
+                ['value' => $setting['value']]
+            );
+        }
+
+        $this->command->info('Создаем пользователей. Продавец, админ, покупатель');
+        $alexey = User::factory()->create([
+            'name'             => 'Алексей',
+            'email'            => 'alexey@email.net',
+            'phone'            => '+7(951)867-70-86',
+            'redemption_count' => 100,
+            'balance'          => 10000,
+            'password'         => bcrypt('password'),
+            'role_id'          => Role::where('slug', 'seller')->pluck('id')->first(),
+            'telegram_id'      => '461612832'
         ]);
 
-        $buyer = User::create([
+        $template = new Template();
+        $template->createDefault($alexey->id);
+
+        $admin = User::create([
+            'name'             => 'admin',
+            'email'            => 'admin@email.net',
+            'redemption_count' => 100,
+            'balance'          => 10000,
+            'phone'            => '+7(999)999-99-99',
+            'password'         => bcrypt('password'),
+            'role_id'          => Role::where('slug', 'admin')->pluck('id')->first(),
+        ]);
+
+        $template->createDefault($admin->id);
+
+        User::create([
             'name'             => 'Покупатель',
             'email'            => 'buyer@email.net',
             'redemption_count' => 0,
@@ -197,38 +138,22 @@ class DatabaseSeeder extends Seeder
             'role_id'          => Role::where('slug', 'buyer')->pluck('id')->first(),
         ]);
 
-        Shop::create([
-            'user_id'     => User::where('email', 'buyer@email.net')->pluck('id')->first(),
-            'supplier_id' => '83224',
-            'inn'         => '732440935',
-            'legal_name'  => 'Магазин 2',
-            'wb_name'     => 'shop2',
+        // Все, что ниже можно смело удалять, если не нужно
+
+        $this->command->info('Создаем тестовый промокод');
+        Promocode::create([
+            'name'           => 'Тестовый промокод',
+            'promocode'      => 'test2025',
+            'start_date'     => now(),
+            'end_date'       => now()->addDays(30),
+            'buybacks_count' => 10,
+            'max_usage'      => 5,
         ]);
 
-        $template->createDefault($buyer->id);
-
+        $this->command->info('Импортируем категории');
         $this->command->call('categories:import');
 
+        $this->command->info('Создаем тестовые товары и объявления');
         $this->call(ReviewSeed::class);
-
-        $testBuyer = User::create([
-            'name'             => 'Иван',
-            'email'            => 'ivan123@email.net',
-            'redemption_count' => 10000,
-            'balance'          => 10000,
-            'phone'            => '+7(555)555-55-55',
-            'password'         => bcrypt('password'),
-            'role_id'          => Role::where('slug', 'buyer')->pluck('id')->first(),
-        ]);
-
-        $testSeller = User::create([
-            'name'             => 'Сергей',
-            'email'            => 'serget@email.net',
-            'redemption_count' => 10000,
-            'balance'          => 10000,
-            'phone'            => '+7(666)666-66-66',
-            'password'         => bcrypt('password'),
-            'role_id'          => Role::where('slug', 'seller')->pluck('id')->first(),
-        ]);
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\ChatController\ReviewRequest;
 use App\Http\Requests\ChatController\SendRequest;
 use App\Jobs\DeliveryJob;
 use App\Jobs\ReviewJob;
+use App\Models\Admin\Settings;
 use App\Models\Buyback;
 use App\Models\File;
 use App\Models\Message;
@@ -107,6 +108,7 @@ class ChatController extends Controller
                 'text'        => $text,
                 'type'        => 'system',
                 'system_type' => 'cancel',
+                'created_at' => now(),
             ]);
             DB::commit();
 
@@ -138,7 +140,10 @@ class ChatController extends Controller
         try {
             $data = [];
 
-            $text = 'Файл успешно отправлен, ожидайте подтверждения от продавца';
+            //Продавец получил подтверждение вашего заказа.
+            //Он проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически.  Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом 
+
+            $reviewCriteriaText = null;
             switch ($request->file_type) {
                 case 'send_photo':
                     if($buyback->is_order_photo_sent){
@@ -149,8 +154,16 @@ class ChatController extends Controller
                         abort(403, 'На данном этапе отправить фото невозможно');
                     }
 
+                    $successText = 'Заказ сделан, покупатель отправил фото';
+                    $infoText = 'Продавец получил подтверждение вашего заказа.\n
+Он проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом';
+
                     // ждем 10 дней и отменяем
-                    $data = ['is_order_photo_sent' => true];
+                    $data = ['is_order_photo_sent' => true, 'status' => 'awaiting_receipt'];
+
+                    $thxText = Settings::where('key','review_cashback_instructions')->pluck('value')->first();
+                    $reviewCriteriaText = $ad->review_criteria ?? null;
+
                     DeliveryJob::dispatch($buyback)->delay(now()->addDays(10));
                     break;
                 case 'review':
@@ -163,8 +176,14 @@ class ChatController extends Controller
                         abort(403, 'На данном этапе отправить фото невозможно');
                     }
 
-                    $data = ['is_review_photo_sent' => true];
-                    ReviewJob::dispatch($buyback)->delay(now()->addHours(72));
+                    $successText = 'Покупатель оставил отзыв и порезал штрихкод';
+                    $infoText = 'У продавца есть 24 часа чтобы проверить ваши материалы и подтвердить получение кэшбека. Если по истечению времени перевод не будет получен, свяжитесь с продавцом в этом чате, а так же с поддержкой через три точки в верхнем меню чата';
+
+                    $data = ['is_review_photo_sent' => true, 'status' => 'on_confirmation'];
+
+                    $thxText = Settings::where('key','cashback_review_message')->pluck('value')->first();
+
+                    ReviewJob::dispatch($buyback)->delay(now()->addHours(24));
                     break;
             }
 
@@ -174,6 +193,7 @@ class ChatController extends Controller
                 'buyback_id'  => $buyback_id,
                 'type'        => 'image',
                 'system_type' => $request->file_type,
+                'created_at' => now(),
             ]);
             foreach ($request->file('files') as $file) {
                 $fileSrc = $file->store('files', 'public');
@@ -189,13 +209,52 @@ class ChatController extends Controller
 
             $buyback->update($data);
 
-            $afterMsg = Message::create([
+            // 1) Заказ сделан, покупатель отправил фото
+            $successMsg = Message::create([
                 'sender_id'   => $buyback->ad?->user?->id,
                 'buyback_id'  => $buyback_id,
-                'text'        => $text,
-                'type'        => 'text'
+                'text'        => $successText,
+                'type'        => 'system',
+                'system_type' => 'success',
+                'created_at' => now(),
             ]);
-            (new SocketService)->send($afterMsg, $buyback, false);
+            (new SocketService)->send($successMsg, $buyback, false);
+
+            //2) info
+
+            $infoMsg = Message::create([
+                'sender_id'   => $buyback->ad?->user?->id,
+                'buyback_id'  => $buyback_id,
+                'text'        => $infoText,
+                'type'        => 'system',
+                'system_type' => 'info',
+                'created_at' => now(),
+            ]);
+
+            (new SocketService)->send($infoMsg, $buyback, false);
+
+            // 3) Спасибо за заказ!
+            $thxMsg = Message::create([
+                'sender_id'   => $buyback->ad?->user?->id,
+                'buyback_id'  => $buyback_id,
+                'text'        => $thxText,
+                'type'        => 'text',
+                'created_at' => now()
+            ]);
+            (new SocketService)->send($thxMsg, $buyback, false);
+
+            // 4) Критерии отзыва!
+            if($reviewCriteriaText != null) {
+                $reviewCriteria = Message::create([
+                    'sender_id' => $buyback->ad?->user?->id,
+                    'buyback_id' => $buyback_id,
+                    'text' => $reviewCriteriaText,
+                    'type' => 'text',
+                    'created_at' => now()
+                ]);
+                (new SocketService)->send($reviewCriteria, $buyback, false);
+            }
+
 
             DB::commit();
 
