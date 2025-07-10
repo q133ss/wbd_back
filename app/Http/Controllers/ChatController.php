@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChatController\CancelRequest;
 use App\Http\Requests\ChatController\FileRejectRequest;
 use App\Http\Requests\ChatController\PaymentScreenRequest;
 use App\Http\Requests\ChatController\PhotoRequest;
@@ -83,7 +84,7 @@ class ChatController extends Controller
         return response()->json(['success' => false]);
     }
 
-    public function cancel(string $id)
+    public function cancel(CancelRequest $request, string $id)
     {
         $user = auth('sanctum')->user();
 
