@@ -100,7 +100,7 @@ class ChatController extends Controller
             $isSeller = $buyback->user_id != auth('sanctum')->id();
             $text     = '';
             if ($isSeller) {
-                $text = 'Выкуп отменен по инициативе продавца';
+                $text = 'Выкуп отменен по инициативе продавца. Причина: '.$request->comment;
             } else {
                 $text = 'Выкуп отменен по инициативе покупателя';
             }
@@ -247,6 +247,7 @@ class ChatController extends Controller
                     'text' => $sellerSuccessText,
                     'type' => 'system',
                     'system_type' => 'success',
+                    'hide_for' => 'user',
                     'created_at' => now(),
                 ]);
                 (new SocketService)->send($sellerSuccessMsg, $buyback, false);
@@ -702,10 +703,14 @@ class ChatController extends Controller
 
     public function paymentScreen(PaymentScreenRequest $request, string $buyback_id)
     {
+        // TODO Transaction
         $buyback = Buyback::findOrFail($buyback_id);
         $user = auth('sanctum')->user();
         $user->checkBuyback($buyback);
-        //СКРЫТЬ У ЮЗЕРА (Вывести через JS) | Вы подтвердили материалы покупателя, теперь переведите сумму кэшбека на реквизиты покупателя.
+
+        if($buyback->status != 'on_confirmation'){
+            abort(403, 'У вас нет прав на это действие');
+        }
 
         $message = Message::create([
             'buyback_id'  => $buyback_id,
@@ -733,7 +738,7 @@ class ChatController extends Controller
 
         $sellerMsg = Message::create([
             'buyback_id' => $buyback_id,
-            'sender_id' => auth('sanctum')->id,
+            'sender_id' => auth('sanctum')->id(),
             'text' => 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически',
             'type'        => 'system',
             'system_type' => 'success',
@@ -742,7 +747,11 @@ class ChatController extends Controller
 
         (new SocketService)->send($message, $buyback, false);
         (new SocketService)->send($sellerMsg, $buyback, false);
+        $buyback->update(['status' => 'cashback_received']);
 
+        return response()->json([
+            'message' => 'true'
+        ]);
     }
 
     // Подтверидть оплату (юзером)
