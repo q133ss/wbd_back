@@ -40,7 +40,9 @@ class ShowResource extends JsonResource
             'is_archived' => $this->is_archived,
             'status' => $this->status,
             'ad' => $this->ad,
-            'user' => $this->user
+            'user' => $this->user,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
 
         if ($this->messages instanceof LengthAwarePaginator) {
