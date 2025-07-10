@@ -105,7 +105,8 @@ class User extends Authenticatable
             'is_configured' => $this->is_configured,
             'shop'          => $this->shop,
             'role'          => $this->role,
-            'is_online'     => $this->is_online
+            'is_online'     => $this->is_online,
+            'last_seen_at'  => $this->last_seen_at
         ];
     }
 

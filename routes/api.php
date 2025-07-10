@@ -105,6 +105,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/chat/{id}/photo', [\App\Http\Controllers\ChatController::class, 'photo']);
     Route::post('/chat/{id}/review', [\App\Http\Controllers\ChatController::class, 'review']);
     Route::post('/chat/{id}/accept/payment', [\App\Http\Controllers\ChatController::class, 'acceptPayment']);
+    Route::get('/chat/{id}/last_seen', [\App\Http\Controllers\ChatController::class, 'lastSeen']);
     // Шаблоны
     Route::apiResource('template', \App\Http\Controllers\TemplateController::class)->except('store', 'destroy');
 

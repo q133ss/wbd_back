@@ -239,15 +239,17 @@ class ChatController extends Controller
             ]);
             (new SocketService)->send($successMsg, $buyback, false);
 
-            $sellerSuccessMsg = Message::create([
-                'sender_id'   => $buyback->ad?->user?->id,
-                'buyback_id'  => $buyback_id,
-                'text'        => $sellerSuccessText,
-                'type'        => 'system',
-                'system_type' => 'success',
-                'created_at' => now(),
-            ]);
-            (new SocketService)->send($sellerSuccessMsg, $buyback, false);
+            if(isset($sellerSuccessText)) {
+                $sellerSuccessMsg = Message::create([
+                    'sender_id' => $buyback->ad?->user?->id,
+                    'buyback_id' => $buyback_id,
+                    'text' => $sellerSuccessText,
+                    'type' => 'system',
+                    'system_type' => 'success',
+                    'created_at' => now(),
+                ]);
+                (new SocketService)->send($sellerSuccessMsg, $buyback, false);
+            }
 
             //2) info
 
@@ -260,18 +262,20 @@ class ChatController extends Controller
                 'created_at' => now(),
             ]);
 
-            $sellerInfoMsg = Message::create([
-                'sender_id'   => $buyback->ad?->user?->id,
-                'buyback_id'  => $buyback_id,
-                'text'        => $sellerInfoText,
-                'type'        => 'system',
-                'system_type' => 'info',
-                'hide_for'    => 'user',
-                'created_at' => now(),
-            ]);
+            if(isset($sellerInfoText)) {
+                $sellerInfoMsg = Message::create([
+                    'sender_id' => $buyback->ad?->user?->id,
+                    'buyback_id' => $buyback_id,
+                    'text' => $sellerInfoText,
+                    'type' => 'system',
+                    'system_type' => 'info',
+                    'hide_for' => 'user',
+                    'created_at' => now(),
+                ]);
+                (new SocketService)->send($sellerInfoMsg, $buyback, false);
+            }
 
             (new SocketService)->send($buyerInfoMsg, $buyback, false);
-            (new SocketService)->send($sellerInfoMsg, $buyback, false);
 
             // 3) Спасибо за заказ!
             $thxMsg = Message::create([
@@ -304,6 +308,7 @@ class ChatController extends Controller
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error($e->getMessage());
             return response()->json([
                 'status'  => 'false',
                 'message' => $e->getMessage() ? $e->getMessage() : 'Произошла ошибка, попробуйте еще раз',
@@ -795,5 +800,16 @@ class ChatController extends Controller
     public function rejectPayment()
     {
         //
+    }
+
+    public function lastSeen(string $id)
+    {
+        $buyback = Buyback::findOrFail($id);
+
+        return response()->json([
+            'buyer' => $buyback->user?->last_seen_at,
+            'seller' => $buyback->ad?->user?->last_seen_at
+        ]);
+
     }
 }
