@@ -292,8 +292,8 @@ class WBService extends BaseService
             [2190, 2405, '15'],
             [2406, 2621, '16'],
             [2622, 2837, '17'],
-            [2838, 3000, '18'],
-            [3001, 3279, '19'],
+            [2838, 3004, '18'],
+            [3005, 3279, '19'],
             [3280, 3443, '20'],
             [3444, 3623, '21'],
             [3624, 3994, '22'],
@@ -462,10 +462,11 @@ class WBService extends BaseService
         $product     = $this->loadProductData($product_id);
         if($product != null){
             $getSupplier = $this->getSupplier($product['supplierId']);
+
             $shop        = [
                 'supplier_id' => $product['supplierId'],
-                'inn'         => $getSupplier['inn'],
-                'legal_name'  => $getSupplier['supplierName'],
+                'inn'         => $getSupplier['inn'] ?? null,
+                'legal_name'  => $getSupplier['supplierName'] ?? null,
                 'wb_name'     => $getSupplier['trademark'] ?? $getSupplier['supplierName'],
             ];
 
@@ -497,10 +498,10 @@ class WBService extends BaseService
     {
         try {
             $prepareData = $this->prepareProductData($product_id);
-
             return response()->json($prepareData);
         } catch (\Exception $e) {
             \Log::error($e);
+            \Log::channel('wb')->error('ОШИБКА ЗАГРУЗКИ ТОВАРА:'.$e->getMessage(), ['exception' => $e]);
             $response = $this->formatResponse('false', 'Ошибка получения товара', 500);
 
             return $this->sendResponse($response);
@@ -648,7 +649,7 @@ class WBService extends BaseService
             return $this->sendResponse($response);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error adding product: '.$e->getMessage(), ['exception' => $e]);
+            \Log::channel('wb')->error('ОШИБКА ДОБАВЛЕНИЯ ТОВАРА:'.$e->getMessage(), ['exception' => $e]);
             $response = $this->formatResponse('false', 'Ошибка, попробуйте еще раз', $e->getCode());
 
             return $this->sendResponse($response);

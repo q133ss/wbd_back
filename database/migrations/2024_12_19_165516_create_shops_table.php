@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('supplier_id')->comment('ID магазина с ВБ');
-            $table->string('inn');
-            $table->string('legal_name')->comment('Наименование юр лица');
-            $table->string('wb_name')->comment('Название на ВБ');
+            $table->string('inn')->nullable();
+            $table->string('legal_name')->nullable()->comment('Наименование юр лица');
+            $table->string('wb_name')->nullable()->comment('Название на ВБ');
             $table->timestamps();
         });
     }

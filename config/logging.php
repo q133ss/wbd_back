@@ -132,6 +132,12 @@ return [
             'path'   => storage_path('logs/pay.log'),
             'level'  => 'info',
         ],
+
+        'wb' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/wb.log'),
+            'level'  => 'info',
+        ],
     ],
 
 ];

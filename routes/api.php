@@ -139,6 +139,8 @@ Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class,
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
 
 Route::get('/qq', function (){
-    $role_id = App\Models\User::where('telegram_id', 461612832)->pluck('role_id')->first();
-    dd($role_id === 3);
+    $buyback = App\Models\Buyback::find(3);
+    $cashback = round($buyback->product_price - $buyback->price_with_cashback);
+    $thxText = str_replace(['{cashback}'], [$cashback], \App\Models\Admin\Settings::where('key','review_cashback_instructions')->pluck('value')->first());
+    dd($thxText);
 });

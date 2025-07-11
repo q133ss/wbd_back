@@ -154,6 +154,7 @@ class ChatController extends Controller
         DB::beginTransaction();
         try {
             $data = [];
+            $cashback = round($buyback->product_price - $buyback->price_with_cashback);
 
             //Продавец получил подтверждение вашего заказа.
             //Он проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически.  Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом 
@@ -170,7 +171,7 @@ class ChatController extends Controller
                     }
 
                     $successText = 'Заказ сделан, покупатель отправил фото';
-                    $buyerInfoText = 'Продавец получил подтверждение вашего заказа.\n
+                    $buyerInfoText = 'Продавец получил подтверждение вашего заказа.<br>
 Он проверит фотографию - если заказ сделан корректно, то все в порядке и сделка продолжится автоматически. Если вы загрузили некорректную фотографию или заказали не тот товар, то Продавец вправе отменить вашу заявку. Вы получите соответствующее уведомление об этом';
 
 
@@ -179,7 +180,9 @@ class ChatController extends Controller
                     // ждем 10 дней и отменяем
                     $data = ['is_order_photo_sent' => true, 'status' => 'awaiting_receipt'];
 
-                    $thxText = Settings::where('key','review_cashback_instructions')->pluck('value')->first();
+                    // Переменные!
+                    $thxText = str_replace(['{cashback}'], [$cashback], \App\Models\Admin\Settings::where('key','review_cashback_instructions')->pluck('value')->first());
+
                     $reviewCriteriaText = $ad->review_criteria ?? null;
 
                     DeliveryJob::dispatch($buyback)->delay(now()->addDays(10));
@@ -199,9 +202,55 @@ class ChatController extends Controller
 
                     $buyerInfoText = 'У продавца есть 24 часа чтобы проверить ваши материалы и подтвердить получение кэшбека. Если по истечению времени перевод не будет получен, свяжитесь с продавцом в этом чате, а так же с поддержкой через три точки в верхнем меню чата';
 
+                    // Тут формируем реквизиты!
+                    $bankMap = [
+                        'sber' => 'Сбербанк',
+                        'tbank' => 'Тинькофф',
+                        'ozon' => 'Ozon',
+                        'alfa' => 'Альфа-Банк',
+                        'vtb' => 'ВТБ',
+                        'raiffeisen' => 'Райффайзен',
+                        'gazprombank' => 'Газпромбанк',
+                        'sbp' => 'СБП',
+                    ];
+
+                    $lines = [];
+
+                    $methods = $buyback->user?->paymentMethod;
+                    foreach ($bankMap as $key => $name) {
+                        $card = $methods->$key ?? null;
+
+                        if (!$card) {
+                            continue;
+                        }
+
+                        if ($key === 'sbp') {
+                            $comment = $methods->sbp_comment ?? '';
+                            $lines[] = "По СБП: $card" . ($comment ? " ({$comment})" : '');
+                        } else {
+                            // Форматируем номер карты по 4 цифры
+                            $formattedCard = trim(chunk_split($card, 4, ' '));
+                            $lines[] = "Карта {$name}: {$formattedCard}";
+                        }
+                    }
+
+                    $paymentMethodText = implode("<br>", $lines);
+
+                    $cashbackAmount = number_format($cashback, 0, '.', ' ') . ' ₽'; // Форматируем сумму с пробелом между тысячами
+                    $paymentText = "Прошу проверить материалы и перевести кэшбек <strong>{$cashbackAmount}</strong> по реквизитам: <br><br>{$paymentMethodText}";
+
+                    $paymentMessage = Message::create([
+                        'buyback_id'  => $buyback->id,
+                        'sender_id'   => $buyback->user_id,
+                        'text'        => $paymentText,
+                        'type'        => 'text'
+                    ]);
+                    ////////////////////////////
+
                     $data = ['is_review_photo_sent' => true, 'status' => 'on_confirmation'];
 
-                    $thxText = Settings::where('key','cashback_review_message')->pluck('value')->first();
+                    // Подставляем переменные
+                    $thxText = str_replace(['{cashback}'], [$cashback], Settings::where('key','cashback_review_message')->pluck('value')->first());
 
                     ReviewJob::dispatch($buyback)->delay(now()->addHours(24));
                     break;
@@ -263,6 +312,10 @@ class ChatController extends Controller
                 'system_type' => 'info',
                 'created_at' => now(),
             ]);
+
+            if(isset($paymentMessage)){
+                (new SocketService)->send($paymentMessage, $buyback, false);
+            }
 
             if(isset($sellerInfoText)) {
                 $sellerInfoMsg = Message::create([
@@ -434,10 +487,10 @@ class ChatController extends Controller
                         }
                     }
 
-                    $paymentMethodText = implode("\n", $lines);
+                    $paymentMethodText = implode("<br>", $lines);
 
                     $cashbackAmount = number_format($cashback, 0, '.', ' ') . ' ₽'; // Форматируем сумму с пробелом между тысячами
-                    $paymentText = "Переведите кэшбек в размере {$cashbackAmount}\n{$paymentMethodText}";
+                    $paymentText = "Переведите кэшбек в размере {$cashbackAmount}<br>{$paymentMethodText}";
 
                     $paymentMessage = Message::create([
                         'buyback_id'  => $file->fileable?->buyback_id,
