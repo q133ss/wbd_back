@@ -310,6 +310,7 @@ class ChatController extends Controller
                 'text'        => $buyerInfoText,
                 'type'        => 'system',
                 'system_type' => 'info',
+                'hide_for'    => 'seller',
                 'created_at' => now(),
             ]);
 
@@ -800,7 +801,6 @@ class ChatController extends Controller
 
         (new SocketService)->send($message, $buyback, false);
         (new SocketService)->send($sellerMsg, $buyback, false);
-        $buyback->update(['status' => 'cashback_received']);
 
         return response()->json([
             'message' => 'true'
@@ -813,6 +813,11 @@ class ChatController extends Controller
         $buyback = Buyback::findOrFail($buyback_id);
         $user = auth('sanctum')->user();
         $user->checkBuyback($buyback);
+
+        $isSeller = $buyback->user_id != auth('sanctum')->id();
+        if($isSeller){
+            abort(403, 'Вы не можете выполнить это действие');
+        }
 
         $messageSeller = Message::create([
             'buyback_id' => $buyback_id,

@@ -7,6 +7,7 @@ use App\Http\Resources\BuybackController\ShowResource;
 use App\Models\Buyback;
 use App\Models\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BuybackController extends Controller
 {
@@ -61,8 +62,25 @@ class BuybackController extends Controller
 
     public function count()
     {
+        $userId = auth('sanctum')->id();
+
+        $count = DB::table('messages')
+            ->where('is_read', 0)
+            ->where('sender_id', '!=', $userId)
+            ->whereIn('buyback_id', function ($query) use ($userId) {
+                $query->select('id')
+                    ->from('buybacks')
+                    ->whereIn('ads_id', function ($q) use ($userId) {
+                        $q->select('id')
+                            ->from('ads')
+                            ->where('user_id', $userId);
+                    });
+            })
+            ->distinct('buyback_id')
+            ->count('buyback_id');
+
         return response()->json([
-            'count' => auth()->user()->buybacks()->where('buybacks.status', 'pending')->count()
+            'count' => $count
         ]);
     }
 
