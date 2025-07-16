@@ -739,16 +739,23 @@ class ChatController extends Controller
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function($buyback) {
+                $currentUserId = auth('sanctum')->id();
                 $userId = $buyback->ad?->user_id;
                 $isBuyer = $buyback->user_id == $userId;
 
                 // Добавляем whoSend для каждого сообщения
-                $buyback->messages->each(function($message) use ($isBuyer, $buyback) {
+                $unreadCount = 0;
+                $buyback->messages->each(function($message) use ($isBuyer, $buyback, &$unreadCount, $currentUserId) {
                     $message->whoSend = ($message->sender_id == $buyback->user_id) == $isBuyer
                         ? 'buyer'
                         : 'seller';
+
+                    if (!$message->is_read && $message->sender_id !== $currentUserId) {
+                        $unreadCount++;
+                    }
                 });
 
+                $buyback->unread_messages_count = $unreadCount;
                 return $buyback;
             });
 
