@@ -26,6 +26,7 @@ class TelegramService
             // Проверяем, является ли текст командой /start с параметром
             if (strpos($text, '/start') === 0) {
                 $startPayload = trim(str_replace('/start', '', $text));
+                \Log::info('Ya tut');
                 $this->startCommand($chatId, $startPayload);
             } else {
                 $this->sendMessage($chatId, 'Неизвестная команда');
@@ -34,39 +35,37 @@ class TelegramService
     }
 
     // Метод для отправки сообщения
-    public function sendMessage($chatId, $text, $keyboard = []): void
-    {
-        $role_id = User::where('telegram_id', $chatId)->pluck('role_id')->first();
-        if($role_id == 3){
-            $token = $this->token;
-        }else{
-            $token = $this->clientToken;
-        }
+    public function sendMessage($chatId, $text, array $keyboard = []): void {
+        // Экранируем текст MarkdownV2 (если используете Markdown)
+        $escaped = preg_replace_callback(
+            '/[_\*\[\]\(\)~`>#\+\-=|{}\.\!]/',
+            fn($m) => '\\' . $m[0],
+            $text
+        );
 
-        $url = "https://api.telegram.org/bot$token/sendMessage";
-
-        // Создаем базовый массив данных для отправки
         $data = [
-            'chat_id' => $chatId,
-            'text' => $text,
+            'chat_id'    => $chatId,
+            'text'       => $escaped,
+            'parse_mode' => 'MarkdownV2',
         ];
 
-        // Если передан массив $keyboard, добавляем его как InlineKeyboard
         if (!empty($keyboard)) {
-            $data['reply_markup'] = json_encode([
-                'inline_keyboard' => $keyboard,
-            ]);
+            $data['reply_markup'] = $keyboard; // Уже передаем готовую структуру клавиатуры
         }
 
-        // Отправляем запрос к Telegram API
-        file_get_contents($url, false, stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => 'Content-Type: application/json',
-                'content' => json_encode($data),
-            ],
-        ]));
+        $ch = curl_init("https://api.telegram.org/bot{$this->token}/sendMessage");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        \Log::info('Telegram response', ['resp' => $response]);
     }
+
+
 
     // Отправка файла
     public function sendFile($chatId, $filePath, $caption = '', $keyboard = []): void
@@ -110,6 +109,7 @@ class TelegramService
     private function startCommand($chatId, $startPayload = null): void
     {
 
+        \Log::info('Теперь тут');
         if ($startPayload) {
             // Пытаемся найти пользователя по токену
             $userId = cache()->get("telegram_auth:{$startPayload}");
@@ -140,11 +140,13 @@ class TelegramService
 ✅ **Сообщения** — получайте уведомления о новых сообщениях и оперативно реагируйте на них.
 
 ✅ **И многое другое** — бот поможет вам эффективно управлять вашими выкупами на WBDiscount.";
+        \Log::info('Перед первой отправкой');
         $this->sendMessage($chatId, $welcomeMessage);
 
         // Проверяем пользователя в БД
         $user = User::where('telegram_id', $chatId)->first();
         $webAppUrl = config('app.web_app_url');
+        \Log::info('Я ТУТТУТУТ');
         if (!$user) {
             $registrationLink = config('app.frontend_url') . '/register'; // Ссылка на страницу регистрации на сайте
             $message = "⚠️ Вы пока не зарегистрированы в системе. Для начала работы пройдите регистрацию на нашем сайте.";
