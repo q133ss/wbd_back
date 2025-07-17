@@ -17,37 +17,17 @@
 @endsection
 @section('scripts')
     <script>
-        function share() {
-            const tg = window.Telegram.WebApp;
+        window.Telegram.WebApp.ready();
 
-            // Если WebApp поддерживает запрос контакта
-            if (tg.platform !== 'unknown') {
-                tg.showPopup({
-                    title: 'Поделиться контактом',
-                    message: 'Разрешить доступ к вашему номеру телефона?',
-                    buttons: [
-                        {
-                            type: 'default',
-                            text: 'Отмена',
-                        },
-                        {
-                            type: 'ok',
-                            text: 'Разрешить',
-                            request_contact: true, // Запрашиваем контакт
-                        }
-                    ]
-                }, (buttonId) => {
-                    if (buttonId === 'ok') {
-                        tg.sendData(JSON.stringify({
-                            action: 'share_contact',
-                            phone: tg.initDataUnsafe.user?.phone_number,
-                        }));
-                    }
-                });
-            } else {
-                // Альтернативный вариант (если WebApp не поддерживает контакты)
-                alert('Пожалуйста, поделитесь номером вручную.');
-            }
+        function share() {
+            Telegram.WebApp.requestContact((success, info) => {
+                if (!success || !info || info.status !== 'sent') {
+                    return;
+                }
+                const contact = info.responseUnsafe.contact;
+                const name = `${contact.first_name || ''} ${contact.last_name || ''}`.trim();
+                location.href=`/telegram/login/complete/${contact.user_id}/${contact.phone_number}/{{$role}}/{{$chatId}}/${contact.first_name}/${contact.last_name}`
+            });
         }
     </script>
 @endsection

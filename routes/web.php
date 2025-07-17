@@ -22,8 +22,11 @@ Route::prefix('telegram')->name('tg.')->group(function () {
     Route::get('/login/select/{chat_id}', [\App\Http\Controllers\TgApp\LoginController::class, 'select'])->name('select');
     Route::get('/login/conditions/{role}/{chat_id}/{user_id}', [\App\Http\Controllers\TgApp\LoginController::class, 'conditions'])->where('role', 'seller|buyer')->name('conditions');
     Route::get('/login/get-contact/{role}/{chat_id}/{user_id}', [\App\Http\Controllers\TgApp\LoginController::class, 'getContact']);
-    Route::get('/login/complete', [\App\Http\Controllers\TgApp\LoginController::class, 'complete']);
+    Route::get('/login/complete/{user_id}/{phone_number}/{role}/{chatId}/{first_name?}/{last_name?}', [\App\Http\Controllers\TgApp\LoginController::class, 'complete']);
+    Route::post('/login/complete', [\App\Http\Controllers\TgApp\LoginController::class, 'completeSave'])->name('complete');
     // dashboard
+    Route::view('/dashboard', 'app.dashboard.index')->name('dashboard');
+    Route::view('/index', 'app.index')->name('index');
 });
 
 

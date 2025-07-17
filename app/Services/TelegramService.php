@@ -29,7 +29,11 @@ class TelegramService
                 $startPayload = trim(str_replace('/start', '', $text));
                 $this->startCommand($chatId, $startPayload);
             } else {
-                $this->sendMessage($chatId, 'Неизвестная команда');
+                if(isset($update['message']['contact'])) {
+                    $this->sendMessage($chatId, '✅Вы успешно поделились контактом!');
+                }else{
+                    $this->sendMessage($chatId, 'Неизвестная команда');
+                }
             }
         }
     }

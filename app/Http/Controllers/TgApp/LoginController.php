@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\TgApp;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Tg\LoginController\CompleteRequest;
 use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
@@ -45,15 +46,39 @@ class LoginController extends Controller
 
     public function getContact(string $role, string $user_id, string $chat_id)
     {
-        // Ищем юзера по ид, либо создаем нового!
-        // Тут юзер еще не нужен вроде!
-        //        $user = User::where('telegram_id', $user_id)->first();
-        //        if(!$user){
-        //            // create new
-        //        }else{
-        //            auth()->guard('sanctum')->setUser($user);
-        //        }
-
         return view('app.auth.contact', compact('role', 'user_id', 'chat_id'));
+    }
+
+    public function complete(string $user_id, string $phone_number, string $role, string $chatId, string $first_name = null, string $last_name = null)
+    {
+        // Ищем юзера по ид, либо создаем нового!
+        $user = User::where('telegram_id', $user_id)->first();
+        if(!$user){
+            // create new
+            $user = User::create([
+                'name' => $first_name . ' ' . $last_name,
+                'phone' => $phone_number,
+                'role' => Role::where('slug', $role)->pluck('id')->first(),
+                'telegram_id' => $user_id
+            ]);
+        }else{
+            auth()->guard('sanctum')->setUser($user);
+            if($role == 'seller'){
+                return to_route('tg.dashboard');
+            }
+            return to_route('tg.index');
+        }
+        return view('app.auth.complete', compact('user'));
+    }
+
+    public function completeSave(CompleteRequest $request)
+    {
+        $user = auth('sanctum')->user();
+        $update = $user->update($request->validated());
+        if($user->role?->slug == 'seller'){
+            return to_route('tg.dashboard');
+        }else{
+            return to_route('tg.index');
+        }
     }
 }
