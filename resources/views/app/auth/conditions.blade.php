@@ -1,4 +1,4 @@
-@extends('layouts')
+@extends('layouts.tg')
 @section('meta')
 @endsection
 @section('content')

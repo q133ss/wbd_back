@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use CURLFile;
 use Illuminate\Support\Facades\Http;
 
 class TelegramService
@@ -139,9 +140,8 @@ class TelegramService
 
         // Проверяем пользователя в БД
         $user = User::where('telegram_id', $chatId)->first();
-        $webAppUrl = config('app.web_app_url');
+        $webAppUrl = config('app.web_app_url'). '?chat_id=' . $chatId;
         if (!$user) {
-            $registrationLink = config('app.frontend_url') . '/register'; // Ссылка на страницу регистрации на сайте
             $message = "⚠️ Вы пока не зарегистрированы в системе. Для начала работы пройдите регистрацию на нашем сайте.";
             $keyboard = [
                 'inline_keyboard' => [

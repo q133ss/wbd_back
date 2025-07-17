@@ -60,11 +60,11 @@
         const uid = tg.initDataUnsafe.user.id;
 
         document.getElementById('buyer-card').onclick = () => {
-            window.location.href = `/telegram/login/conditions/buyer/${uid}`;
+            window.location.href = `/telegram/login/conditions/buyer/${uid}/{{$chatid}}`;
         };
 
         document.getElementById('seller-card').onclick = () => {
-            window.location.href = `/telegram/login/conditions/seller/${uid}`;
+            window.location.href = `/telegram/login/conditions/seller/${uid}/{{$chatid}}`;
         };
     </script>
 @endsection
