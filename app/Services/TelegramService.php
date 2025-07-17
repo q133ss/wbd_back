@@ -68,14 +68,7 @@ class TelegramService
     // Отправка файла
     public function sendFile($chatId, $filePath, $caption = '', $keyboard = []): void
     {
-        $role_id = User::where('telegram_id', $chatId)->pluck('role_id')->first();
-        if ($role_id == 3) {
-            $token = $this->token;
-        } else {
-            $token = $this->clientToken;
-        }
-
-        $url = "https://api.telegram.org/bot$token/sendDocument";
+        $url = "https://api.telegram.org/bot$this->token/sendDocument";
 
         // Формируем данные для multipart/form-data
         $postFields = [

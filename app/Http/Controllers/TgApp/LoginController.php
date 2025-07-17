@@ -18,7 +18,7 @@ class LoginController extends Controller
 
     public function index(Request $request)
     {
-        $user = User::where('tg_id', $request->chat_id)->first();
+        $user = User::where('telegram_id', $request->chat_id)->first();
 
         if($user){
             auth()->guard('sanctum')->setUser($user);
@@ -35,18 +35,25 @@ class LoginController extends Controller
 
     public function conditions(string $role, string $user_id, string $chat_id)
     {
-        // Ищем юзера по ид, либо создаем нового!
-        $user = User::where('tg_id', $user_id)->first();
-        if(!$user){
-            // create new
-        }
-        auth()->guard('sanctum')->setUser($user);
-        // Отправляем сообщение в ТГ, затем
-
-        // Это ид юзера, а не чат ид!
+        // Отправляем сообщение с файлами политики и отображаем view
         $this->tgService->sendFile($chat_id, base_path('public/conditions.docx'));
         $this->tgService->sendFile($chat_id, base_path('public/policy.docx'));
 
-        return view('app.auth.conditions');
+        // Все ок!
+        return view('app.auth.conditions', compact('role', 'user_id', 'chat_id'));
+    }
+
+    public function getContact(string $role, string $user_id, string $chat_id)
+    {
+        // Ищем юзера по ид, либо создаем нового!
+        // Тут юзер еще не нужен вроде!
+        //        $user = User::where('telegram_id', $user_id)->first();
+        //        if(!$user){
+        //            // create new
+        //        }else{
+        //            auth()->guard('sanctum')->setUser($user);
+        //        }
+
+        return view('app.auth.contact', compact('role', 'user_id', 'chat_id'));
     }
 }
