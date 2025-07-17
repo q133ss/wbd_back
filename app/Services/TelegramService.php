@@ -26,7 +26,6 @@ class TelegramService
             // Проверяем, является ли текст командой /start с параметром
             if (strpos($text, '/start') === 0) {
                 $startPayload = trim(str_replace('/start', '', $text));
-                \Log::info('Ya tut');
                 $this->startCommand($chatId, $startPayload);
             } else {
                 $this->sendMessage($chatId, 'Неизвестная команда');
@@ -61,8 +60,6 @@ class TelegramService
 
         $response = curl_exec($ch);
         curl_close($ch);
-
-        \Log::info('Telegram response', ['resp' => $response]);
     }
 
 
@@ -108,8 +105,6 @@ class TelegramService
     // Команда /start
     private function startCommand($chatId, $startPayload = null): void
     {
-
-        \Log::info('Теперь тут');
         if ($startPayload) {
             // Пытаемся найти пользователя по токену
             $userId = cache()->get("telegram_auth:{$startPayload}");
@@ -140,13 +135,11 @@ class TelegramService
 ✅ **Сообщения** — получайте уведомления о новых сообщениях и оперативно реагируйте на них.
 
 ✅ **И многое другое** — бот поможет вам эффективно управлять вашими выкупами на WBDiscount.";
-        \Log::info('Перед первой отправкой');
         $this->sendMessage($chatId, $welcomeMessage);
 
         // Проверяем пользователя в БД
         $user = User::where('telegram_id', $chatId)->first();
         $webAppUrl = config('app.web_app_url');
-        \Log::info('Я ТУТТУТУТ');
         if (!$user) {
             $registrationLink = config('app.frontend_url') . '/register'; // Ссылка на страницу регистрации на сайте
             $message = "⚠️ Вы пока не зарегистрированы в системе. Для начала работы пройдите регистрацию на нашем сайте.";

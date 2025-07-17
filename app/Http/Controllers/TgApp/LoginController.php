@@ -12,8 +12,10 @@ class LoginController extends Controller
         return view('app.auth.select');
     }
 
-    public function conditions(string $role)
+    public function conditions(string $role, string $chat_id)
     {
+        auth('sanctum')->loginUsingId(1);
         // Отправляем сообщение в ТГ, затем
+        return view('app.auth.conditions');
     }
 }
