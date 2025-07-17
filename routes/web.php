@@ -16,6 +16,11 @@ Route::middleware(['auth', 'is.admin'])->group(function () {
     Route::get('/sellers', [\App\Http\Controllers\Admin\SellerController::class, 'index'])->name('seller.index');
 });
 
-Route::get('/qq', function (){
-    dd(\App\Models\Category::where('name', 'Настольные игры')->get());
+Route::prefix('telegram')->group(function () {
+    // login
+    Route::get('/login/select', [\App\Http\Controllers\TgApp\LoginController::class, 'select']);
+    Route::get('/login/conditions', [\App\Http\Controllers\TgApp\LoginController::class, 'select']);
+    Route::get('/login/get-contact', [\App\Http\Controllers\TgApp\LoginController::class, 'getContact']);
+    Route::get('/login/complete', [\App\Http\Controllers\TgApp\LoginController::class, 'complete']);
+    // dashboard
 });
