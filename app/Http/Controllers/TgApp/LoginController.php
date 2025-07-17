@@ -11,4 +11,9 @@ class LoginController extends Controller
     {
         return view('app.auth.select');
     }
+
+    public function conditions(string $role)
+    {
+        // Отправляем сообщение в ТГ, затем
+    }
 }

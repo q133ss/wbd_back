@@ -68,6 +68,44 @@ class TelegramService
         ]));
     }
 
+    // Отправка файла
+    public function sendFile($chatId, $filePath, $caption = '', $keyboard = []): void
+    {
+        $role_id = User::where('telegram_id', $chatId)->pluck('role_id')->first();
+        if ($role_id == 3) {
+            $token = $this->token;
+        } else {
+            $token = $this->clientToken;
+        }
+
+        $url = "https://api.telegram.org/bot$token/sendDocument";
+
+        // Формируем данные для multipart/form-data
+        $postFields = [
+            'chat_id' => $chatId,
+            'caption' => $caption,
+            'document' => new CURLFile(realpath($filePath)),
+        ];
+
+        // Добавляем клавиатуру, если она есть
+        if (!empty($keyboard)) {
+            $postFields['reply_markup'] = json_encode([
+                'inline_keyboard' => $keyboard,
+            ]);
+        }
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $postFields,
+        ]);
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+    }
+
     // Команда /start
     private function startCommand($chatId, $startPayload = null): void
     {
@@ -106,12 +144,18 @@ class TelegramService
 
         // Проверяем пользователя в БД
         $user = User::where('telegram_id', $chatId)->first();
+        $webAppUrl = config('app.web_app_url');
         if (!$user) {
             $registrationLink = config('app.frontend_url') . '/register'; // Ссылка на страницу регистрации на сайте
             $message = "⚠️ Вы пока не зарегистрированы в системе. Для начала работы пройдите регистрацию на нашем сайте.";
             $keyboard = [
                 'inline_keyboard' => [
-                    [['text' => '📝 Перейти на сайт', 'url' => $registrationLink]],
+                    [
+                        [
+                            'text' => '🚀 Открыть приложение',
+                            'web_app' => ['url' => $webAppUrl]
+                        ]
+                    ]
                 ],
             ];
             $this->sendMessage($chatId, $message, $keyboard);

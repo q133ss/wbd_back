@@ -123,6 +123,7 @@ return [
         'store'  => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'frontend_url' => env('FRONTEND_URL')
+    'frontend_url' => env('FRONTEND_URL'),
+    'web_app_url' => env('WEB_APP_URL'),
 
 ];

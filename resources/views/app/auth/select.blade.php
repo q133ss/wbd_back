@@ -254,12 +254,12 @@
         <div class="text-center mb-4">
             <h5>Выберите роль:</h5>
         </div>
-        <div class="role-card">
+        <div class="role-card" onclick="location.href='{{route('tg.conditions', ['buyer', 123])}}'">
             <div><strong>Я покупатель</strong></div>
             <img src="/img/cart.png" alt="Покупатель" />
         </div>
 
-        <div class="role-card">
+        <div class="role-card" onclick="location.href='{{route('tg.conditions', ['seller', 123])}}'">
             <div><strong>Я продавец</strong></div>
             <img src="/img/pc.png" alt="Продавец" />
         </div>
