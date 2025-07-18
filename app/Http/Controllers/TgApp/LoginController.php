@@ -20,6 +20,14 @@ class LoginController extends Controller
 
     public function index(Request $request)
     {
+        $check = auth('tg')->check();
+        if($check){
+            return 'все ок';
+        }else{
+            return redirect()->route('tg.select', $request->chat_id);
+        }
+
+        /////
         $user = User::where('telegram_id', $request->chat_id)->first();
 
         if($user){
@@ -77,7 +85,7 @@ class LoginController extends Controller
 
     public function completeSave(CompleteRequest $request)
     {
-        $user = User::where('telegram_id', session('telegram_user_id'))->first();
+        $user = auth('tg')->user()->first();
         $update = $user->update($request->validated());
         if($user->role?->slug == 'seller'){
             return to_route('tg.dashboard');

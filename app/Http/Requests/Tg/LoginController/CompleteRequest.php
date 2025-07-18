@@ -29,7 +29,7 @@ class CompleteRequest extends FormRequest
                 'string',
                 'max:255',
                 function ($attribute, $value, $fail) {
-                    $isSeller = User::where('telegram_id', session('telegram_user_id'))->role?->slug === 'seller';
+                    $isSeller = auth('tg')->user()->first()->role?->slug === 'seller';
                     if ($isSeller && !$this->email) {
                         $fail('Email обязателен для заполнения для продавцов.');
                     }
