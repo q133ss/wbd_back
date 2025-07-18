@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'is.admin' => \App\Http\Middleware\IsAdmin::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'telegram/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

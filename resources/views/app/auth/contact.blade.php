@@ -26,7 +26,7 @@
                 }
                 const contact = info.responseUnsafe.contact;
                 const name = `${contact.first_name || ''} ${contact.last_name || ''}`.trim();
-                location.href=`/telegram/login/complete/${contact.user_id}/${contact.phone_number}/{{$role}}/{{$chatId}}/${contact.first_name}/${contact.last_name}`
+                location.href=`/telegram/login/complete/${contact.user_id}/${contact.phone_number}/{{$role}}/{{$chat_id}}/${contact.first_name}/${contact.last_name}`
             });
         }
     </script>

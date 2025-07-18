@@ -4,6 +4,7 @@ namespace App\Http\Controllers\TgApp;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tg\LoginController\CompleteRequest;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
@@ -58,11 +59,14 @@ class LoginController extends Controller
             $user = User::create([
                 'name' => $first_name . ' ' . $last_name,
                 'phone' => $phone_number,
-                'role' => Role::where('slug', $role)->pluck('id')->first(),
+                'password' => '-',
+                'role_id' => Role::where('slug', $role)->pluck('id')->first(),
                 'telegram_id' => $user_id
             ]);
+            // Записываем в сессию!
+            session(['telegram_user_id' => $user_id]);
         }else{
-            auth()->guard('sanctum')->setUser($user);
+            session(['telegram_user_id' => $user_id]);
             if($role == 'seller'){
                 return to_route('tg.dashboard');
             }
@@ -73,7 +77,7 @@ class LoginController extends Controller
 
     public function completeSave(CompleteRequest $request)
     {
-        $user = auth('sanctum')->user();
+        $user = User::where('telegram_id', session('telegram_user_id'))->first();
         $update = $user->update($request->validated());
         if($user->role?->slug == 'seller'){
             return to_route('tg.dashboard');

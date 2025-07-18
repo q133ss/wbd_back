@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Tg\LoginController;
 
+use App\Models\User;
 use App\Rules\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -28,7 +29,7 @@ class CompleteRequest extends FormRequest
                 'string',
                 'max:255',
                 function ($attribute, $value, $fail) {
-                    $isSeller = auth('sanctum')->user()->role?->slug === 'seller';
+                    $isSeller = User::where('telegram_id', session('telegram_user_id'))->role?->slug === 'seller';
                     if ($isSeller && !$this->email) {
                         $fail('Email обязателен для заполнения для продавцов.');
                     }
