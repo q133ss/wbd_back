@@ -4,9 +4,11 @@ namespace App\Http\Controllers\TgApp;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tg\LoginController\CompleteRequest;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
@@ -58,22 +60,18 @@ class LoginController extends Controller
             $user = User::create([
                 'name' => $first_name . ' ' . $last_name,
                 'phone' => $phone_number,
-                'role' => Role::where('slug', $role)->pluck('id')->first(),
-                'telegram_id' => $user_id
+                'role_id' => Role::where('slug', $role)->pluck('id')->first(),
+                'telegram_id' => $user_id,
+                'password' => '-',
             ]);
-        }else{
-            auth()->guard('sanctum')->setUser($user);
-            if($role == 'seller'){
-                return to_route('tg.dashboard');
-            }
-            return to_route('tg.index');
         }
+
         return view('app.auth.complete', compact('user'));
     }
 
     public function completeSave(CompleteRequest $request)
     {
-        $user = auth('sanctum')->user();
+        $user = User::where('telegram_id', $request->uid)->first();
         $update = $user->update($request->validated());
         if($user->role?->slug == 'seller'){
             return to_route('tg.dashboard');
