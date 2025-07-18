@@ -21,13 +21,14 @@ class LoginController extends Controller
 
     public function index(Request $request)
     {
-        $user = User::where('telegram_id', $request->chat_id)->first();
+        $user = User::where('telegram_id', $request->uid)->first();
 
         if($user){
-            auth()->guard('sanctum')->setUser($user);
-            return 'auth!!!';
+            if($user->role?->slug == 'seller'){
+                return to_route('tg.dashboard', ['uid' => $user->telegram_id]);
+            }
         }else{
-            return redirect()->route('tg.select', $request->chat_id);
+            return redirect()->route('tg.index', ['uid' => $request->uid]);
         }
     }
 
