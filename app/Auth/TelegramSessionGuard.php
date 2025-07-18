@@ -8,9 +8,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 abstract class TelegramSessionGuard implements Guard
 {
-    protected Request $request;
-    protected UserProvider $provider;
     protected ?\Illuminate\Contracts\Auth\Authenticatable $user = null;
+    protected UserProvider $provider;
+    protected Request $request;
 
     public function __construct(UserProvider $provider, Request $request)
     {
@@ -21,25 +21,29 @@ abstract class TelegramSessionGuard implements Guard
     public function user()
     {
         if ($this->user === null) {
-            $telegramId = session('telegram_user_id');
-            $this->user = $telegramId
-                ? $this->provider->retrieveById($telegramId)
-                : null;
+            if ($tid = session('telegram_user_id')) {
+                $this->user = $this->provider->retrieveById($tid);
+            }
         }
         return $this->user;
     }
 
+    public function hasUser(): bool
+    {
+        return $this->user !== null;
+    }
+
     public function check(): bool
     {
-        return $this->user() !== null;
+        return $this->hasUser();
     }
 
     public function guest(): bool
     {
-        return $this->user() === null;
+        return !$this->hasUser();
     }
 
-    public function id(): ?int
+    public function id(): int|string|null
     {
         return $this->user()?->getAuthIdentifier();
     }
@@ -55,3 +59,4 @@ abstract class TelegramSessionGuard implements Guard
         return $this;
     }
 }
+

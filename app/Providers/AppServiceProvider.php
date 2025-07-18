@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Auth\ConcreteTelegramSessionGuard;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
@@ -25,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
 
         Auth::extend('telegram-session', function ($app, $name, array $config) {
             $provider = Auth::createUserProvider($config['provider']);
-            return new TelegramSessionGuard($provider, $app['request']);
+            return new ConcreteTelegramSessionGuard($provider, $app['request']);
         });
     }
 }
