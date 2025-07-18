@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
@@ -20,21 +21,14 @@ class LoginController extends Controller
 
     public function index(Request $request)
     {
-        $check = auth('tg')->check();
-        if($check){
-            return 'все ок';
-        }else{
-            return redirect()->route('tg.select', $request->chat_id);
-        }
-
-        /////
-        $user = User::where('telegram_id', $request->chat_id)->first();
+        $user = User::where('telegram_id', $request->uid)->first();
 
         if($user){
-            auth()->guard('sanctum')->setUser($user);
-            return 'auth!!!';
+            if($user->role?->slug == 'seller'){
+                return to_route('tg.dashboard', ['uid' => $user->telegram_id]);
+            }
         }else{
-            return redirect()->route('tg.select', $request->chat_id);
+            return redirect()->route('tg.index', ['uid' => $request->uid]);
         }
     }
 
@@ -67,25 +61,18 @@ class LoginController extends Controller
             $user = User::create([
                 'name' => $first_name . ' ' . $last_name,
                 'phone' => $phone_number,
-                'password' => '-',
                 'role_id' => Role::where('slug', $role)->pluck('id')->first(),
-                'telegram_id' => $user_id
+                'telegram_id' => $user_id,
+                'password' => '-',
             ]);
-            // Записываем в сессию!
-            session(['telegram_user_id' => $user_id]);
-        }else{
-            session(['telegram_user_id' => $user_id]);
-            if($role == 'seller'){
-                return to_route('tg.dashboard');
-            }
-            return to_route('tg.index');
         }
+
         return view('app.auth.complete', compact('user'));
     }
 
     public function completeSave(CompleteRequest $request)
     {
-        $user = auth('tg')->user()->first();
+        $user = User::where('telegram_id', $request->uid)->first();
         $update = $user->update($request->validated());
         if($user->role?->slug == 'seller'){
             return to_route('tg.dashboard');

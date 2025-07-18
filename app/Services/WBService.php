@@ -374,8 +374,19 @@ class WBService extends BaseService
     {
         $product['wb_id'] = $product['id'];
 
-        if(!isset($product['salePriceU'])){
-            // Товара нет в наличии
+        $price = 0;
+
+        // Если нет salePriceU, пробуем взять цену из sizes[0].price.product
+        if (!isset($product['salePriceU'])) {
+            if (!empty($product['sizes']) && isset($product['sizes'][0]['price']['product'])) {
+                $price = $product['sizes'][0]['price']['product'] / 100; // Делим на 100 (цена в копейках)
+            }
+        }else{
+            $price = $product['salePriceU'] / 100;
+        }
+
+        // Если цена так и осталась 0, значит товара нет в наличии
+        if ($price === 0) {
             return [];
         }
 
@@ -387,7 +398,7 @@ class WBService extends BaseService
         return [
             'wb_id'              => $product['id'],
             'name'               => $product['name'],
-            'price'              => $product['salePriceU'] / 100,
+            'price'              => $price,
             'brand'              => $product['brand']      ?? null,
             'discount'           => $product['sale']       ?? 0,
             'rating'             => $product['reviewRating'] ?? 0,
@@ -414,7 +425,7 @@ class WBService extends BaseService
             return Cache::get($cacheKey);
         }
 
-        $url = "https://card.wb.ru/cards/v1/detail?appType=1&curr=rub&dest=-1257786&spp=30&nm={$product_id}";
+        $url = "https://card.wb.ru/cards/v2/detail?appType=1&curr=rub&dest=-1257786&spp=30&nm={$product_id}";
 
         try {
             $response = Http::get($url);

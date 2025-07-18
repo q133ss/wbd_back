@@ -23,13 +23,14 @@ class CompleteRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = User::where('telegram_id', request()->uid)->first();
         return [
             'name'     => [
                 'required',
                 'string',
                 'max:255',
-                function ($attribute, $value, $fail) {
-                    $isSeller = auth('tg')->user()->first()->role?->slug === 'seller';
+                function ($attribute, $value, $fail) use ($user) {
+                    $isSeller = $user->role?->slug === 'seller';
                     if ($isSeller && !$this->email) {
                         $fail('Email обязателен для заполнения для продавцов.');
                     }
@@ -47,6 +48,14 @@ class CompleteRequest extends FormRequest
                 'unique:users,email'
             ],
             'password' => 'required|string|min:8|max:255|confirmed',
+            'password_confirmation' => [
+                'required',
+                function ($attribute, $value, $fail){
+                    if($this->password != $value){
+                        $fail('Пароли не совпадают');
+                    }
+                }
+            ],
         ];
     }
 
@@ -61,7 +70,8 @@ class CompleteRequest extends FormRequest
             'password.min'       => 'Пароль должен быть не менее 8 символов',
             'password.max'       => 'Поле пароль не должно превышать 255 символов',
             'password.confirmed' => 'Пароли не совпадают',
-            'phone.required'     => 'Введите номер телефона'
+            'phone.required'     => 'Введите номер телефона',
+            'password_confirmation.required' => 'Повторите пароль'
         ];
     }
 }
