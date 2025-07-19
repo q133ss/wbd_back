@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -251,5 +252,30 @@ class User extends Authenticatable
     public function paymentMethod()
     {
         return $this->hasOne(PaymentMethod::class, 'user_id', 'id');
+    }
+
+    /**
+     * Получает токен пользователя (из кэша или создает новый)
+     *
+     * @param int $ttlDays Время жизни токена в кэше (дней)
+     * @return string
+     */
+    public function getToken(int $ttlDays = 30): string
+    {
+        $cacheKey = "user_token_{$this->id}";
+
+        return Cache::remember($cacheKey, now()->addDays($ttlDays), function() {
+            return $this->createToken('api-token')->plainTextToken;
+        });
+    }
+
+    /**
+     * Удаляет токен пользователя (из кэша и Sanctum)
+     */
+    public function revokeToken(): void
+    {
+        $cacheKey = "user_token_{$this->id}";
+        Cache::forget($cacheKey);
+        $this->tokens()->delete();
     }
 }

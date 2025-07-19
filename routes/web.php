@@ -26,6 +26,8 @@ Route::prefix('telegram')->name('tg.')->group(function () {
     Route::post('/auth/complete1', [\App\Http\Controllers\TgApp\LoginController::class, 'completeSave'])->name('complete');
     // dashboard
     Route::get('/dashboard', [\App\Http\Controllers\TgApp\DashboardController::class, 'index'])->name('dashboard');
+    // TODO
+    Route::get('/ads/create', [\App\Http\Controllers\TgApp\LoginController::class, 'logout'])->name('ads.create');
     // disable for seller!
     Route::view('/index', 'app.index')->name('index');
 });
