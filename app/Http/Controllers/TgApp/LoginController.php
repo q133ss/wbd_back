@@ -26,9 +26,11 @@ class LoginController extends Controller
         if($user){
             if($user->role?->slug == 'seller'){
                 return to_route('tg.dashboard', ['uid' => $user->telegram_id]);
+            }else{
+                return redirect()->route('tg.index', ['uid' => $request->uid]);
             }
         }else{
-            return redirect()->route('tg.index', ['uid' => $request->uid]);
+            return to_route('tg.select');
         }
     }
 
