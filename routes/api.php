@@ -134,6 +134,10 @@ Route::post('/payment/handle/cancel', [\App\Http\Controllers\PaymentController::
 // Тарифы для лендинга
 Route::get('/landing/tariffs', [\App\Http\Controllers\Seller\TariffController::class, 'landingTariffs']);
 
+// Отпрвка политики в чат телеграм из web app
+Route::post('/telegram/policy/{chat_id}', [\App\Http\Controllers\TelegramController::class, 'policy']);
+Route::post('/telegram/register', [\App\Http\Controllers\TelegramController::class, 'register']);
+
 # TODO это для тестов, нужно убрать и перенести в крон!
 Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
