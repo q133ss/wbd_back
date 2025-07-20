@@ -12,7 +12,7 @@ class RegisterRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,10 +23,10 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'telegram_id' => 'required|string|unique:users,telegram_id',
+            'telegram_id' => 'required|string',
             'phone' => ['required', new PhoneNumber()],
             'role' => 'required|string|in:seller,buyer',
-            'chatId' => 'required|string',
+            'chatId' => 'nullable|string',
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255'
         ];

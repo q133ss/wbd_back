@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 # TODO
 # Админка
@@ -27,6 +28,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/chat/{id}/payment/screen', [\App\Http\Controllers\ChatController::class, 'paymentScreen']);
         Route::post('/chat/{buyback}/complete', [\App\Http\Controllers\ChatController::class, 'complete']);
         Route::get('/buybacks-count', [\App\Http\Controllers\Seller\BuybackController::class, 'count']);
+        Route::get('/partners', [\App\Http\Controllers\PartnerController::class, 'index']);
+        Route::get('/partners/categories', [\App\Http\Controllers\PartnerController::class, 'categories']);
     });
 
     Route::get('/chat-list', [\App\Http\Controllers\ChatController::class, 'list']);
@@ -141,10 +144,3 @@ Route::post('/telegram/register', [\App\Http\Controllers\TelegramController::cla
 # TODO это для тестов, нужно убрать и перенести в крон!
 Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
-
-Route::get('/qq', function (){
-    $buyback = App\Models\Buyback::find(3);
-    $cashback = round($buyback->product_price - $buyback->price_with_cashback);
-    $thxText = str_replace(['{cashback}'], [$cashback], \App\Models\Admin\Settings::where('key','review_cashback_instructions')->pluck('value')->first());
-    dd($thxText);
-});

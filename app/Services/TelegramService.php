@@ -146,7 +146,7 @@ class TelegramService
         $user = User::where('telegram_id', $chatId)->first();
         if (!$user) {
             // Создаем Sanctum токен для пользователя
-            $webAppUrl = config('app.web_app_url'). '/select?chat_id=' . $chatId;
+            $webAppUrl = config('app.web_app_url'). '?chat_id=' . $chatId;
 
             $message = "⚠️ Вы пока не зарегистрированы в системе. Для начала работы пройдите регистрацию на нашем сайте.";
             $keyboard = [

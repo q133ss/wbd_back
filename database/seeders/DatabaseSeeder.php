@@ -6,6 +6,8 @@ use App\Models\Ad;
 use App\Models\Admin\Settings;
 use App\Models\Category;
 use App\Models\File;
+use App\Models\Partner;
+use App\Models\PartnerCategory;
 use App\Models\Product;
 use App\Models\Promocode;
 use App\Models\Review;
@@ -14,10 +16,11 @@ use App\Models\Shop;
 use App\Models\Tariff;
 use App\Models\Template;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -152,6 +155,43 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('Импортируем категории');
         $this->command->call('categories:import');
+
+        $this->command->info('Создаем партнеров');
+        $partnerCategories = [
+            'Банки',
+            'Фуллфилменты',
+            'Сервисы',
+            'Бухгалтерия',
+            'Финансы',
+            'Другое',
+            'Карго'
+        ];
+
+        $sourcePath = public_path('img/cart.png');
+        $destinationPath = 'partners/cart.png';
+        $contents = file_get_contents($sourcePath);
+        Storage::disk('public')->put($destinationPath, $contents);
+
+        foreach ($partnerCategories as $categoryName) {
+            $category = PartnerCategory::create([
+                'name' => $categoryName,
+                'slug' => Str::slug($categoryName)
+            ]);
+
+            $partner = Partner::create([
+                'category_id' => $category->id,
+                'name' => $categoryName . ' Партнёр',
+                'description' => 'Описание партнёра в категории ' . $categoryName,
+                'link' => 'https://' . Str::slug($categoryName) . '.example.com'
+            ]);
+
+            File::create([
+                'fileable_type' => 'App\Models\Partner',
+                'fileable_id' => $partner->id,
+                'category' => 'img',
+                'src' => $destinationPath
+            ]);
+        }
 
         $this->command->info('Создаем тестовые товары и объявления');
         $this->call(ReviewSeed::class);
