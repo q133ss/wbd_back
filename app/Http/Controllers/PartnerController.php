@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 
 class PartnerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Partner::with('category', 'img')->orderBy('created_at', 'desc')->paginate();
+        return Partner::with('category', 'img')->withFilter($request)->orderBy('created_at', 'desc')->paginate();
     }
 
     public function categories()

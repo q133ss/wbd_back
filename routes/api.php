@@ -19,6 +19,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/ads/duplicate', [\App\Http\Controllers\Seller\AdsController::class, 'duplicate']);
         Route::get('/tariff/list', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
         Route::get('/tariff/get-by-id/{id}', [\App\Http\Controllers\Seller\TariffController::class, 'detail']);
+        Route::post('/tariff/{id}/purchase', [\App\Http\Controllers\Seller\TariffController::class, 'purchase']);
         Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
         Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
         Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);
@@ -75,6 +76,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/balance', [\App\Http\Controllers\ProfileController::class, 'balance']);
     Route::post('/balance', [\App\Http\Controllers\ProfileController::class, 'topup']);
     Route::get('/balance/only', [\App\Http\Controllers\ProfileController::class, 'onlyBalance']);
+    // TODO старый роут!!!
     Route::post('/balance/buybacks/{tariff_id}', [\App\Http\Controllers\ProfileController::class, 'topupBuybacks']);
     Route::post('/withdraw', [\App\Http\Controllers\ProfileController::class, 'withdraw']);
     Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);

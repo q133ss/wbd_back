@@ -46,6 +46,8 @@ class PaymentController extends Controller
         return $transaction;
     }
 
+
+
     public function handlePay(Request $request)
     {
         $data = $request->all();
@@ -58,10 +60,14 @@ class PaymentController extends Controller
             $user = User::findOrFail($transaction->user_id);
             $amount = $transaction->amount;
 
-            $buybacksCount = Tariff::where('price', $amount)->pluck('buybacks_count')->first();
+            $tariff = Tariff::findOrFail($transaction['tariff_id']);
+            $duration = $tariff->duration_days;
 
-            $user->update([
-                'redemption_count' => $user->redemption_count += $buybacksCount
+            $user->tariffs()->syncWithoutDetaching([
+                $tariff->id => [
+                    'end_date' => now()->addDays($duration),
+                    'products_count' => $tariff->products_count
+                ]
             ]);
             DB::commit();
 

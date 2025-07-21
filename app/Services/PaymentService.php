@@ -40,7 +40,7 @@ class PaymentService
             'Currency'     => $currency,
             'Description'  => $description,
             'RequireConfirmation' => false,
-            'SendEmail'    => false,
+            'SendEmail'    => false
         ], $options);
 
         $response = Http::withHeaders($this->headers)

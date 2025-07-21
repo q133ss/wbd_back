@@ -29,52 +29,32 @@ class AdsService extends BaseService
             $data['user_id'] = $user->id;
 
             if(isset($data['keywords'])) {
-                $count = 0;
-                foreach ($data['keywords'] as $keyword) {
-                    $keyword['word'] = mb_strtolower($keyword['word']);
-                    $count += $keyword['redemption_count'];
-                }
-
-                $redemption = $user->redemption_count - $count;
-
-                $redemptionInstructions = '⚠️ Выкуп по ключевым словам\nДля участия в акции вам необходимо найти товар через поиск по ключевому слову "{word}", а не по артикулу.\nПерейдите по ссылке: {search_link}, найдите нужный товар и оформите заказ именно с этой страницы.\n\nЭто важно — так система зафиксирует, что вы пришли по нужному поисковому запросу.';
+                $redemptionInstructions = '⚠️ Выкуп по ключевым словам<br>Для участия в акции вам необходимо найти товар через поиск по ключевому слову "{word}", а не по артикулу.<br>Перейдите по ссылке: {search_link}, найдите нужный товар и оформите заказ именно с этой страницы.<br><br>Это важно — так система зафиксирует, что вы пришли по нужному поисковому запросу.';
                 $data['redemption_instructions'] = $redemptionInstructions;
             }else{
-                $redemption = $user->redemption_count - $data['redemption_count'];
-
-                if ($data['redemption_count'] > $user->redemption_count) {
-                    // если выкупов не хватает!
-                    $this->sendError('У вас недостаточно выкупов', 400);
-                }
-
                 $redemptionInstructions = str_replace('{wb_id}', $product->wb_id, $data['redemption_instructions']);
                 $data['redemption_instructions'] = $redemptionInstructions;
             }
 
-            // redemption_instructions
-            $user->update(['redemption_count' => $redemption]);
-
             $ad = Ad::create($data);
+
+            // TODO тут проверяем есть-ли объявления с таким товаром и отнимаем выкуп если нет!
 
             $product = $ad->product()->update(['status' => true]);
 
-            Transaction::create([
-                'amount'           => $data['redemption_count'],
-                'transaction_type' => 'withdraw',
-                'currency_type'    => 'buyback',
-                'description'      => 'Создание объявления: '.$data['redemption_count'].' выкупов',
-                'user_id'          => $user->id,
-                'ads_id'           => $ad->id
-            ]);
+//            Transaction::create([
+//                'amount'           => $data['redemption_count'],
+//                'transaction_type' => 'withdraw',
+//                'currency_type'    => 'buyback',
+//                'description'      => 'Создание объявления: '.$data['redemption_count'].' выкупов',
+//                'user_id'          => $user->id,
+//                'ads_id'           => $ad->id
+//            ]);
 
             DB::commit();
 
             return Response()->json([
-                'ads'  => $ad->load('product', 'shop'),
-                'user' => [
-                    'balance'          => $user->balance,
-                    'redemption_count' => $user->redemption_count,
-                ],
+                'ads'  => $ad->load('product', 'shop')
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();

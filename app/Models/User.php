@@ -278,4 +278,11 @@ class User extends Authenticatable
         Cache::forget($cacheKey);
         $this->tokens()->delete();
     }
+
+    public function tariffs()
+    {
+        return $this->belongsToMany(Tariff::class, 'user_tariff')
+            ->withPivot(['end_date', 'products_count', 'status'])
+            ->withTimestamps();
+    }
 }

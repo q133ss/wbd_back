@@ -41,49 +41,28 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Создаем тарифы');
 
         Tariff::create([
-            'name'           => 'Start',
-            'price'          => 100,
-            'buybacks_count' => 1,
-            'advantages' => [
-                'Выкуп живыми пользователями по ключевому запросу',
-                'Фото/видео отзыв'
-            ],
-            'redemption_price' => 100
+            'name'           => '1 месяц',
+            'products_count' => 10,
+            'initial_price' => 1500,
+            'recurring_price' => 3000,
+            'duration_days' => 30
         ]);
 
         Tariff::create([
-            'name'           => 'Optimal',
-            'advantages' => [
-                'Выкуп живыми пользователями по ключевому запросу',
-                'Фото/видео отзыв'
-            ],
-            'price'          => 1900,
-            'buybacks_count' => 20,
-            'redemption_price' => 95
+            'name'           => '3 месяца',
+            'products_count' => 10,
+            'initial_price' => 4000,
+            'recurring_price' => 8000,
+            'duration_days' => 90
         ]);
 
         Tariff::create([
-            'name'           => 'Premium',
-            'advantages' => [
-                'Выкуп живыми пользователями по ключевому запросу',
-                'Фото/видео отзыв'
-            ],
-            'price'          => 9000,
-            'buybacks_count' => 100,
-            'redemption_price' => 90
+            'name'           => '12 месяцев',
+            'products_count' => 10,
+            'initial_price' => 10000,
+            'recurring_price' => 20000,
+            'duration_days' => 360
         ]);
-
-        Tariff::create([
-            'name'           => 'Ultima',
-            'advantages' => [
-                'Выкуп живыми пользователями',
-                'Фото/видео отзыв'
-            ],
-            'price'          => 40000,
-            'buybacks_count' => 500,
-            'redemption_price' => 80
-        ]);
-
 
         $this->command->info('Создаем настройки');
         $settings = [

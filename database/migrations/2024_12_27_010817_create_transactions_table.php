@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('description');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('ads_id')->nullable()->constrained('ads')->onDelete('cascade');
+            $table->foreignId('tariff_id')->nullable()->constrained('tariffs')->onDelete('cascade');
             $table->enum('status', ['pending', 'completed', 'failed'])->default('pending');
 
             $table->string('transaction_id')->unique()->nullable(); // ID транзакции на стороне платежной системы
