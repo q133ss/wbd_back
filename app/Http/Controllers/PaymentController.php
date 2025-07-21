@@ -61,15 +61,21 @@ class PaymentController extends Controller
             $amount = $transaction->amount;
 
             $tariff = Tariff::findOrFail($transaction['tariff_id']);
-            $duration = $tariff->duration_days;
+            $variant = $transaction['variant'];
 
-            $user->tariffs()->syncWithoutDetaching([
-                $tariff->id => [
-                    'end_date' => now()->addDays($duration),
-                    'products_count' => $tariff->products_count
-                ]
+            $duration = $variant['duration_days'];
+
+            $selectedVariant = collect($tariff->data)->firstWhere('duration_days', $duration);
+
+            $user->tariffs()->create([
+                'end_date' => now()->addDays($duration),
+                'tariff_id'     => $tariff->id,
+                'variant_name'  => $selectedVariant['name'],
+                'duration_days' => $selectedVariant['duration_days'],
+                'price_paid'    => $selectedVariant['initial_price'],
+                'starts_at'     => now(),
+                'ends_at'       => now()->addDays($selectedVariant['duration_days']),
             ]);
-            DB::commit();
 
             $refState = ReferralStat::where(['user_id' => $user->referral_id])->first();
             if($refState) {
@@ -80,6 +86,8 @@ class PaymentController extends Controller
                     'earnings' => $refState->earnings + $bonusAmount
                 ]);
             }
+
+            DB::commit();
 
         }catch (\Exception $e){
             DB::rollBack();

@@ -14,11 +14,8 @@ return new class extends Migration
         Schema::create('tariffs', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('products_count')->comment('Кол-во товаров');
-            $table->unsignedInteger('initial_price')->comment('Начальная цена');
-            $table->unsignedInteger('recurring_price')->comment('Повторная цена (после первой оплаты)');
-            $table->unsignedInteger('duration_days')->comment('Срок действия в днях');
-
+            $table->integer('products_count')->nullable()->comment('Кол-во товаров. null = безлимит');
+            $table->json('data')->comment('Данные о цене и сроках');
             $table->timestamps();
         });
     }

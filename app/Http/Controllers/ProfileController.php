@@ -93,10 +93,10 @@ class ProfileController extends Controller
     {
         $user             = auth('sanctum')->user();
         $role             = auth('sanctum')->user()->role;
-        $redemption_count = $user->redemption_count;
+        $tariff = $user->tariffs?->first();
 
         $data = [
-            'redemption_count' => $redemption_count,
+            'tariff' => $tariff,
         ];
 
         // Продавец

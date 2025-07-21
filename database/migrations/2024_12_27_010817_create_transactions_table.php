@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('transaction_id')->unique()->nullable(); // ID транзакции на стороне платежной системы
             $table->timestamp('date_time')->nullable(); // 2025-07-01 14:51:38
             $table->ipAddress('ip_address')->nullable(); // 45.130.213.28
+            $table->json('variant')->nullable()->comment('Вариант тарифа');
             $table->timestamps();
         });
     }

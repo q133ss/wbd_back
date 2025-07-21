@@ -41,20 +41,24 @@ class TariffController extends Controller
         return Tariff::findOrFail($id);
     }
 
-    public function purchase(string $tariff_id)
+    public function purchase(string $tariff_id, string $duration)
     {
-        // TODO делаем тут ссылку на оплату!
-        // И в PaymentController отслеживаем ее
         $tariff = Tariff::findOrFail($tariff_id);
+
+        $selectedVariant = collect($tariff->data)->firstWhere('duration_days', $duration);
+
+        if(!$selectedVariant){
+            abort(404);
+        }
 
         $user = auth('sanctum')->user();
         $hasTariff = $user->tariffs->contains('id', $tariff_id);
         $amount = 0;
         if($hasTariff){
             // вторая цена большая
-            $amount = $tariff->recurring_price;
+            $amount = $selectedVariant['recurring_price'];
         }else{
-            $amount = $tariff->initial_price;
+            $amount = $selectedVariant['initial_price'];
         }
 
 
@@ -63,8 +67,9 @@ class TariffController extends Controller
             'amount'  => $amount,
             'transaction_type' => 'deposit',
             'currency_type' => 'buyback',
-            'description' => 'Пополнение баланса на '.$tariff->buybacks_count.' выкупов',
+            'description' => 'Покупка тарифа '.$tariff->name.' на '.$duration.' дней',
             'tariff_id' => $tariff_id,
+            'variant' => $selectedVariant
         ]);
 
         $service = new PaymentService();

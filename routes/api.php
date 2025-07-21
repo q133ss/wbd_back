@@ -19,7 +19,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/ads/duplicate', [\App\Http\Controllers\Seller\AdsController::class, 'duplicate']);
         Route::get('/tariff/list', [\App\Http\Controllers\Seller\TariffController::class, 'index']);
         Route::get('/tariff/get-by-id/{id}', [\App\Http\Controllers\Seller\TariffController::class, 'detail']);
-        Route::post('/tariff/{id}/purchase', [\App\Http\Controllers\Seller\TariffController::class, 'purchase']);
+        Route::post('/tariff/{id}/purchase/{duration}', [\App\Http\Controllers\Seller\TariffController::class, 'purchase']);
         Route::get('/tariff/{baybacks}', [\App\Http\Controllers\Seller\TariffController::class, 'show']);
         Route::post('/promocode/apply', [\App\Http\Controllers\Seller\PromocodeController::class, 'apply']);
         Route::get('/buybacks', [\App\Http\Controllers\Seller\BuybackController::class, 'index']);

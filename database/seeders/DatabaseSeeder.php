@@ -41,27 +41,78 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Создаем тарифы');
 
         Tariff::create([
-            'name'           => '1 месяц',
+            'name'           => 'Lite',
             'products_count' => 10,
-            'initial_price' => 1500,
-            'recurring_price' => 3000,
-            'duration_days' => 30
+            'data' => [
+                [
+                    'name' => '1 месяц',
+                    'duration_days' => '30',
+                    'initial_price' => 1500,
+                    'recurring_price' => 3000
+                ],
+                [
+                    'name' => '3 месяца',
+                    'duration_days' => '90',
+                    'initial_price' => 4000,
+                    'recurring_price' => 8000
+                ],
+                [
+                    'name' => '12 месяцев',
+                    'duration_days' => '360',
+                    'initial_price' => 10000,
+                    'recurring_price' => 20000
+                ]
+            ]
         ]);
 
         Tariff::create([
-            'name'           => '3 месяца',
-            'products_count' => 10,
-            'initial_price' => 4000,
-            'recurring_price' => 8000,
-            'duration_days' => 90
+            'name'           => 'Pro',
+            'products_count' => 50,
+            'data' => [
+                [
+                    'name' => '1 месяц',
+                    'duration_days' => '30',
+                    'initial_price' => 3000,
+                    'recurring_price' => 6000
+                ],
+                [
+                    'name' => '3 месяца',
+                    'duration_days' => '90',
+                    'initial_price' => 7000,
+                    'recurring_price' => 15000
+                ],
+                [
+                    'name' => '12 месяцев',
+                    'duration_days' => '360',
+                    'initial_price' => 20000,
+                    'recurring_price' => 40000
+                ]
+            ]
         ]);
 
         Tariff::create([
-            'name'           => '12 месяцев',
-            'products_count' => 10,
-            'initial_price' => 10000,
-            'recurring_price' => 20000,
-            'duration_days' => 360
+            'name'           => 'Superstar',
+            'products_count' => null,
+            'data' => [
+                [
+                    'name' => '1 месяц',
+                    'duration_days' => '30',
+                    'initial_price' => 5000,
+                    'recurring_price' => 10000
+                ],
+                [
+                    'name' => '3 месяца',
+                    'duration_days' => '90',
+                    'initial_price' => 12000,
+                    'recurring_price' => 24000
+                ],
+                [
+                    'name' => '12 месяцев',
+                    'duration_days' => '360',
+                    'initial_price' => 35000,
+                    'recurring_price' => 70000
+                ]
+            ]
         ]);
 
         $this->command->info('Создаем настройки');

@@ -10,6 +10,8 @@ class Transaction extends Model
 {
     protected $guarded = [];
 
+    protected $casts = ['variant' => 'array'];
+
     public function user()
     {
         return $this->hasOne(User::class);

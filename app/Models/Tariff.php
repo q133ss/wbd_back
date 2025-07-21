@@ -9,6 +9,6 @@ class Tariff extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'advantages' => 'array'
+        'data' => 'array'
     ];
 }
