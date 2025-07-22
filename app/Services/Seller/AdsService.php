@@ -35,7 +35,6 @@ class AdsService extends BaseService
                     ->first();
 
 
-                // TODO тоже самое при активации!!!!!!!!!!!!!!!!!!!!!!!!!
                 $newCount = $tariff->pivot?->products_count - 1;
 
                 $productIds = $tariff->pivot?->product_ids ?? [];

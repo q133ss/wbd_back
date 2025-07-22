@@ -282,7 +282,7 @@ class User extends Authenticatable
     public function tariffs()
     {
         return $this->belongsToMany(Tariff::class, 'user_tariff')
-            ->withPivot(['end_date', 'products_count', 'status'])
+            ->withPivot(['end_date', 'products_count', 'status', 'product_ids'])
             ->withTimestamps();
     }
 

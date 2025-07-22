@@ -109,7 +109,8 @@ class AdsController extends Controller
 
     public function startStop(StopRequest $request)
     {
-        $hasTariff = auth('sanctum')->user()->checkTariff();
+        $user = auth('sanctum')->user();
+        $hasTariff = $user->checkTariff();
         if(!$hasTariff){
             return response()->json([
                 'status' => 'false',
@@ -117,7 +118,6 @@ class AdsController extends Controller
                 'hasTariff' => 'false'
             ], 403);
         }
-        // TODO тут надо отнимать тариф!
         try {
             DB::beginTransaction();
 
@@ -134,6 +134,46 @@ class AdsController extends Controller
             $productIds = $adsData->pluck('product_id')->unique();
 
             if ($newStatus) {
+                // Тарифы
+                $tariff = $user->tariffs()
+                    ->wherePivot('status', true)
+                    ->wherePivot('end_date', '>', now())
+                    ->first();
+
+                $productIdsFromPivot = json_decode($tariff->pivot->product_ids ?? '[]', true);
+                $newProductIds = $productIdsFromPivot;
+                $exceeded = false;
+
+                // Проверяем каждый товар из запроса
+                foreach ($productIds as $productId) {
+                    if (!in_array($productId, $productIdsFromPivot)) {
+                        if ($tariff->pivot->products_count <= 0) {
+                            $exceeded = true;
+                            break;
+                        }
+                        // Добавляем новый товар и уменьшаем лимит
+                        $newProductIds[] = $productId;
+                        $tariff->pivot->products_count--;
+                    }
+                }
+
+                if ($exceeded) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Превышен лимит активаций по тарифу. Доступно товаров: ' . $tariff->pivot->products_count,
+                    ], 403);
+                }
+
+                // Обновляем пивот: новый список товаров и количество
+                $user->tariffs()->updateExistingPivot($tariff->id, [
+                    'products_count' => $tariff->pivot->products_count,
+                    'product_ids' => $newProductIds
+                ]);
+                // Готово
+
+
+
                 // Определяем ID объявлений для активации (по одному на товар)
                 $adsToActivate = $adsData->groupBy('product_id')
                     ->map->first()
