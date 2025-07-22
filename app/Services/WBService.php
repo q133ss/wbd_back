@@ -580,9 +580,11 @@ class WBService extends BaseService
         $variationIds = array_filter($variationIds, fn($id) => (string) $id !== (string) $product_id);
 
         $shopId = Product::where('wb_id', $product_id)->value('shop_id');
-
-        LoadProductVariationsJob::dispatch($variationIds, $shopId)->delay(10);
-        return true;
+        if($shopId){
+            LoadProductVariationsJob::dispatch($variationIds, $shopId)->delay(10);
+            return true;
+        }
+        return false;
     }
 
     public function clearCategoryCache(Category $category)
@@ -613,9 +615,6 @@ class WBService extends BaseService
      */
     public function addProduct(Request $request, string $product_id): JsonResponse
     {
-        if($request->loadRelated == true) {
-            $this->createAllVariations($product_id);
-        }
         try {
             DB::beginTransaction();
 
@@ -651,11 +650,15 @@ class WBService extends BaseService
             }
             Cache::forget('categories_index');
 
-            DB::commit();
-
             if($request->loadRelated == true) {
                 $this->createAllVariations($product_id);
             }
+
+            DB::commit();
+
+//            if($request->loadRelated == true) {
+//                $this->createAllVariations($product_id);
+//            }
 
             return $this->sendResponse($response);
         } catch (\Exception $e) {

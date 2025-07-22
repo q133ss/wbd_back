@@ -285,4 +285,16 @@ class User extends Authenticatable
             ->withPivot(['end_date', 'products_count', 'status'])
             ->withTimestamps();
     }
+
+    /**
+     * Проверяет, есть-ли подписка
+     * @return bool
+     */
+    public function checkTariff()
+    {
+        return $this->tariffs()
+            ->wherePivot('status', true)
+            ->wherePivot('end_date', '>', now())
+            ->exists();
+    }
 }

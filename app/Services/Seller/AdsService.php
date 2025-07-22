@@ -25,7 +25,15 @@ class AdsService extends BaseService
 
             $user = auth('sanctum')->user();
 
-            $data['status']  = true;
+            // если нет тарифа,то false!
+            $hasTariff = $user->checkTariff();
+
+            if($hasTariff){
+                $data['status']  = true;
+            }else{
+                // Если подписки нет, то статус false!!
+                $data['status']  = false;
+            }
             $data['user_id'] = $user->id;
 
             if(isset($data['keywords'])) {
@@ -37,8 +45,6 @@ class AdsService extends BaseService
             }
 
             $ad = Ad::create($data);
-
-            // TODO тут проверяем есть-ли объявления с таким товаром и отнимаем выкуп если нет!
 
             $product = $ad->product()->update(['status' => true]);
 

@@ -109,6 +109,14 @@ class AdsController extends Controller
 
     public function startStop(StopRequest $request)
     {
+        $hasTariff = auth('sanctum')->user()->checkTariff();
+        if(!$hasTariff){
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Что бы активировать объявление купите тариф',
+                'hasTariff' => 'false'
+            ], 403);
+        }
         try {
             DB::beginTransaction();
 
