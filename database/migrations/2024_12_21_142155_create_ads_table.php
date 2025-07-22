@@ -31,7 +31,6 @@ return new class extends Migration
             $table->string('color')->nullable()->comment('Цвет товара');
             $table->string('size')->nullable()->comment('Размер товара');
             $table->json('keywords')->nullable()->comment('Ключевые слова');
-            $table->boolean('was_launched')->default(false)->comment('Было-ли объявление запущенно хотя бы раз!');
             $table->timestamps();
         });
     }

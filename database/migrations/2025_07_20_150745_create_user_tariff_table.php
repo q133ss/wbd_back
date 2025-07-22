@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('variant_name')->comment('Название варианта (например, "3 месяца")');
             $table->integer('duration_days')->comment('Кол-во дней (например, 90)');
             $table->decimal('price_paid', 10, 2)->comment('Цена, которую реально заплатил. На всякий случай!');
-
+            $table->json('product_ids')->nullable()->comment('ID товаров, которые были в подписке');
             $table->timestamps();
         });
     }

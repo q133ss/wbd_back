@@ -29,6 +29,31 @@ class AdsService extends BaseService
             $hasTariff = $user->checkTariff();
 
             if($hasTariff){
+                $tariff = $user->tariffs()
+                    ->wherePivot('status', true)
+                    ->wherePivot('end_date', '>', now())
+                    ->first();
+
+
+                // TODO тоже самое при активации!!!!!!!!!!!!!!!!!!!!!!!!!
+                $newCount = $tariff->pivot?->products_count - 1;
+
+                $productIds = $tariff->pivot?->product_ids ?? [];
+
+                if(!in_array($data['product_id'], $productIds)){
+                    if ($tariff && $tariff->pivot?->products_count > 0) {
+                        $productIds[] = $data['product_id'];
+                        $user->tariffs()->updateExistingPivot($tariff->id, [
+                            'products_count' => $newCount,
+                            'product_ids' => $productIds
+                        ]);
+                    }else{
+                        return response()->json([
+                            'status' => 'false',
+                            'message' => 'Вы не можете создать объявлений более чем для '.$tariff->pivot?->product_ids.' товаров'
+                        ]);
+                    }
+                }
                 $data['status']  = true;
             }else{
                 // Если подписки нет, то статус false!!
@@ -64,6 +89,7 @@ class AdsService extends BaseService
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             return $this->sendError('Произошла ошибка, попробуйте еще раз', $e->getCode());
         }
     }

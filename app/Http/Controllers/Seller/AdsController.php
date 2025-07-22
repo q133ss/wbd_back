@@ -117,6 +117,7 @@ class AdsController extends Controller
                 'hasTariff' => 'false'
             ], 403);
         }
+        // TODO тут надо отнимать тариф!
         try {
             DB::beginTransaction();
 
