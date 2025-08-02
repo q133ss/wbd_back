@@ -63,7 +63,7 @@ class ChatController extends Controller
                 $fileSrc   = '/storage/'.$file->store('files', 'public');
                 $fileModel = File::create([
                     'fileable_type' => 'App\Models\Message',
-                    'fileable_id'   => $message->id,
+                    'fileable_id'   => $message->id(),
                     'src'           => $fileSrc,
                     'category'      => 'image',
                 ]);
@@ -828,7 +828,7 @@ class ChatController extends Controller
 
         $messageSeller = Message::create([
             'buyback_id' => $buyback_id,
-            'sender_id' => auth('sanctum')->id,
+            'sender_id' => auth('sanctum')->id(),
             'text' => 'Покупатель подтвердил получение кэшбека. Оставьте отзыв о покупателе, чтобы увидеть отзыв покупателя о вас.',
             'type'        => 'system',
             'system_type' => 'success',
@@ -837,7 +837,7 @@ class ChatController extends Controller
 
         $messageUser = Message::create([
             'buyback_id' => $buyback_id,
-            'sender_id' => auth('sanctum')->id,
+            'sender_id' => auth('sanctum')->id(),
             'text' => 'Вы подтвердили получение кэшбека. Оставьте отзыв о продавце, чтобы увидеть отзыв продавца о вас.',
             'type'        => 'system',
             'system_type' => 'success',
@@ -847,7 +847,7 @@ class ChatController extends Controller
         if($buyback->has_review_by_buyer == false){
             $msgReviewSeller = Message::create([
                 'buyback_id' => $buyback_id,
-                'sender_id' => auth('sanctum')->id,
+                'sender_id' => auth('sanctum')->id(),
                 'text' => 'Покупатель еще не оставил отзыв о вас. Мы сообщим вам сразу же как покупатель напишет отзыв.',
                 'type'        => 'system',
                 'system_type' => 'success',
@@ -859,7 +859,7 @@ class ChatController extends Controller
         if($buyback->has_review_by_seller == false){
             $msgReviewUser = Message::create([
                 'buyback_id' => $buyback_id,
-                'sender_id' => auth('sanctum')->id,
+                'sender_id' => auth('sanctum')->id(),
                 'text' => 'Продавец еще не оставил отзыв о вас. Мы сообщим вам сразу же как продавец напишет отзыв.',
                 'type'        => 'system',
                 'system_type' => 'success',
