@@ -8,6 +8,7 @@ use App\Http\Requests\ChatController\PaymentScreenRequest;
 use App\Http\Requests\ChatController\PhotoRequest;
 use App\Http\Requests\ChatController\ReviewRequest;
 use App\Http\Requests\ChatController\SendRequest;
+use App\Jobs\CheckOrderJob;
 use App\Jobs\DeliveryJob;
 use App\Jobs\ReviewJob;
 use App\Models\Admin\Settings;
@@ -197,10 +198,12 @@ class ChatController extends Controller
                         abort(403, 'На данном этапе отправить фото невозможно');
                     }
 
-                    $successText = 'Покупатель оставил отзыв и порезал штрихкод';
-                    $sellerSuccessText = 'Покупатель оставил отзыв и порезал штрихкод. Внимательно посмотрите фотографии и переведите кэшбек в размере 300 руб на счет пкупателя по реквизитам в чате.';
+//                    $successText = 'Покупатель оставил отзыв и порезал штрихкод';
+//                    $sellerSuccessText = 'Покупатель оставил отзыв и порезал штрихкод. Внимательно посмотрите фотографии и переведите кэшбек в размере 300 руб на счет пкупателя по реквизитам в чате.';
 
                     $buyerInfoText = 'У продавца есть 24 часа чтобы проверить ваши материалы и подтвердить получение кэшбека. Если по истечению времени перевод не будет получен, свяжитесь с продавцом в этом чате, а так же с поддержкой через три точки в верхнем меню чата';
+
+                    CheckOrderJob::dispatch($buyback)->delay(now()->addHours(24));
 
                     // Тут формируем реквизиты!
                     $bankMap = [
@@ -239,14 +242,6 @@ class ChatController extends Controller
                     $cashbackAmount = number_format($cashback, 0, '.', ' ') . ' ₽'; // Форматируем сумму с пробелом между тысячами
                     $paymentText = "Прошу проверить материалы и перевести кэшбек <strong>{$cashbackAmount}</strong> по реквизитам: <br><br>{$paymentMethodText}";
 
-                    $paymentMessage = Message::create([
-                        'buyback_id'  => $buyback->id,
-                        'sender_id'   => $buyback->user_id,
-                        'text'        => $paymentText,
-                        'type'        => 'text'
-                    ]);
-                    ////////////////////////////
-
                     $data = ['is_review_photo_sent' => true, 'status' => 'on_confirmation'];
 
                     // Подставляем переменные
@@ -257,6 +252,7 @@ class ChatController extends Controller
             }
 
             $files = [];
+            // Сначала фото!
             $imgMsg = Message::create([
                 'sender_id'   => $user->id,
                 'buyback_id'  => $buyback_id,
@@ -276,31 +272,42 @@ class ChatController extends Controller
             }
             (new SocketService)->send($imgMsg, $buyback, false);
 
+
+            // Текст
+            if(isset($paymentText)){
+                $paymentMessage = Message::create([
+                    'buyback_id'  => $buyback->id,
+                    'sender_id'   => $buyback->user_id,
+                    'text'        => $paymentText,
+                    'type'        => 'text'
+                ]);
+            }
+
             $buyback->update($data);
 
             // 1) Заказ сделан, покупатель отправил фото
-            $successMsg = Message::create([
-                'sender_id'   => $buyback->ad?->user?->id,
-                'buyback_id'  => $buyback_id,
-                'text'        => $successText,
-                'type'        => 'system',
-                'system_type' => 'success',
-                'created_at' => now(),
-            ]);
-            (new SocketService)->send($successMsg, $buyback, false);
+//            $successMsg = Message::create([
+//                'sender_id'   => $buyback->ad?->user?->id,
+//                'buyback_id'  => $buyback_id,
+//                'text'        => $successText,
+//                'type'        => 'system',
+//                'system_type' => 'success',
+//                'created_at' => now(),
+//            ]);
+//            (new SocketService)->send($successMsg, $buyback, false);
 
-            if(isset($sellerSuccessText)) {
-                $sellerSuccessMsg = Message::create([
-                    'sender_id' => $buyback->ad?->user?->id,
-                    'buyback_id' => $buyback_id,
-                    'text' => $sellerSuccessText,
-                    'type' => 'system',
-                    'system_type' => 'success',
-                    'hide_for' => 'user',
-                    'created_at' => now(),
-                ]);
-                (new SocketService)->send($sellerSuccessMsg, $buyback, false);
-            }
+//            if(isset($sellerSuccessText)) {
+//                $sellerSuccessMsg = Message::create([
+//                    'sender_id' => $buyback->ad?->user?->id,
+//                    'buyback_id' => $buyback_id,
+//                    'text' => $sellerSuccessText,
+//                    'type' => 'system',
+//                    'system_type' => 'success',
+//                    'hide_for' => 'user',
+//                    'created_at' => now(),
+//                ]);
+//                (new SocketService)->send($sellerSuccessMsg, $buyback, false);
+//            }
 
             //2) info
 
@@ -808,6 +815,10 @@ class ChatController extends Controller
 
         (new SocketService)->send($message, $buyback, false);
         (new SocketService)->send($sellerMsg, $buyback, false);
+
+        $update = $buyback->update([
+            'is_payment_photo_sent' => true
+        ]);
 
         return response()->json([
             'message' => 'true'

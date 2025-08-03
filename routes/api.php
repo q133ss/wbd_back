@@ -146,3 +146,8 @@ Route::post('/telegram/register', [\App\Http\Controllers\TelegramController::cla
 # TODO это для тестов, нужно убрать и перенести в крон!
 Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
+
+Route::get('/zz', function (){
+    $b = App\Models\Buyback::find(1);
+    dd($b->ad->user);
+});

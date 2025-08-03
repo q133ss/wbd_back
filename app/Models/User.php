@@ -32,7 +32,8 @@ class User extends Authenticatable
         'balance',
         'telegram_id',
         'referral_id',
-        'last_seen_at'
+        'last_seen_at',
+        'is_frozen'
     ];
 
     /**
