@@ -698,9 +698,8 @@ class ChatController extends Controller
             $message = Message::create([
                 'buyback_id'  => $id,
                 'sender_id'   => auth('sanctum')->id(),
-                'text'        => 'Покупатель оставил отзыв о выкупе: '.$text,
-                'type'        => 'system',
-                'system_type' => 'review',
+                'text'        => $text,
+                'type'        => 'comment',
                 'color'       => $rating // TODO ИСРАВИТЬ, НУЖНО ОТДЕЛЬНОЕ ПОЛЕ СДЕЛАТЬ!
             ]);
         }else{
@@ -716,9 +715,8 @@ class ChatController extends Controller
             $message = Message::create([
                 'buyback_id'  => $id,
                 'sender_id'   => auth('sanctum')->id(),
-                'text'        => 'Продавец оставил отзыв о выкупе: '.$text,
-                'type'        => 'system',
-                'system_type' => 'review',
+                'text'        => $text,
+                'type'        => 'comment',
                 'color'       => $rating // TODO ИСРАВИТЬ, НУЖНО ОТДЕЛЬНОЕ ПОЛЕ СДЕЛАТЬ!
             ]);
         }
