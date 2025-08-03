@@ -182,7 +182,7 @@ class ChatController extends Controller
                     $data = ['is_order_photo_sent' => true, 'status' => 'awaiting_receipt'];
 
                     // Переменные!
-                    $thxText = str_replace(['{cashback}'], [$cashback], \App\Models\Admin\Settings::where('key','review_cashback_instructions')->pluck('value')->first());
+//                    $thxText = str_replace(['{cashback}'], [$cashback], \App\Models\Admin\Settings::where('key','review_cashback_instructions')->pluck('value')->first());
 
                     $reviewCriteriaText = $ad->review_criteria ?? null;
 
@@ -245,7 +245,7 @@ class ChatController extends Controller
                     $data = ['is_review_photo_sent' => true, 'status' => 'on_confirmation'];
 
                     // Подставляем переменные
-                    $thxText = str_replace(['{cashback}'], [$cashback], Settings::where('key','cashback_review_message')->pluck('value')->first());
+//                    $thxText = str_replace(['{cashback}'], [$cashback], Settings::where('key','cashback_review_message')->pluck('value')->first());
 
                     ReviewJob::dispatch($buyback)->delay(now()->addHours(24));
                     break;
@@ -341,14 +341,14 @@ class ChatController extends Controller
             (new SocketService)->send($buyerInfoMsg, $buyback, false);
 
             // 3) Спасибо за заказ!
-            $thxMsg = Message::create([
-                'sender_id'   => $buyback->ad?->user?->id,
-                'buyback_id'  => $buyback_id,
-                'text'        => $thxText,
-                'type'        => 'text',
-                'created_at' => now()
-            ]);
-            (new SocketService)->send($thxMsg, $buyback, false);
+//            $thxMsg = Message::create([
+//                'sender_id'   => $buyback->ad?->user?->id,
+//                'buyback_id'  => $buyback_id,
+//                'text'        => $thxText,
+//                'type'        => 'text',
+//                'created_at' => now()
+//            ]);
+//            (new SocketService)->send($thxMsg, $buyback, false);
 
             // 4) Критерии отзыва!
             if($reviewCriteriaText != null) {
@@ -817,7 +817,8 @@ class ChatController extends Controller
         (new SocketService)->send($sellerMsg, $buyback, false);
 
         $update = $buyback->update([
-            'is_payment_photo_sent' => true
+            'is_payment_photo_sent' => true,
+            'status' => 'awaiting_payment_confirmation'
         ]);
 
         return response()->json([
@@ -836,6 +837,10 @@ class ChatController extends Controller
         if($isSeller){
             abort(403, 'Вы не можете выполнить это действие');
         }
+
+        $updated = $buyback->update([
+            'status' => 'cashback_received'
+        ]);
 
         $messageSeller = Message::create([
             'buyback_id' => $buyback_id,

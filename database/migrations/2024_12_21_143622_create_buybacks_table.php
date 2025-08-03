@@ -21,6 +21,7 @@ return new class extends Migration
                 'pending',         // Ожидание заказа
                 'awaiting_receipt', // Ожидание получения
                 'on_confirmation', // Подтверждение
+                'awaiting_payment_confirmation', // Ожидание подтверждения платежа
                 'cashback_received', // Кешбек получен
                 'completed',       // Завершено
                 'archive',          // Архив
