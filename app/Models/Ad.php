@@ -16,7 +16,9 @@ class Ad extends Model
     protected $with = ['product', 'shop'];
 
     protected $casts = [
-        'keywords' => 'array'
+        'keywords' => 'array',
+        'color' => 'array',
+        'size' => 'array'
     ];
 
     // Указываем глобальный скоуп в методе `booted`
@@ -155,8 +157,9 @@ class Ad extends Model
             $query->select('ads.*', DB::raw('ROUND(ads.price_with_cashback / (1 - ads.cashback_percentage / 100), 2) as price_without_cashback'))
                   ->orderBy('price_without_cashback', $sortOrder);
         } elseif ($sortField === 'discount') {
-            $query->select('ads.*', DB::raw('ROUND(ads.price_with_cashback * (1 - ads.cashback_percentage / 100), 2) as discounted_price'))
-                  ->orderBy('discounted_price', $sortOrder);
+//            $query->select('ads.*', DB::raw('ROUND(ads.price_with_cashback * (1 - ads.cashback_percentage / 100), 2) as discounted_price'))
+//                  ->orderBy('discounted_price', $sortOrder);
+            $query->orderBy('ads.cashback_percentage', $sortOrder);
         } else {
             $query->orderBy('ads.'.$sortField, $sortOrder);
         }

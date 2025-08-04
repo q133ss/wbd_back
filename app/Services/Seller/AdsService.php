@@ -25,6 +25,13 @@ class AdsService extends BaseService
 
             $user = auth('sanctum')->user();
 
+            if($user->is_frozen){
+                return response()->json([
+                    'status'  => 'false',
+                    'message' => 'Ваш аккаунт заморожен, вы не можете создавать объявления'
+                ]);
+            }
+
             // если нет тарифа,то false!
             $hasTariff = $user->checkTariff();
 

@@ -52,8 +52,8 @@ class StoreRequest extends FormRequest
                 'min:1'
             ],
             'one_per_user' => 'nullable|boolean',
-            'color'        => 'nullable|string|max:50',
-            'size'         => 'nullable|string|max:50',
+            'color'        => 'nullable|array|max:50',
+            'size'         => 'nullable|array|max:50',
             'keywords' => 'nullable|array',
             'keywords.*.word' => 'required|string|max:50',
             'keywords.*.redemption_count' => 'required|integer|min:1',
@@ -88,6 +88,11 @@ class StoreRequest extends FormRequest
             'keywords.*.redemption_count.required' => 'Поле "Количество выкупов" обязательно.',
             'keywords.*.redemption_count.integer' => 'Количество выкупов должно быть целым числом.',
             'keywords.*.redemption_count.min' => 'Количество выкупов не может быть меньше :min.',
+
+            'color.array' => 'Цвет должен быть массивом.',
+            'color.max' => 'Максимальное количество цветов - :max.',
+            'size.array' => 'Размер должен быть массивом.',
+            'size.max' => 'Максимальное количество размеров - :max.',
         ];
     }
 }

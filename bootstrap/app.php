@@ -21,7 +21,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'telegram/*',
         ]);
-        $middleware->append(\App\Http\Middleware\IsFrozen::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
