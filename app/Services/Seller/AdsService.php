@@ -44,7 +44,8 @@ class AdsService extends BaseService
 
                 $newCount = $tariff->pivot?->products_count - 1;
 
-                $productIds = $tariff->pivot?->product_ids ?? [];
+                $productIdsRaw = $tariff->pivot?->product_ids ?? '[]';
+                $productIds = is_array($productIdsRaw) ? $productIdsRaw : json_decode($productIdsRaw, true);
 
                 if(!in_array($data['product_id'], $productIds)){
                     if ($tariff && $tariff->pivot?->products_count > 0) {

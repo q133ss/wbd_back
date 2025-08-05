@@ -108,7 +108,8 @@ class User extends Authenticatable
             'shop'          => $this->shop,
             'role'          => $this->role,
             'is_online'     => $this->is_online,
-            'last_seen_at'  => $this->last_seen_at
+            'last_seen_at'  => $this->last_seen_at,
+            'telegram_id'   => $this->telegram_id
         ];
     }
 
