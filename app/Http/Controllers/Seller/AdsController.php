@@ -7,6 +7,7 @@ use App\Http\Requests\Seller\AdsController\StopRequest;
 use App\Http\Requests\Seller\AdsController\StoreRequest;
 use App\Http\Requests\Seller\AdsController\UpdateRequest;
 use App\Models\Ad;
+use App\Models\AdStat;
 use App\Models\Buyback;
 use App\Models\Product;
 use App\Models\Transaction;
@@ -20,9 +21,35 @@ class AdsController extends Controller
     /**
      * Display a listing of the resource.
      */
+//    public function index(Request $request)
+//    {
+//        $ads = Ad::where('user_id', auth('sanctum')->id())
+//            ->withFilter($request)
+//            ->withCount(['buybacks' => function ($query) {
+//                $query->where('status', 'completed');
+//            }])
+//            ->paginate();
+//
+//        $ads->getCollection()->transform(function ($ad) {
+//            $ad->completed_buybacks_count = $ad->buybacks()->where('status', 'completed')->count();
+//            unset($ad->buybacks_count);
+//            $inDeal              = Buyback::where('ads_id', $ad->id)->sum('product_price');
+//            $ad->in_deal         = $inDeal; // В сделках
+//            $cr                  = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1)); // Защита от деления на 0
+//            $ad->cr              = $cr;
+//            $ad->format_buybacks = $ad->completed_buybacks_count.' шт. / '.$ad->redemption_count.' шт.';
+//
+//            return $ad;
+//        });
+//
+//        return response()->json($ads);
+//    }
+
     public function index(Request $request)
     {
-        $ads = Ad::where('user_id', auth('sanctum')->id())
+        $userId = auth('sanctum')->id();
+
+        $ads = Ad::where('user_id', $userId)
             ->withFilter($request)
             ->withCount(['buybacks' => function ($query) {
                 $query->where('status', 'completed');
@@ -30,13 +57,29 @@ class AdsController extends Controller
             ->paginate();
 
         $ads->getCollection()->transform(function ($ad) {
-            $ad->completed_buybacks_count = $ad->buybacks()->where('status', 'completed')->count();
+            // Buybacks
+            $ad->completed_buybacks_count = $ad->buybacks()
+                ->where('status', 'completed')
+                ->count();
+
             unset($ad->buybacks_count);
-            $inDeal              = Buyback::where('ads_id', $ad->id)->sum('product_price');
-            $ad->in_deal         = $inDeal; // В сделках
-            $cr                  = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1)); // Защита от деления на 0
-            $ad->cr              = $cr;
-            $ad->format_buybacks = $ad->completed_buybacks_count.' шт. / '.$ad->redemption_count.' шт.';
+
+            // Сумма сделок
+            $ad->in_deal = Buyback::where('ads_id', $ad->id)->sum('product_price');
+
+            // CR (Conversion Rate)
+            $ad->cr = ceil($ad->completed_buybacks_count / max($ad->redemption_count, 1));
+            $ad->format_buybacks = $ad->completed_buybacks_count . ' шт. / ' . $ad->redemption_count . ' шт.';
+
+            // Статистика из ad_stats
+            $views = AdStat::where('ad_id', $ad->id)->where('type', 'view')->count();
+            $clicks = AdStat::where('ad_id', $ad->id)->where('type', 'click')->count();
+
+            $ad->views_count = $views;
+            $ad->clicks_count = $clicks;
+
+            $ad->ctr = $views > 0 ? round(($clicks / $views) * 100, 2) : 0;
+            $ad->cr_percent = $clicks > 0 ? round(($ad->completed_buybacks_count / $clicks) * 100, 2) : 0;
 
             return $ad;
         });

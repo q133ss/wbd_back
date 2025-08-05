@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ad;
+use App\Models\AdStat;
 use App\Models\Category;
 use App\Services\WBService;
 use Illuminate\Http\Request;
@@ -39,6 +40,42 @@ class ProductController extends Controller
 
         $ads = $adsQuery->paginate(18);
 
+        // 👇 Массовое логирование просмотров
+        $user = auth()->user();
+        $ip = $user ? null : $request->ip();
+        $now = now();
+
+        $bulk = [];
+
+        foreach ($ads as $ad) {
+            // Проверяем, был ли уже просмотр этого объявления этим юзером/IP
+            $alreadyLogged = AdStat::where('ad_id', $ad->id)
+                ->where('type', 'view')
+                ->where(function ($q) use ($user, $ip) {
+                    if ($user) {
+                        $q->where('user_id', $user->id);
+                    } else {
+                        $q->where('ip_address', $ip);
+                    }
+                })
+                ->exists();
+
+            if (!$alreadyLogged) {
+                $bulk[] = [
+                    'ad_id'      => $ad->id,
+                    'user_id'    => $user?->id,
+                    'ip_address' => $user ? null : $ip,
+                    'type'       => 'view',
+                    'created_at' => $now,
+                ];
+            }
+        }
+
+        // Массовая вставка
+        if (!empty($bulk)) {
+            AdStat::insert($bulk);
+        }
+
         return response()->json($ads);
     }
 
@@ -47,6 +84,7 @@ class ProductController extends Controller
     {
         $ad = Ad::findOrFail($id);
         $ad->increment('views_count');
+        $ad->logStat('click');
         return $ad;
     }
 

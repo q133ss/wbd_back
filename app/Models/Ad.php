@@ -211,6 +211,43 @@ class Ad extends Model
         return null;
     }
 
+    public function stats()
+    {
+        return $this->hasMany(AdStat::class);
+    }
+
+    /**
+     * Логирование статистики по просмотрам и кликам
+     * @param string $type
+     * @return void
+     */
+    public function logStat(string $type): void
+    {
+        $user = auth()->user();
+        $ip = request()->ip();
+
+        $exists = AdStat::where('ad_id', $this->id)
+            ->where('type', $type)
+            ->where(function ($q) use ($user, $ip) {
+                if ($user) {
+                    $q->where('user_id', $user->id);
+                } else {
+                    $q->where('ip_address', $ip);
+                }
+            })
+            ->exists();
+
+        if (!$exists) {
+            AdStat::create([
+                'ad_id'     => $this->id,
+                'user_id'   => $user?->id,
+                'ip_address'=> $user ? null : $ip,
+                'type'      => $type,
+            ]);
+        }
+    }
+
+
     public function toArray()
     {
         $data                           = parent::toArray();
