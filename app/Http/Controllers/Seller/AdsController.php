@@ -62,6 +62,10 @@ class AdsController extends Controller
                 ->where('status', 'completed')
                 ->count();
 
+            $ad->process_buybacks_count = $ad->buybacks()
+                ->whereIn('status', ['pending', 'awaiting_receipt', 'on_confirmation', 'awaiting_payment_confirmation'])
+                ->count();
+
             unset($ad->buybacks_count);
 
             // Сумма сделок
