@@ -22,6 +22,7 @@ return new class extends Migration
             $table->enum('type', ['view', 'click']);
 
             $table->timestamp('created_at')->index(); // аналитика по датам
+            $table->timestamp('updated_at')->nullable();
 
             $table->unique(['ad_id', 'user_id', 'type']); // 1 юзер = 1 просмотр / клик / заказ
             $table->unique(['ad_id', 'ip_address', 'type']); // для гостей аналогично

@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class AdStat extends Model
 {
-    //
+    protected $guarded = [];
 }
