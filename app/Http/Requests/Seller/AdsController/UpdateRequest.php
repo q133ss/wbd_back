@@ -31,8 +31,8 @@ class UpdateRequest extends FormRequest
             'review_criteria'         => 'required|string',
             'one_per_user'            => 'nullable|boolean',
             'is_archived'             => 'nullable|min:0|max:1',
-            'color'        => 'nullable|string|max:50',
-            'size'         => 'nullable|string|max:50',
+            'color'        => 'nullable|array|max:50',
+            'size'         => 'nullable|array|max:50',
             'keywords' => 'nullable|array',
             'keywords.*.word' => 'required|string|max:50',
             'keywords.*.redemption_count' => 'required|integer|min:1'
