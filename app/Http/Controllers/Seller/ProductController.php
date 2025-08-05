@@ -16,35 +16,67 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
+
     public function index(Request $request)
     {
-        $ads = auth('sanctum')->user()->shop?->products()?->with('activeAd')->withFilter($request)->paginate();
+        $products = auth('sanctum')->user()->shop?->products()
+            ->with(['ads.buybacks' => function ($q) {
+                $q->select('id', 'ads_id', 'status', 'product_price');
+            }, 'ads.stats' => function ($q) {
+                $q->select('id', 'ad_id', 'type');
+            }])
+            ->withFilter($request)
+            ->paginate();
 
-        if($ads != null) {
-            $ads->getCollection()->transform(function ($ad) {
-                $activeAd = $ad->activeAd;
-                $allRedemptionCount = $activeAd?->redemption_count; // Кол-во выкупов, которое задал продавец
-                $completedBuybacksCount = $activeAd?->buybacks()->where('buybacks.status', 'completed')->count();
+        if ($products) {
+            $products->getCollection()->transform(function ($product) {
+                $ads = $product->ads;
 
-                $conversion = $ad->views > 0
-                    ? round(($ad->completed_buybacks_count / $ad->views) * 100, 2)
-                    : 0;
+                // Инициализация счётчиков
+                $views = 0;
+                $clicks = 0;
+                $redemptionTotal = 0;
+                $completedBuybacks = 0;
+                $inDeal = 0;
 
-                // Добавляем дополнительные поля
-                $ad->buybacks_progress = $completedBuybacksCount . ' шт./ ' . $allRedemptionCount . ' шт.'; // 15 шт. / 25 шт.
-                $ad->completed_buybacks_count = $completedBuybacksCount; // кол-во выкупов
+                foreach ($ads as $ad) {
+                    $redemptionTotal += $ad->redemption_count ?? 0;
 
-                $ad->conversion = $conversion; // Конверсия
-                $ad->views = $activeAd?->views_count; // Кол-во просмотров
-                $ad->ads_count = $ad->ads?->count(); // Кол-во объявлений
+                    // Подсчёт выкупов
+                    $adBuybacks = $ad->buybacks ?? collect();
+                    $completedBuybacks += $adBuybacks->where('status', 'completed')->count();
 
-                return $ad;
+                    // Сумма сделок по этому объявлению
+                    $inDeal += $adBuybacks->sum('product_price');
+
+                    // Подсчёт просмотров и кликов
+                    $stats = $ad->stats ?? collect();
+                    $views += $stats->where('type', 'view')->count();
+                    $clicks += $stats->where('type', 'click')->count();
+                }
+
+                // Вычисления
+                $ctr = $views > 0 ? round(($clicks / $views) * 100, 2) : 0;
+                $cr_percent = $clicks > 0 ? round(($completedBuybacks / $clicks) * 100, 2) : 0;
+                $cr = ceil($completedBuybacks / max($redemptionTotal, 1));
+
+                // Присваиваем в объект товара
+                $product->views = $views;
+                $product->clicks = $clicks;
+                $product->ctr = $ctr;
+                $product->cr_percent = $cr_percent;
+                $product->cr = $cr;
+                $product->completed_buybacks_count = $completedBuybacks;
+                $product->redemption_count = $redemptionTotal;
+                $product->buybacks_progress = "$completedBuybacks шт. / $redemptionTotal шт.";
+                $product->in_deal = $inDeal;
+                $product->ads_count = $ads->count();
+
+                return $product;
             });
         }
 
-        // Выкупов 25 из 50 || completed_buybacks_count
-        // todo потом перенести их на 1 ступень выше в товар сам!
-        return $ads;
+        return response()->json($products);
     }
 
     /**

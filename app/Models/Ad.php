@@ -247,7 +247,6 @@ class Ad extends Model
         }
     }
 
-
     public function toArray()
     {
         $data                           = parent::toArray();
