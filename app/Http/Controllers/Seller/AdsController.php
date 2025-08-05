@@ -291,41 +291,14 @@ class AdsController extends Controller
                 ], 403);
             }
 
-            $user = auth('sanctum')->user();
-
-            $totalBalance         = 0;
-            $totalRedemptionCount = 0;
-
             $ads = Ad::whereIn('id', $request->ad_ids);
 
-//            $hasActive = $ads->where('status', true)->exists();
             $hasActive = (clone $ads)->where('status', true)->exists();
             if ($hasActive) {
                 return response()->json([
                     'status'  => 'false',
                     'message' => 'Невозможно архивировать активные объявления',
                 ], 403);
-            }
-
-            $totalRedemptionCount += $ads->sum('redemption_count');
-
-            $user->update(
-                [
-                    'balance'          => $user->balance          += $totalBalance,
-                    'redemption_count' => $user->redemption_count += $totalRedemptionCount,
-                ]
-            );
-
-            if ($totalRedemptionCount != 0) {
-                Transaction::create([
-                    'amount'           => $totalRedemptionCount,
-                    'transaction_type' => 'deposit',
-                    'currency_type'    => 'buyback',
-                    'description'      => 'Возврат выкупов при архивации: '.$totalRedemptionCount.' выкупов',
-                    'user_id'          => $user->id,
-                ]);
-
-                (new NotificationService)->send($user->id, null, 'При архивации объявлений к вам на баланс вернулось '.$totalRedemptionCount.' выкупов', false);
             }
 
             $ads->update([

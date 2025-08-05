@@ -165,45 +165,10 @@ class ProductController extends Controller
                 ], 403);
             }
 
-            $user = auth('sanctum')->user();
-
-            $totalBalance         = 0;
-            $totalRedemptionCount = 0;
-
             $products = Product::whereIn('id', $request->product_ids);
             $products->update(['is_archived' => true]);
 
             $ads = Ad::whereIn('product_id', $request->product_ids);
-
-            $totalBalance         += $ads->sum('balance');
-            $totalRedemptionCount += $ads->sum('redemption_count');
-
-            $user->update(
-                [
-                    'balance'          => $user->balance          += $totalBalance,
-                    'redemption_count' => $user->redemption_count += $totalRedemptionCount,
-                ]
-            );
-
-            if ($totalBalance != 0) {
-                Transaction::create([
-                    'amount'           => $totalBalance,
-                    'transaction_type' => 'deposit',
-                    'currency_type'    => 'cash',
-                    'description'      => 'Возврат средств при архивации: '.$totalBalance.' ₽',
-                    'user_id'          => $user->id,
-                ]);
-            }
-
-            if ($totalRedemptionCount != 0) {
-                Transaction::create([
-                    'amount'           => $totalRedemptionCount,
-                    'transaction_type' => 'deposit',
-                    'currency_type'    => 'buyback',
-                    'description'      => 'Возврат выкупов при архивации: '.$totalRedemptionCount.' выкупов',
-                    'user_id'          => $user->id,
-                ]);
-            }
 
             $ads->update([
                 'is_archived'      => true,

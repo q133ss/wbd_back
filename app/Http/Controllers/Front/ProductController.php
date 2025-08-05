@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Ad;
 use App\Models\AdStat;
 use App\Models\Category;
+use App\Models\Product;
 use App\Services\WBService;
 use Illuminate\Http\Request;
 
@@ -76,7 +77,11 @@ class ProductController extends Controller
             AdStat::insert($bulk);
         }
 
-        return response()->json($ads);
+        $adsArray = $ads->toArray();
+        $maxPrice = Product::max('price');
+        $adsArray['max_price'] = round($maxPrice, 2);
+
+        return response()->json($adsArray);
     }
 
 
