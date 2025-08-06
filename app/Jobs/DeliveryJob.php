@@ -33,7 +33,7 @@ class DeliveryJob implements ShouldQueue
             $this->buyback->update(['status' => 'cancelled']);
             // Уведомление
 
-            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$this->buyback->id;
+            $webAppUrl = config('app.frontend_url').'/dashboard/orders?chatId='.$this->buyback->id;
             $keyboard = [
                 'inline_keyboard' => [
                     [

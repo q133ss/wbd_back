@@ -510,7 +510,7 @@ class ChatController extends Controller
                     (new SocketService)->send($message, $buyback);
                     (new SocketService)->send($paymentMessage, $buyback);
 
-                    $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback_id;
+                    $webAppUrl = config('app.frontend_url').'/dashboard/orders?chatId='.$buyback_id;
                     (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил ваш отзыв', true, [
                         'inline_keyboard' => [
                             [
@@ -567,7 +567,7 @@ class ChatController extends Controller
             ]);
             (new SocketService)->send($message, $buyback);
 
-            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback_id;
+            $webAppUrl = config('app.frontend_url').'/dashboard/orders?chatId='.$buyback_id;
             (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил скриншот вашего заказа', true, [
                 'inline_keyboard' => [
                     [
@@ -645,7 +645,7 @@ class ChatController extends Controller
 
             (new SocketService)->send($message, $buyback);
 
-            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback_id;
+            $webAppUrl = config('app.frontend_url').'/dashboard/orders?chatId='.$buyback_id;
             (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец отклонил скриншот', true, [
                 'inline_keyboard' => [
                     [
@@ -725,7 +725,7 @@ class ChatController extends Controller
             $buyback->update(['has_review_by_buyer' => true]);
             $notification = 'Покупатель оставил отзыв о выкупе #'.$id;
 
-            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback->id;
+            $webAppUrl = config('app.frontend_url').'/dashboard/orders?chatId='.$buyback->id;
             $notificationModel = (new NotificationService)->send($buyback->ad?->user?->id, $id, $notification, true, [
                 'inline_keyboard' => [
                     [
@@ -753,7 +753,7 @@ class ChatController extends Controller
             $user_id = $buyback->ad?->user?->id;
             $notification = 'Продавец оставил отзыв о выкупе #'.$id;
 
-            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback->id;
+            $webAppUrl = config('app.frontend_url').'/dashboard/orders?chatId='.$buyback->id;
             $notificationModel = (new NotificationService)->send($buyback->user_id, $id, $notification, true, [
                 'inline_keyboard' => [
                     [

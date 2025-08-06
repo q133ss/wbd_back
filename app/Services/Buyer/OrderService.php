@@ -83,7 +83,7 @@ class OrderService extends BaseService
             (new SocketService)->send($message, $buyback, false);
 
 
-            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback->id;
+            $webAppUrl = config('app.frontend_url').'/dashboard/orders?chatId='.$buyback->id;
             (new NotificationService())->send($ad->user_id,$buyback->id, 'Новый выкуп по объявлению #'.$ad->id, true, [
                 'inline_keyboard' => [
                     [

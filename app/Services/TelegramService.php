@@ -155,7 +155,7 @@ class TelegramService
         $user = User::where('telegram_id', $chatId)->first();
         if (!$user) {
             // Создаем Sanctum токен для пользователя
-            $webAppUrl = config('app.web_app_url'). '?chat_id=' . $chatId;
+            $webAppUrl = config('app.frontend_url'). '?chat_id=' . $chatId;
 
             $message = "⚠️ Вы пока не зарегистрированы в системе. Для начала работы пройдите регистрацию на нашем сайте.";
             $keyboard = [
@@ -177,7 +177,7 @@ class TelegramService
         try{
             $chatId = User::where('id',$user_id)->pluck('telegram_id')->first();
             if($chatId != null){
-                $this->sendMessage($chatId, $text);
+                $this->sendMessage($chatId, $text, $keyword);
             }
         }catch (\Exception $exception){
             \Log::error('TelegramService sendNotification error: ' . $exception->getMessage());
