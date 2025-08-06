@@ -72,6 +72,13 @@ class ProductController extends Controller
             }
         }
 
+
+        $validAdIds = Ad::whereIn('id', array_column($bulk, 'ad_id'))->pluck('id')->toArray();
+
+        $bulk = array_filter($bulk, function ($entry) use ($validAdIds) {
+            return in_array($entry['ad_id'], $validAdIds);
+        });
+
         // Массовая вставка
         if (!empty($bulk)) {
             AdStat::insert($bulk);
@@ -79,7 +86,9 @@ class ProductController extends Controller
 
         $adsArray = $ads->toArray();
         $maxPrice = Product::max('price');
+        $minPrice = Product::min('price');
         $adsArray['max_price'] = round($maxPrice, 2);
+        $adsArray['min_price'] = round($minPrice, 2);
 
         return response()->json($adsArray);
     }
