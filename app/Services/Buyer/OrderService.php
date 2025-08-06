@@ -29,7 +29,7 @@ class OrderService extends BaseService
 
         $hasBuyback = Buyback::where('ads_id', $ad_id)
             ->where('user_id', auth('sanctum')->id())
-            ->whereIn('status', ['pending'])
+            ->whereNotIn('status', ['cancelled', 'order_expired', 'archive'])
             ->exists();
 
         if($hasBuyback) {

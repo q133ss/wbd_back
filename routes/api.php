@@ -4,9 +4,6 @@ use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
-# TODO
-# Админка
-
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('seller')->group(function () {
         Route::apiResource('products', \App\Http\Controllers\Seller\ProductController::class)->except('show');
@@ -143,11 +140,5 @@ Route::get('/landing/tariffs', [\App\Http\Controllers\Seller\TariffController::c
 Route::post('/telegram/policy/{chat_id}', [\App\Http\Controllers\TelegramController::class, 'policy']);
 Route::post('/telegram/register', [\App\Http\Controllers\TelegramController::class, 'register']);
 
-# TODO это для тестов, нужно убрать и перенести в крон!
 Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
-
-Route::get('/zz', function (){
-    $b = App\Models\Buyback::find(1);
-    dd($b->ad->user);
-});
