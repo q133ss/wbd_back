@@ -142,3 +142,5 @@ Route::post('/telegram/register', [\App\Http\Controllers\TelegramController::cla
 
 Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class, 'generate']);
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
+
+Route::post('/telegram/user/{chat_id}', [\App\Http\Controllers\AuthController::class, 'userByTelegramId']);

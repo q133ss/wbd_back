@@ -84,4 +84,16 @@ class AuthController extends Controller
     {
         return Role::where('slug', '!=', 'admin')->get();
     }
+
+    public function userByTelegramId(string $telegramId)
+    {
+        $user = User::where('telegram_id', $telegramId)->first();
+        if(!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        return response()->json([
+            'user' => $user,
+            'token' => $user->createToken('web')->plainTextToken,
+        ]);
+    }
 }

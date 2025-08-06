@@ -119,6 +119,7 @@ class TelegramService
                 $user->update(['telegram_id' => $chatId, 'tg_token' => null]);
 
                 $webAppUrl = config('app.web_app_url'). '?chat_id=' . $chatId;
+                \Log::info("wURL: ".$webAppUrl);
                 $keyboard = [
                     'inline_keyboard' => [
                         [
