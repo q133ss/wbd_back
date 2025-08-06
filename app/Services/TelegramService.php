@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use CURLFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class TelegramService
 {
@@ -112,18 +113,25 @@ class TelegramService
     {
         if ($startPayload) {
             // Пытаемся найти пользователя по токену
-            $userId = cache()->get("telegram_auth:{$startPayload}");
+            $user = User::where('tg_token', $startPayload)->first();
 
-            if ($userId) {
-                $user = User::find($userId);
+            if ($user) {
+                $user->update(['telegram_id' => $chatId, 'tg_token' => null]);
 
-                if ($user) {
-                    $user->update(['telegram_id' => $chatId]);
-                    cache()->forget("telegram_auth:{$startPayload}");
+                $webAppUrl = config('app.web_app_url'). '?chat_id=' . $chatId;
+                $keyboard = [
+                    'inline_keyboard' => [
+                        [
+                            [
+                                'text' => '🚀 Открыть приложение',
+                                'web_app' => ['url' => $webAppUrl]
+                            ]
+                        ]
+                    ],
+                ];
 
-                    $this->sendMessage($chatId, "✅ Вы успешно привязали аккаунт!");
-                    return;
-                }
+                $this->sendMessage($chatId, "✅ Вы успешно привязали аккаунт!", $keyboard);
+                return;
             }
         }
 
@@ -189,10 +197,10 @@ class TelegramService
     private function generateUserToken(User $user): string
     {
         // Генерируем уникальный токен для пользователя
-        $token = hash_hmac('sha256', $user->id, config('app.key'));
-
-        // Сохраняем токен в кеш на 24 часа
-        cache()->put("telegram_auth:{$token}", $user->id, now()->addDay());
+        $token = Str::random(32);
+        $update = $user->update([
+            'tg_token' => $token
+        ]);
 
         return $token;
     }

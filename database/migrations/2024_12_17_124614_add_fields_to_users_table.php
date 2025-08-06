@@ -23,6 +23,8 @@ return new class extends Migration
             $table->timestamp('last_seen_at')->nullable();
             $table->unique(['phone', 'role_id']);
             $table->boolean('is_frozen')->default(false)->comment('Заморожен-ли аккаунт');
+
+            $table->string('tg_token')->nullable()->comment('Токен для авторизации в Telegram');
         });
     }
 

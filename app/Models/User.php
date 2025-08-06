@@ -33,7 +33,8 @@ class User extends Authenticatable
         'telegram_id',
         'referral_id',
         'last_seen_at',
-        'is_frozen'
+        'is_frozen',
+        'tg_token'
     ];
 
     /**
