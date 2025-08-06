@@ -115,6 +115,20 @@ class DatabaseSeeder extends Seeder
             ]
         ]);
 
+        Tariff::create([
+            'name'           => 'Пробный',
+            'products_count' => 10,
+            'is_hidden'      => true, // Скрываем этот тариф
+            'data' => [
+                [
+                    'name' => '3 дня',
+                    'duration_days' => '3',
+                    'initial_price' => 0,
+                    'recurring_price' => 0
+                ]
+            ]
+        ]);
+
         $this->command->info('Создаем настройки');
         $settings = [
             [

@@ -11,12 +11,12 @@ class TariffController extends Controller
 {
     public function index()
     {
-        return Tariff::get();
+        return Tariff::where('is_hidden', false)->get();
     }
 
     public function landingTariffs()
     {
-        return Tariff::get();
+        return Tariff::where('is_hidden', false)->get();
     }
 
     public function show(string $buybacks_count)

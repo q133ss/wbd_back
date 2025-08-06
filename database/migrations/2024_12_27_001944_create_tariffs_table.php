@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->integer('products_count')->nullable()->comment('Кол-во товаров. null = безлимит');
             $table->json('data')->comment('Данные о цене и сроках');
+            $table->boolean('is_hidden')->default(false)->comment('Отображать тариф в списке или нет');
             $table->timestamps();
         });
     }

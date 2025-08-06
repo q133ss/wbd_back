@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\PhoneVerification;
 use App\Models\ReferralStat;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
@@ -70,6 +71,7 @@ class AuthService
         try {
             DB::beginTransaction();
             $verification = $this->checkCode($phone, $code);
+
             if ($verification->exists()) {
                 $data = [
                     'phone' => $phone,
@@ -90,6 +92,20 @@ class AuthService
                 $user = User::create($data);
                 $verification->delete();
 
+                // Создаем пробный тариф для продавца
+                if($role_id == Role::where('slug', 'seller')->pluck('id')->first()){
+                    $tariff = \App\Models\Tariff::where('name', 'Пробный')->first();
+                    DB::table('user_tariff')->insert([
+                        'user_id' => $user->id,
+                        'tariff_id' => $tariff->id,
+                        'end_date' => now()->addDays(3),
+                        'products_count' => 10,
+                        'variant_name' => '3 дня',
+                        'duration_days' => 3,
+                        'price_paid' => 0
+                    ]);
+                }
+
                 $token = $user->createToken('web');
 
                 DB::commit();
@@ -103,6 +119,7 @@ class AuthService
             }
         }catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             return Response()->json(['message' => 'Ошибка сервера'], 500);
         }
     }

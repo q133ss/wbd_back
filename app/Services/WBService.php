@@ -297,7 +297,9 @@ class WBService extends BaseService
             [3280, 3443, '20'],
             [3444, 3623, '21'],
             [3624, 3994, '22'],
-            [3995, PHP_INT_MAX, '23']
+            [3995, 4199, '23'],
+            [4200, 4391, '24'],
+            [4392, PHP_INT_MAX, '25'],
         ];
 
         foreach ($ranges as [$min, $max, $host]) {
@@ -306,7 +308,7 @@ class WBService extends BaseService
             }
         }
 
-        return '23'; // Фолбек для неучтенных случаев
+        return '26'; // Фолбек для неучтенных случаев
     }
     private function fetchDescription(string $wbId): ?string
     {
@@ -511,7 +513,6 @@ class WBService extends BaseService
             $prepareData = $this->prepareProductData($product_id);
             return response()->json($prepareData);
         } catch (\Exception $e) {
-            \Log::error($e);
             \Log::channel('wb')->error('ОШИБКА ЗАГРУЗКИ ТОВАРА:'.$e->getMessage(), ['exception' => $e]);
             $response = $this->formatResponse('false', 'Ошибка получения товара', 500);
 
