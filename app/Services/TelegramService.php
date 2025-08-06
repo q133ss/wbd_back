@@ -172,7 +172,7 @@ class TelegramService
         }
     }
 
-    public function sendNotification(string $user_id, string $text): void
+    public function sendNotification(string $user_id, string $text, array $keyword): void
     {
         try{
             $chatId = User::where('id',$user_id)->pluck('telegram_id')->first();

@@ -81,7 +81,19 @@ class OrderService extends BaseService
 
             // Отправляем сообщение по веб сокетам покупателю
             (new SocketService)->send($message, $buyback, false);
-            (new NotificationService())->send($ad->user_id,$buyback->id, 'Новый выкуп по объявлению #'.$ad->id, true);
+
+
+            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback->id;
+            (new NotificationService())->send($ad->user_id,$buyback->id, 'Новый выкуп по объявлению #'.$ad->id, true, [
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => '🚀 Открыть приложение',
+                            'web_app' => ['url' => $webAppUrl]
+                        ]
+                    ]
+                ],
+            ]);
 
             // Таймер
             OrderPendingCheck::dispatch($buyback->id)->delay(Carbon::now()->addMinutes(30));

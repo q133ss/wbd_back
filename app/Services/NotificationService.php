@@ -8,7 +8,7 @@ use Pusher\Pusher;
 
 class NotificationService
 {
-    public function send(string $user_id, string|null $buyback_id, string $text, $sendTelegram = false)
+    public function send(string $user_id, string|null $buyback_id, string $text, $sendTelegram = false, $keyword = [])
     {
         $notification = Notification::create([
             'user_id'    => $user_id,
@@ -37,7 +37,7 @@ class NotificationService
 
         // Отправка уведомления в телеграм
         if($sendTelegram){
-            (new TelegramService())->sendNotification($user_id, $text);
+            (new TelegramService())->sendNotification($user_id, $text, $keyword);
         }
 
         return true;

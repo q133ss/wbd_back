@@ -509,7 +509,18 @@ class ChatController extends Controller
 
                     (new SocketService)->send($message, $buyback);
                     (new SocketService)->send($paymentMessage, $buyback);
-                    (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил ваш отзыв', true);
+
+                    $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback_id;
+                    (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил ваш отзыв', true, [
+                        'inline_keyboard' => [
+                            [
+                                [
+                                    'text' => '🚀 Открыть приложение',
+                                    'web_app' => ['url' => $webAppUrl]
+                                ]
+                            ]
+                        ],
+                    ]);
 
                     $ad = $buyback->ad;
                     // Удаляем выкуп со слова, которое использовалось
@@ -555,7 +566,18 @@ class ChatController extends Controller
                 'system_type' => $system_type,
             ]);
             (new SocketService)->send($message, $buyback);
-            (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил скриншот вашего заказа', true);
+
+            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback_id;
+            (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец подтвердил скриншот вашего заказа', true, [
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => '🚀 Открыть приложение',
+                            'web_app' => ['url' => $webAppUrl]
+                        ]
+                    ]
+                ],
+            ]);
 
             $buyback->update(['status' => $status]);
             DB::commit();
@@ -623,7 +645,17 @@ class ChatController extends Controller
 
             (new SocketService)->send($message, $buyback);
 
-            (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец отклонил скриншот', true);
+            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback_id;
+            (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец отклонил скриншот', true, [
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => '🚀 Открыть приложение',
+                            'web_app' => ['url' => $webAppUrl]
+                        ]
+                    ]
+                ],
+            ]);
 
             DB::commit();
 
@@ -693,7 +725,17 @@ class ChatController extends Controller
             $buyback->update(['has_review_by_buyer' => true]);
             $notification = 'Покупатель оставил отзыв о выкупе #'.$id;
 
-            $notificationModel = (new NotificationService)->send($buyback->ad?->user?->id, $id, $notification, true);
+            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback->id;
+            $notificationModel = (new NotificationService)->send($buyback->ad?->user?->id, $id, $notification, true, [
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => '🚀 Открыть приложение',
+                            'web_app' => ['url' => $webAppUrl]
+                        ]
+                    ]
+                ],
+            ]);
 
             $message = Message::create([
                 'buyback_id'  => $id,
@@ -710,7 +752,18 @@ class ChatController extends Controller
             $buyback->update(['has_review_by_seller' => true]);
             $user_id = $buyback->ad?->user?->id;
             $notification = 'Продавец оставил отзыв о выкупе #'.$id;
-            $notificationModel = (new NotificationService)->send($buyback->user_id, $id, $notification, true);
+
+            $webAppUrl = config('app.web_app_url').'/dashboard/orders?chatId='.$buyback->id;
+            $notificationModel = (new NotificationService)->send($buyback->user_id, $id, $notification, true, [
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => '🚀 Открыть приложение',
+                            'web_app' => ['url' => $webAppUrl]
+                        ]
+                    ]
+                ],
+            ]);
 
             $message = Message::create([
                 'buyback_id'  => $id,
