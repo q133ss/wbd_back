@@ -125,6 +125,7 @@ Route::get('/buyer/{id}', [\App\Http\Controllers\Front\BuyerController::class, '
 
 // Telegram webhook
 Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramController::class, 'handle']);
+Route::post('/telegram/client/handle', [\App\Http\Controllers\TelegramController::class, 'handleClient']);
 
 // Реферальная ссылка
 Route::post('/referral/{id}', [\App\Http\Controllers\ReferralController::class, 'store']);

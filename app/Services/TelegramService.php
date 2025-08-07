@@ -46,8 +46,36 @@ class TelegramService
         }
     }
 
+    // Метод для обработки входящих сообщений (вебхук) для клиента
+    public function handleWebhookClient($update)
+    {
+        try{
+            if(isset($update['message'])) {
+                $chatId = $update['message']['chat']['id'];
+                $text = $update['message']['text'] ?? '';
+
+                // Проверяем, является ли текст командой /start с параметром
+                if (strpos($text, '/start') === 0) {
+                    $startPayload = trim(str_replace('/start', '', $text));
+                    $this->startCommand($chatId, $startPayload, false);
+                } else {
+                    if(isset($update['message']['contact'])) {
+                        $this->sendMessage($chatId, '✅Вы успешно поделились контактом!', [], false);
+                    }else{
+                        $this->sendMessage($chatId, 'Неизвестная команда', [], false);
+                    }
+                }
+            }
+            return response()->json(['message' => true], 200);
+        }catch (\Exception $exception){
+            \Log::error("TELEGRAM ERROR: ".$exception->getMessage());
+            // Обязательно возвращаем 200, что бы не было повтора!
+            return response()->json(['message' => true], 200);
+        }
+    }
+
     // Метод для отправки сообщения
-    public function sendMessage($chatId, $text, array $keyboard = []): void {
+    public function sendMessage($chatId, $text, array $keyboard = [], $forSeller = true): void {
         // Экранируем текст MarkdownV2 (если используете Markdown)
         $escaped = preg_replace_callback(
             '/[_\*\[\]\(\)~`>#\+\-=|{}\.\!]/',
@@ -74,8 +102,6 @@ class TelegramService
         $response = curl_exec($ch);
         curl_close($ch);
     }
-
-
 
     // Отправка файла
     public function sendFile($chatId, $filePath, $caption = '', $keyboard = []): void
@@ -109,11 +135,20 @@ class TelegramService
     }
 
     // Команда /start
-    private function startCommand($chatId, $startPayload = null): void
+    private function startCommand($chatId, $startPayload = null, $forSeller = true): void
     {
         if ($startPayload) {
             // Пытаемся найти пользователя по токену
-            $user = User::where('tg_token', $startPayload)->first();
+            if($forSeller){
+                $user = User::where('tg_token', $startPayload)->where('role_id', function ($query){
+                    return $query->select('id')->from('roles')->where('slug', 'seller');
+                })->first();
+            }else{
+                $user = User::where('tg_token', $startPayload)->where('role_id', function ($query){
+                    return $query->select('id')->from('roles')->where('slug', 'buyer');
+                })->first();
+            }
+
 
             if ($user) {
                 $user->update(['telegram_id' => $chatId, 'tg_token' => null]);
@@ -131,7 +166,7 @@ class TelegramService
                     ],
                 ];
 
-                $this->sendMessage($chatId, "✅ Вы успешно привязали аккаунт!", $keyboard);
+                $this->sendMessage($chatId, "✅ Вы успешно привязали аккаунт!", $keyboard, $forSeller);
                 return;
             }
         }

@@ -20,6 +20,16 @@ class TelegramController extends Controller
         return response('OK', 200);
     }
 
+    public function handleClient(Request $request)
+    {
+        // Получаем данные из запроса
+        $update = json_decode($request->getContent(), true);
+
+        (new TelegramService())->handleWebhookClient($update);
+
+        return response('OK', 200);
+    }
+
     public function getTelegramLink()
     {
         $user = auth('sanctum')->user();
