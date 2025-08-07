@@ -189,7 +189,11 @@ class TelegramService
 
     public function generateAuthLink(User $user): string
     {
-        $botUsername = config('services.telegram.username'); // Получаем username бота из конфига
+        if($user->role?->slug !== 'seller') {
+            $botUsername = config('services.telegram.client_username');
+        }else{
+            $botUsername = config('services.telegram.username');
+        }
         $token = $this->generateUserToken($user);
 
         return "https://t.me/{$botUsername}?start={$token}";

@@ -141,8 +141,12 @@ class ProductController extends Controller
     // Возвращает объявление по ID товара
     public function adByProduct(string $productId)
     {
-        return Ad::where('product_id', $productId)
+        $ad = Ad::where('product_id', $productId)
             ->where('status', true)
             ->firstOrFail();
+        $ad->increment('views_count');
+        $ad->logStat('click');
+
+        return $ad;
     }
 }

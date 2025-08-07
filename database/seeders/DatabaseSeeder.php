@@ -18,6 +18,7 @@ use App\Models\Template;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -157,11 +158,23 @@ class DatabaseSeeder extends Seeder
             'balance'          => 10000,
             'password'         => bcrypt('password'),
             'role_id'          => Role::where('slug', 'seller')->pluck('id')->first(),
-            'telegram_id'      => '461612832'
+            'telegram_id'      => '461612832',
+            'is_configured'    => true,
         ]);
 
         $template = new Template();
         $template->createDefault($alexey->id);
+
+        DB::table('user_tariff')->insert([
+            'user_id' => $alexey->id,
+            'tariff_id' => Tariff::where('name', 'Пробный')->first()->id,
+            'end_date' => now()->addDays(3),
+            'variant_name' => '3 дня',
+            'duration_days' => 3,
+            'price_paid' => 0,
+            'products_count' => 10,
+            'created_at' => now()
+        ]);
 
         $admin = User::create([
             'name'             => 'admin',
@@ -171,6 +184,7 @@ class DatabaseSeeder extends Seeder
             'phone'            => '+7(999)999-99-99',
             'password'         => bcrypt('password'),
             'role_id'          => Role::where('slug', 'admin')->pluck('id')->first(),
+            'is_configured'    => true,
         ]);
 
         $template->createDefault($admin->id);
@@ -183,6 +197,7 @@ class DatabaseSeeder extends Seeder
             'phone'            => '+7(222)222-22-22',
             'password'         => bcrypt('password'),
             'role_id'          => Role::where('slug', 'buyer')->pluck('id')->first(),
+            'is_configured'    => true,
         ]);
 
         // Все, что ниже можно смело удалять, если не нужно
