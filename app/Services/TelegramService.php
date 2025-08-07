@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Role;
 use App\Models\User;
 use CURLFile;
 use Illuminate\Support\Facades\Http;
@@ -93,7 +94,9 @@ class TelegramService
             $data['reply_markup'] = $keyboard; // Уже передаем готовую структуру клавиатуры
         }
 
-        $ch = curl_init("https://api.telegram.org/bot{$this->token}/sendMessage");
+        $token = $forSeller ? $this->token : $this->clientToken;
+
+        $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -184,7 +187,7 @@ class TelegramService
 ✅ **Сообщения** — получайте уведомления о новых сообщениях и оперативно реагируйте на них.
 
 ✅ **И многое другое** — бот поможет вам эффективно управлять вашими выкупами на WBDiscount.";
-        $this->sendMessage($chatId, $welcomeMessage);
+        $this->sendMessage($chatId, $welcomeMessage,[], $forSeller);
 
         // Проверяем пользователя в БД
         $user = User::where('telegram_id', $chatId)->first();
@@ -203,16 +206,17 @@ class TelegramService
                     ]
                 ],
             ];
-            $this->sendMessage($chatId, $message, $keyboard);
+            $this->sendMessage($chatId, $message, $keyboard, $forSeller);
         }
     }
 
     public function sendNotification(string $user_id, string $text, array $keyword): void
     {
         try{
-            $chatId = User::where('id',$user_id)->pluck('telegram_id')->first();
-            if($chatId != null){
-                $this->sendMessage($chatId, $text, $keyword);
+            $user = User::where('id',$user_id)->select('telegram_id', 'role_id')->first();
+            $isSeller = $user->role_id === Role::where('slug', 'seller')->pluck('id')->first();
+            if($user != null){
+                $this->sendMessage($user->telegram_id, $text, $keyword, $isSeller);
             }
         }catch (\Exception $exception){
             \Log::error('TelegramService sendNotification error: ' . $exception->getMessage());

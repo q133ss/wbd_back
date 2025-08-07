@@ -822,7 +822,6 @@ class ChatController extends Controller
 
     public function paymentScreen(PaymentScreenRequest $request, string $buyback_id)
     {
-        // TODO Transaction
         $buyback = Buyback::findOrFail($buyback_id);
         $user = auth('sanctum')->user();
         $user->checkBuyback($buyback);
@@ -831,50 +830,74 @@ class ChatController extends Controller
             abort(403, 'У вас нет прав на это действие');
         }
 
-        $message = Message::create([
-            'buyback_id'  => $buyback_id,
-            'sender_id'   => auth('sanctum')->id(),
-            'text'        => 'Кэшбек переведен, прошу подтвердить поступление!',
-            'type'        => 'image',
-        ]);
+        try {
+            DB::beginTransaction();
+            $message = Message::create([
+                'buyback_id' => $buyback_id,
+                'sender_id' => auth('sanctum')->id(),
+                'text' => 'Кэшбек переведен, прошу подтвердить поступление!',
+                'type' => 'image',
+            ]);
 
-        $fileSrc = $request->file('file')->store('files', 'public');
-        $fileModel = File::create([
-            'fileable_type' => 'App\Models\Message',
-            'fileable_id'   => $message->id,
-            'src'           => $fileSrc,
-            'category'      => 'image'
-        ]);
+            $fileSrc = $request->file('file')->store('files', 'public');
+            $fileModel = File::create([
+                'fileable_type' => 'App\Models\Message',
+                'fileable_id' => $message->id,
+                'src' => $fileSrc,
+                'category' => 'image'
+            ]);
 
-        $userMsg = Message::create([
-            'buyback_id'  => $buyback_id,
-            'sender_id'   => auth('sanctum')->id(),
-            'text'        => 'Подтвердите получение кэшбека. Если вы не получили кэшбек, свяжитесь с продавцом в этом чате. Если возник спор или продавец не отвечает, напишите в поддержку и мы решим вопрос',
-            'type'        => 'system',
-            'system_type' => 'info',
-            'hide_for'    => 'seller'
-        ]);
+            $userMsg = Message::create([
+                'buyback_id' => $buyback_id,
+                'sender_id' => auth('sanctum')->id(),
+                'text' => 'Подтвердите получение кэшбека. Если вы не получили кэшбек, свяжитесь с продавцом в этом чате. Если возник спор или продавец не отвечает, напишите в поддержку и мы решим вопрос',
+                'type' => 'system',
+                'system_type' => 'info',
+                'hide_for' => 'seller'
+            ]);
 
-        $sellerMsg = Message::create([
-            'buyback_id' => $buyback_id,
-            'sender_id' => auth('sanctum')->id(),
-            'text' => 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически',
-            'type'        => 'system',
-            'system_type' => 'success',
-            'hide_for'    => 'user'
-        ]);
+            $sellerMsg = Message::create([
+                'buyback_id' => $buyback_id,
+                'sender_id' => auth('sanctum')->id(),
+                'text' => 'Чек был отправлен покупателю, дождитесь подтверждения получения кэшбека в течение 24 часов или сделка будет принята автоматически',
+                'type' => 'system',
+                'system_type' => 'success',
+                'hide_for' => 'user'
+            ]);
 
-        (new SocketService)->send($message, $buyback, false);
-        (new SocketService)->send($sellerMsg, $buyback, false);
+            (new SocketService)->send($message, $buyback, false);
+            (new SocketService)->send($sellerMsg, $buyback, false);
 
-        $update = $buyback->update([
-            'is_payment_photo_sent' => true,
-            'status' => 'awaiting_payment_confirmation'
-        ]);
+            $update = $buyback->update([
+                'is_payment_photo_sent' => true,
+                'status' => 'awaiting_payment_confirmation'
+            ]);
 
-        return response()->json([
-            'message' => 'true'
-        ]);
+            $keyword = [
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => '🚀 Открыть приложение',
+                            'web_app' => ['url' => config('app.frontend_url').'/dashboard/orders?chatId='.$buyback_id]
+                        ]
+                    ]
+                ]
+            ];
+            (new NotificationService())->send($buyback->user_id, $buyback->id, 'Продавец перевел кэшбек и отправил чек. Пожалуйста, подтвердите его', true, $keyword);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'true'
+            ]);
+        }catch (\Exception $exception){
+            DB::rollBack();
+            \Log::error($exception->getMessage());
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Произошла ошибка, попробуйте еще раз'
+            ], 500);
+        }
     }
 
     // Подтверидть оплату (юзером)
