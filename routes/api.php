@@ -50,6 +50,7 @@ Route::get('/products', [\App\Http\Controllers\Front\ProductController::class, '
 Route::get('/product/{id}', [\App\Http\Controllers\Front\ProductController::class, 'show']);
 Route::get('/product/{id}/feedbacks/{page}', [\App\Http\Controllers\Front\ProductController::class, 'showFeedbacks']);
 Route::get('/product/related/{id}', [\App\Http\Controllers\Front\ProductController::class, 'related']);
+Route::get('/ad/by-product/{id}', [\App\Http\Controllers\Front\ProductController::class, 'adByProduct']);
 
 // Категории
 Route::get('/category', [\App\Http\Controllers\CategoryController::class, 'index']);

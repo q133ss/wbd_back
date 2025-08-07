@@ -137,4 +137,12 @@ class ProductController extends Controller
         $service = new WBService();
         return $service->getReviews($productId, $page);
     }
+
+    // Возвращает объявление по ID товара
+    public function adByProduct(string $productId)
+    {
+        return Ad::where('product_id', $productId)
+            ->where('status', true)
+            ->firstOrFail();
+    }
 }
