@@ -146,6 +146,12 @@ class OrderController extends Controller
                 'slug'     => 'on_confirmation',
             ],
             [
+                'title'    => 'Ожидание подтверждения платежа',
+                'not_read' => $buybacks->where('status', 'awaiting_payment_confirmation')
+                    ->filter(fn($b) => $b->messages->contains('is_read', false))->count(),
+                'slug'     => 'awaiting_payment_confirmation',
+            ],
+            [
                 'title'    => 'Кешбек получен',
                 'not_read' => $buybacks->where('status', 'cashback_received')
                     ->filter(fn($b) => $b->messages->contains('is_read', false))->count(),
