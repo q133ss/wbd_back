@@ -84,4 +84,17 @@ class BuybackController extends Controller
         ]);
     }
 
+    public function unreadCount()
+    {
+        // Получаем ID текущего пользователя
+        $count = auth('sanctum')->user()->buybacks()
+            ->whereHas('messages', function ($query) {
+                $query->where('is_read', false)->where('sender_id', '!=', auth('sanctum')->id());
+            })
+            ->count();
+        return response()->json([
+            'count' => $count
+        ]);
+    }
+
 }

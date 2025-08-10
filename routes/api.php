@@ -116,6 +116,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/get-telegram-link', [\App\Http\Controllers\TelegramController::class, 'getTelegramLink']);
 
     Route::post('/role-switch', [\App\Http\Controllers\SwitchController::class, 'switch']);
+
+    // Кол-во непрочитанных выкупов
+    Route::get('/buybacks-unread-count', [\App\Http\Controllers\Seller\BuybackController::class, 'unreadCount']);
 });
 
 // Профиль продавца
