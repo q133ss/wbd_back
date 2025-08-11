@@ -44,6 +44,13 @@ class Buyback extends Model
                         'buybacks.created_at',
                     ], 'LIKE', '%'.$q.'%');
                 }
+            )->when(
+                $request->query('product_id'),
+                function (Builder $query, $productId) {
+                    return $query->whereHas('ad', function (Builder $query) use ($productId) {
+                        $query->where('product_id', $productId);
+                    });
+                }
             );
     }
 }
