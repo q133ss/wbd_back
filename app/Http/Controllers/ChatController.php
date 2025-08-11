@@ -934,30 +934,6 @@ class ChatController extends Controller
             'hide_for'    => 'seller'
         ]);
 
-        if($buyback->has_review_by_buyer == false){
-            $msgReviewSeller = Message::create([
-                'buyback_id' => $buyback_id,
-                'sender_id' => auth('sanctum')->id(),
-                'text' => 'Покупатель еще не оставил отзыв о вас. Мы сообщим вам сразу же как покупатель напишет отзыв.',
-                'type'        => 'system',
-                'system_type' => 'success',
-                'hide_for'    => 'user'
-            ]);
-            (new SocketService)->send($msgReviewSeller, $buyback, false);
-        }
-
-        if($buyback->has_review_by_seller == false){
-            $msgReviewUser = Message::create([
-                'buyback_id' => $buyback_id,
-                'sender_id' => auth('sanctum')->id(),
-                'text' => 'Продавец еще не оставил отзыв о вас. Мы сообщим вам сразу же как продавец напишет отзыв.',
-                'type'        => 'system',
-                'system_type' => 'success',
-                'hide_for'    => 'seller'
-            ]);
-            (new SocketService)->send($msgReviewUser, $buyback, false);
-        }
-
         (new SocketService)->send($messageSeller, $buyback, false);
         (new SocketService)->send($messageUser, $buyback, false);
     }
