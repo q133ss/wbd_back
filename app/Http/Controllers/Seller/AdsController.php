@@ -59,7 +59,7 @@ class AdsController extends Controller
         $ads->getCollection()->transform(function ($ad) {
             // Buybacks
             $ad->completed_buybacks_count = $ad->buybacks()
-                ->where('status', 'completed')
+                ->whereIn('status', ['completed', 'cashback_received'])
                 ->count();
 
             $ad->process_buybacks_count = $ad->buybacks()
