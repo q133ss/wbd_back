@@ -149,12 +149,3 @@ Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class,
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
 
 Route::post('/telegram/user/{chat_id}', [\App\Http\Controllers\AuthController::class, 'userByTelegramId']);
-
-Route::get('zz', function (){
-    $completedBuybacks = 0;
-    $ad = \App\Models\Ad::pluck('id', 'name')->all();
-    dd($ad);
-    $adBuybacks = $ad->buybacks ?? collect();
-    $completedBuybacks += $adBuybacks->whereIn('status', ['cashback_received', 'completed'])->count();
-    dd($completedBuybacks);
-});

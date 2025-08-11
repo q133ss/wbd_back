@@ -46,6 +46,7 @@ class ProductController extends Controller
                     $adBuybacks = $ad->buybacks ?? collect();
                     $completedBuybacks += $adBuybacks->whereIn('status', ['cashback_received', 'completed'])->count();
 
+                    $processingBuybacks = $adBuybacks->whereIn('status', ['pending', 'awaiting_receipt', 'on_confirmation', 'awaiting_payment_confirmation'])->count();
                     // Сумма сделок по этому объявлению
                     $inDeal += $adBuybacks->sum('product_price');
 
@@ -70,6 +71,7 @@ class ProductController extends Controller
                 $product->buybacks_progress = "$completedBuybacks/$redemptionTotal";
                 $product->in_deal = $inDeal;
                 $product->ads_count = $ads->count();
+                $product->processing_buybacks = $processingBuybacks;
 
                 return $product;
             });
