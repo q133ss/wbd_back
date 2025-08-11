@@ -44,7 +44,7 @@ class ProductController extends Controller
 
                     // Подсчёт выкупов
                     $adBuybacks = $ad->buybacks ?? collect();
-                    $completedBuybacks += $adBuybacks->where('status', 'completed')->count();
+                    $completedBuybacks += $adBuybacks->whereIn('status', ['cashback_received', 'completed'])->count();
 
                     // Сумма сделок по этому объявлению
                     $inDeal += $adBuybacks->sum('product_price');
@@ -59,7 +59,6 @@ class ProductController extends Controller
                 $ctr = $views > 0 ? round(($clicks / $views) * 100, 2) : 0;
                 $cr_percent = $clicks > 0 ? round(($completedBuybacks / $clicks) * 100, 2) : 0;
                 $cr = ceil($completedBuybacks / max($redemptionTotal, 1));
-
                 // Присваиваем в объект товара
                 $product->views = $views;
                 $product->clicks = $clicks;
@@ -68,7 +67,7 @@ class ProductController extends Controller
                 $product->cr = $cr;
                 $product->completed_buybacks_count = $completedBuybacks;
                 $product->redemption_count = $redemptionTotal;
-                $product->buybacks_progress = "$completedBuybacks шт. / $redemptionTotal шт.";
+                $product->buybacks_progress = "$completedBuybacks/$redemptionTotal";
                 $product->in_deal = $inDeal;
                 $product->ads_count = $ads->count();
 
