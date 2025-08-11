@@ -64,7 +64,7 @@ class ChatController extends Controller
                 $fileSrc   = '/storage/'.$file->store('files', 'public');
                 $fileModel = File::create([
                     'fileable_type' => 'App\Models\Message',
-                    'fileable_id'   => $message->id(),
+                    'fileable_id'   => $message->id,
                     'src'           => $fileSrc,
                     'category'      => 'image',
                 ]);
