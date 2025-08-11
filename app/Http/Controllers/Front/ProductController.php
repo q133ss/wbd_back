@@ -105,7 +105,7 @@ class ProductController extends Controller
     public function related(string $id)
     {
         $ad = Ad::with('product')->findOrFail($id);
-        $query = Ad::where('id', '!=', $id)->with('product');
+        $query = Ad::where('id', '!=', $id)->where('status', true)->with('product');
 
         // Если у товара есть категория, ищем в той же категории
         if ($ad->product?->category_id) {
@@ -121,6 +121,7 @@ class ProductController extends Controller
         if ($related->count() < 8) {
             $remaining = 8 - $related->count();
             $additionalAds = Ad::where('id', '!=', $id)
+                ->where('status', true)
                 ->whereNotIn('id', $related->pluck('id'))
                 ->orderBy('created_at', 'desc')
                 ->take($remaining)
