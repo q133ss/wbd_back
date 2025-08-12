@@ -292,8 +292,8 @@ class WBService extends BaseService
             [2190, 2405, '15'],
             [2406, 2621, '16'],
             [2622, 2837, '17'],
-            [2838, 3004, '18'],
-            [3005, 3279, '19'],
+            [2838, 3010, '18'],
+            [3011, 3279, '19'],
             [3280, 3443, '20'],
             [3444, 3623, '21'],
             [3624, 3994, '22'],
@@ -346,6 +346,7 @@ class WBService extends BaseService
 
         $pathData = $this->generatePathData($id);
         $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$id}/info/ru/card.json";
+        \Log::info('CardURL: '.$cardUrl);
         $cardResponse = Http::get($cardUrl);
 
         if (!$cardResponse->successful()) {
