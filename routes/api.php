@@ -80,7 +80,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/withdraws', [\App\Http\Controllers\ProfileController::class, 'withdraws']);
     Route::post('/withdraw/{id}', [\App\Http\Controllers\ProfileController::class, 'withdrawCancel']);
     Route::get('/profile/statistic', [\App\Http\Controllers\ProfileController::class, 'statistic']);
-    Route::get('/referral/{type}', [\App\Http\Controllers\ReferralController::class, 'index'])->where('type', 'site|telegram');
+    Route::get('/referral', [\App\Http\Controllers\ReferralController::class, 'index']);
     Route::post('payment-methods', [\App\Http\Controllers\ProfileController::class, 'updatePayment']);
     Route::get('payment-methods', [\App\Http\Controllers\ProfileController::class, 'getPayment']);
 

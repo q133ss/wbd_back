@@ -64,8 +64,6 @@ class TelegramController extends Controller
             $formattedPhone = $phone; // или null / ошибка
         }
 
-        \Log::info('Phone formatted: ' . $formattedPhone);
-
         $user = User::firstOrCreate(
             [
                 'telegram_id' => $telegramId
@@ -86,6 +84,10 @@ class TelegramController extends Controller
                 ['user_id' => $refUserId, 'type' => 'telegram'],
                 ['registrations_count' => DB::raw('registrations_count + 1')]
             );
+
+            $update = $user->update([
+                'referral_id' => $refUserId
+            ]);
         }
 
         $token = $user->createToken('web');

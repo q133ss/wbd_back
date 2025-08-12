@@ -9,19 +9,28 @@ use Illuminate\Support\Facades\Cache;
 
 class ReferralController extends Controller
 {
-    public function index(string $type)
+    public function index()
     {
-        // site || telegram
-        $stat = auth('sanctum')->user()->referralStat?->where('type', $type)->first();
+        $user = auth('sanctum')->user();
+        $stats = $user->referralStat()->whereIn('type', ['telegram', 'site'])->get()->keyBy('type');
 
-        $statistic = [
-            'clicks_count' => $stat->clicks_count ?? 0,
-            'registrations_count' => $stat->registrations_count ?? 0,
-            'topup_count' => $stat->topup_count ?? 0,
-            'earnings' => $stat->earnings ?? 0
-        ];
-        return response()->json($statistic);
+        $telegram = $stats->get('telegram');
+        $site = $stats->get('site');
+
+        return response()->json([
+            'telegram' => [
+                'clicks_count' => $telegram->clicks_count ?? 0,
+                'registrations_count' => $telegram->registrations_count ?? 0,
+            ],
+            'site' => [
+                'clicks_count' => $site->clicks_count ?? 0,
+                'registrations_count' => $site->registrations_count ?? 0,
+                'topup_count' => ($telegram->topup_count ?? 0) + ($site->topup_count ?? 0),
+                'earnings' => ($telegram->earnings ?? 0) + ($site->earnings ?? 0),
+            ],
+        ]);
     }
+
     public function store(Request $request, string $id): \Illuminate\Http\JsonResponse
     {
         // Обновляем или создаем запись в таблице referral_stats
