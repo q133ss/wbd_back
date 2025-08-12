@@ -114,6 +114,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Ссылка на ТГ бота
     Route::get('/get-telegram-link', [\App\Http\Controllers\TelegramController::class, 'getTelegramLink']);
+    Route::get('/get-telegram-ref', [\App\Http\Controllers\TelegramController::class, 'getTelegramRef']);
 
     Route::post('/role-switch', [\App\Http\Controllers\SwitchController::class, 'switch']);
 

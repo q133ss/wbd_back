@@ -241,6 +241,17 @@ class TelegramService
         return "https://t.me/{$botUsername}?start={$token}";
     }
 
+    public function generateRefLink(User $user): string
+    {
+        if($user->role?->slug !== 'seller') {
+            $botUsername = config('services.telegram.client_username');
+        }else{
+            $botUsername = config('services.telegram.username');
+        }
+
+        return "https://t.me/{$botUsername}?start=ref{$user->id}";
+    }
+
     private function generateUserToken(User $user): string
     {
         // Генерируем уникальный токен для пользователя
