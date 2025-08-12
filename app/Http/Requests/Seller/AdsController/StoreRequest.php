@@ -52,9 +52,45 @@ class StoreRequest extends FormRequest
                 'min:1',
                 function (string $attribute, mixed $value, Closure $fail) use ($user): void {
                     // ищем все объявления юзера, если есть активное с таким количеством выкупов, то ошибка
-                    $allRedemptionCount = $user->ads()->sum('redemption_count') + $value;
-                    if($user->tariffs()?->wherePivot('status', true)->pluck('name')->first() == Tariff::TRIAL_PLAN && $allRedemptionCount > Tariff::TRIAL_PLAN_COUNT) {
-                        $fail('Вы не можете создавать объявления с количеством выкупов более 10, так как у вас пробный тариф');
+                    $ads = $user->ads()->get();
+
+                    // Считаем общее количество выкупов у уже созданных объявлений
+                    $currentCount = $ads->sum(function ($ad) {
+                        $keywords = $ad->keywords ?? [];
+                        if (is_string($keywords)) {
+                            $keywords = json_decode($keywords, true);
+                        }
+
+                        if (!empty($keywords)) {
+                            // Если есть keywords — берём только их redemption_count
+                            return collect($keywords)
+                                ->sum(fn ($keyword) => (int) ($keyword['redemption_count'] ?? 0));
+                        }
+
+                        // Если keywords нет — берём обычный redemption_count
+                        return (int) $ad->redemption_count;
+                    });
+
+                    // Подсчёт для нового объявления
+                    $newCount = 0;
+                    if (!empty($this->keywords) && is_array($this->keywords)) {
+                        // Если переданы keywords — берём только их
+                        $newCount = collect($this->keywords)
+                            ->sum(fn ($keyword) => (int) ($keyword['redemption_count'] ?? 0));
+                    } else {
+                        // Если keywords нет — берём обычный redemption_count
+                        $newCount = (int) $value;
+                    }
+
+                    // Итоговое количество
+                    $totalCount = $currentCount + $newCount;
+
+                    // Проверка на лимит тарифа
+                    if (
+                        $user->tariffs()?->wherePivot('status', true)->pluck('name')->first() === Tariff::TRIAL_PLAN
+                        && $totalCount > Tariff::TRIAL_PLAN_COUNT
+                    ) {
+                        $fail('Вы не можете создавать объявления с количеством выкупов более ' . Tariff::TRIAL_PLAN_COUNT . ', так как у вас пробный тариф');
                     }
                 }
             ],
