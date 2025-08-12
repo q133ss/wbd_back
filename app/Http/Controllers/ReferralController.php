@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Cache;
 
 class ReferralController extends Controller
 {
-    public function index()
+    public function index(string $type)
     {
-        $stat = auth('sanctum')->user()->referralStat;
+        // site || telegram
+        $stat = auth('sanctum')->user()->referralStat?->where('type', $type)->first();
 
         $statistic = [
             'clicks_count' => $stat->clicks_count ?? 0,

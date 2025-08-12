@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('registrations_count')->default(0)->comment('Колво зарегестрированных пользователей');
             $table->unsignedBigInteger('topup_count')->default(0)->comment('Колво раз пополнений баланса');
             $table->unsignedBigInteger('earnings')->default(0)->comment('Заработок');
+            $table->enum('type', ['site', 'telegram'])->default('site')->comment('Тип: сайт или тг');
             $table->timestamps();
         });
     }

@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\ReferralStat;
 use App\Models\Role;
 use App\Models\User;
 use CURLFile;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -22,55 +25,55 @@ class TelegramService
     // Метод для обработки входящих сообщений (вебхук)
     public function handleWebhook($update)
     {
-        try{
-            if(isset($update['message'])) {
-                $chatId = $update['message']['chat']['id'];
-                $text = $update['message']['text'] ?? '';
-
-                // Проверяем, является ли текст командой /start с параметром
-                if (strpos($text, '/start') === 0) {
-                    $startPayload = trim(str_replace('/start', '', $text));
-                    $this->startCommand($chatId, $startPayload);
-                } else {
-                    if(isset($update['message']['contact'])) {
-                        $this->sendMessage($chatId, '✅Вы успешно поделились контактом!');
-                    }else{
-                        $this->sendMessage($chatId, 'Неизвестная команда');
-                    }
-                }
-            }
-            return response()->json(['message' => true], 200);
-        }catch (\Exception $exception){
-            \Log::error("TELEGRAM ERROR: ".$exception->getMessage());
-            // Обязательно возвращаем 200, что бы не было повтора!
-            return response()->json(['message' => true], 200);
-        }
+        return $this->handleWebhookCommon($update, true);
     }
 
-    // Метод для обработки входящих сообщений (вебхук) для клиента
     public function handleWebhookClient($update)
     {
-        try{
-            if(isset($update['message'])) {
+        return $this->handleWebhookCommon($update, false);
+    }
+
+    private function handleWebhookCommon(array $update, bool $forSeller)
+    {
+        try {
+            if (isset($update['message'])) {
                 $chatId = $update['message']['chat']['id'];
                 $text = $update['message']['text'] ?? '';
 
-                // Проверяем, является ли текст командой /start с параметром
                 if (strpos($text, '/start') === 0) {
                     $startPayload = trim(str_replace('/start', '', $text));
-                    $this->startCommand($chatId, $startPayload, false);
+
+                    // Обработка реферального клика
+                    if (str_starts_with($startPayload, 'ref')) {
+                        $refUserId = (int) str_replace('ref', '', $startPayload);
+
+                        if (User::where('id', $refUserId)->exists()) {
+                            // Тип статистики по роли
+
+                            ReferralStat::updateOrCreate(
+                                ['user_id' => $refUserId, 'type' => 'telegram'],
+                                ['clicks_count' => DB::raw('clicks_count + 1')]
+                            );
+
+                            // Сохраняем в кеш, чтобы потом учесть регистрацию/пополнение
+                            Cache::put("ref_tg_{$chatId}", $refUserId, now()->addDays(10));
+                        }
+                    }
+
+                    $this->startCommand($chatId, $startPayload, $forSeller);
+
                 } else {
-                    if(isset($update['message']['contact'])) {
-                        $this->sendMessage($chatId, '✅Вы успешно поделились контактом!', [], false);
-                    }else{
-                        $this->sendMessage($chatId, 'Неизвестная команда', [], false);
+                    if (isset($update['message']['contact'])) {
+                        $this->sendMessage($chatId, '✅Вы успешно поделились контактом!', [], $forSeller);
+                    } else {
+                        $this->sendMessage($chatId, 'Неизвестная команда', [], $forSeller);
                     }
                 }
             }
+
             return response()->json(['message' => true], 200);
-        }catch (\Exception $exception){
-            \Log::error("TELEGRAM ERROR: ".$exception->getMessage());
-            // Обязательно возвращаем 200, что бы не было повтора!
+        } catch (\Exception $exception) {
+            \Log::error("TELEGRAM ERROR: " . $exception->getMessage());
             return response()->json(['message' => true], 200);
         }
     }
