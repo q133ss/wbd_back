@@ -24,7 +24,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'telegram_id' => 'required',
-            'phone' => ['required', new PhoneNumber()],
+            'phone' => 'required',
             'role' => 'required|string|in:seller,buyer',
             'chatId' => 'nullable|string',
             'first_name' => 'nullable|string|max:255',

@@ -57,12 +57,21 @@ class TelegramController extends Controller
         $telegramId = $request->get('telegram_id');
         $roleSlug = $request->get('role');
 
+        $phone = $request->get('phone'); // Приходит так 79518677086, а надо +7(999)999-99-99
+        if (preg_match('/^7(\d{3})(\d{3})(\d{2})(\d{2})$/', $phone, $matches)) {
+            $formattedPhone = "+7({$matches[1]}){$matches[2]}-{$matches[3]}-{$matches[4]}";
+        } else {
+            $formattedPhone = $phone; // или null / ошибка
+        }
+
+        \Log::info('Phone formatted: ' . $formattedPhone);
+
         $user = User::firstOrCreate(
             [
                 'telegram_id' => $telegramId
             ],
             [
-                'phone' => $request->get('phone'),
+                'phone' => $formattedPhone,
                 'role_id' => Role::where('slug', $roleSlug)->first()->id,
                 'name' => $request->get('first_name') . ' ' . $request->get('last_name'),
                 'password' => '-'
