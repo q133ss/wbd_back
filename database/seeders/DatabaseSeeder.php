@@ -215,44 +215,44 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Импортируем категории');
         $this->command->call('categories:import');
 
-        $this->command->info('Создаем партнеров');
-        $partnerCategories = [
-            'Банки',
-            'Фуллфилменты',
-            'Сервисы',
-            'Бухгалтерия',
-            'Финансы',
-            'Другое',
-            'Карго'
-        ];
+//        $this->command->info('Создаем партнеров');
+//        $partnerCategories = [
+//            'Банки',
+//            'Фуллфилменты',
+//            'Сервисы',
+//            'Бухгалтерия',
+//            'Финансы',
+//            'Другое',
+//            'Карго'
+//        ];
 
-        $sourcePath = public_path('img/cart.png');
-        $destinationPath = 'partners/cart.png';
-        $contents = file_get_contents($sourcePath);
-        Storage::disk('public')->put($destinationPath, $contents);
+//        $sourcePath = public_path('img/cart.png');
+//        $destinationPath = 'partners/cart.png';
+//        $contents = file_get_contents($sourcePath);
+//        Storage::disk('public')->put($destinationPath, $contents);
+//
+//        foreach ($partnerCategories as $categoryName) {
+//            $category = PartnerCategory::create([
+//                'name' => $categoryName,
+//                'slug' => Str::slug($categoryName)
+//            ]);
+//
+//            $partner = Partner::create([
+//                'category_id' => $category->id,
+//                'name' => $categoryName . ' Партнёр',
+//                'description' => 'Описание партнёра в категории ' . $categoryName,
+//                'link' => 'https://' . Str::slug($categoryName) . '.example.com'
+//            ]);
+//
+//            File::create([
+//                'fileable_type' => 'App\Models\Partner',
+//                'fileable_id' => $partner->id,
+//                'category' => 'img',
+//                'src' => $destinationPath
+//            ]);
+//        }
 
-        foreach ($partnerCategories as $categoryName) {
-            $category = PartnerCategory::create([
-                'name' => $categoryName,
-                'slug' => Str::slug($categoryName)
-            ]);
-
-            $partner = Partner::create([
-                'category_id' => $category->id,
-                'name' => $categoryName . ' Партнёр',
-                'description' => 'Описание партнёра в категории ' . $categoryName,
-                'link' => 'https://' . Str::slug($categoryName) . '.example.com'
-            ]);
-
-            File::create([
-                'fileable_type' => 'App\Models\Partner',
-                'fileable_id' => $partner->id,
-                'category' => 'img',
-                'src' => $destinationPath
-            ]);
-        }
-
-        $this->command->info('Создаем тестовые товары и объявления');
-        $this->call(ReviewSeed::class);
+        //$this->command->info('Создаем тестовые товары и объявления');
+        //$this->call(ReviewSeed::class);
     }
 }

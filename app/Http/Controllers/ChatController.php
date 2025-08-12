@@ -184,7 +184,7 @@ class ChatController extends Controller
                     // Переменные!
                     $thxText = str_replace(['{cashback}'], [$cashback], \App\Models\Admin\Settings::where('key','review_cashback_instructions')->pluck('value')->first());
 
-                    $reviewCriteriaText = $ad->review_criteria ?? null;
+                    $reviewCriteriaText = $buyback->ad?->review_criteria ?? null;
                     \Log::info('review: '.$reviewCriteriaText);
 
                     DeliveryJob::dispatch($buyback)->delay(now()->addDays(10));
