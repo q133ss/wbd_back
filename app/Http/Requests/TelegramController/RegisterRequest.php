@@ -23,7 +23,7 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'telegram_id' => 'required|string',
+            'telegram_id' => 'required',
             'phone' => ['required', new PhoneNumber()],
             'role' => 'required|string|in:seller,buyer',
             'chatId' => 'nullable|string',
