@@ -38,6 +38,7 @@ class ProductController extends Controller
                 $redemptionTotal = 0;
                 $completedBuybacks = 0;
                 $inDeal = 0;
+                $processingBuybacks = 0;
 
                 foreach ($ads as $ad) {
                     $redemptionTotal += $ad->redemption_count ?? 0;

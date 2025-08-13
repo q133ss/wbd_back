@@ -138,6 +138,12 @@ return [
             'path'   => storage_path('logs/wb.log'),
             'level'  => 'info',
         ],
+
+        'tg' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/telegram.log'),
+            'level' => env('LOG_LEVEL', 'debug')
+        ],
     ],
 
 ];

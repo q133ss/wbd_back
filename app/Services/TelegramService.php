@@ -73,7 +73,7 @@ class TelegramService
 
             return response()->json(['message' => true], 200);
         } catch (\Exception $exception) {
-            \Log::error("TELEGRAM ERROR: " . $exception->getMessage());
+            \Log::channel('tg')->error($exception->getMessage());
             return response()->json(['message' => true], 200);
         }
     }

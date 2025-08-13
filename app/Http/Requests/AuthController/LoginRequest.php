@@ -33,7 +33,7 @@ class LoginRequest extends FormRequest
                 'max:255',
                 'string',
                 function (string $attribute, mixed $value, Closure $fail): void {
-                    $user = User::where('phone', $this->phone)->first();
+                    $user = User::where('phone', $this->phone)->where('role_id', $this->role_id)->first();
                     if (! $user || ! Hash::check($value, $user->password)) {
                         $fail('Неправильный номер телефона или пароль');
                     }
