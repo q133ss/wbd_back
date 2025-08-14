@@ -14,6 +14,6 @@ class LoginController extends Controller
         $user = User::where('email', $request->email)->first();
         Auth::login($user);
 
-        return to_route('index');
+        return to_route('admin.index');
     }
 }
