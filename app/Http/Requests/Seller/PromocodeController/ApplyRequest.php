@@ -48,7 +48,10 @@ class ApplyRequest extends FormRequest
                             $fail('Максимальный лимит использований исчерпан');
                         }
 
-                        $used = DB::table('promocode_user')->where('user_id', auth('sanctum')->id())->exists();
+                        $used = DB::table('promocode_user')
+                            ->where('user_id', auth('sanctum')->id())
+                            ->where('promocode_id', $promocode->id)
+                            ->exists();
                         if ($used) {
                             $fail('Вы уже использовали этот промокод');
                         }
