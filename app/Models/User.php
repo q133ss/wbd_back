@@ -300,4 +300,22 @@ class User extends Authenticatable
             ->wherePivot('end_date', '>', now())
             ->exists();
     }
+
+    public function scopeWithFilter($query, $request)
+    {
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('role_id')) {
+            $query->where('role_id', $request->input('role_id'));
+        }
+
+        return $query;
+    }
 }

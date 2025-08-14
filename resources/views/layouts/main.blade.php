@@ -50,6 +50,7 @@
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
     <script src="/assets/js/config.js"></script>
+    @yield('meta')
 </head>
 
 <body>
@@ -133,17 +134,21 @@
                     </a>
                 </li>
 
+                @php
+                    $sellerCount = App\Models\User::where('role_id', function ($q){return $q->select('id')->from('roles')->where('slug', 'seller')->first();})->count();
+                    $buyerCount = App\Models\User::where('role_id', function ($q){return $q->select('id')->from('roles')->where('slug', 'buyer')->first();})->count();
+                @endphp
                 <li class="menu-item">
-                    <a href="{{route('admin.index')}}" class="menu-link">
+                    <a href="{{route('admin.sellers.index')}}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-store"></i>
-                        <div class="text-truncate" data-i18n="Basic">Продавцы (999)</div>
+                        <div class="text-truncate" data-i18n="Basic">Продавцы ({{ $sellerCount  }})</div>
                     </a>
                 </li>
 
                 <li class="menu-item">
                     <a href="{{route('admin.index')}}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-user"></i>
-                        <div class="text-truncate" data-i18n="Basic">Покупатели (999)</div>
+                        <div class="text-truncate" data-i18n="Basic">Покупатели ({{$buyerCount}})</div>
                     </a>
                 </li>
 

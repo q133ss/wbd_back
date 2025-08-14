@@ -15,6 +15,5 @@ Route::get('/logout', function (){
 Route::view('chat', 'chattest');
 Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\IndexController::class, 'index'])->name('index');
-
-    Route::get('/sellers', [\App\Http\Controllers\Admin\SellerController::class, 'index'])->name('seller.index');
+    Route::get('/sellers', [\App\Http\Controllers\Admin\SellerController::class, 'index'])->name('sellers.index');
 });
