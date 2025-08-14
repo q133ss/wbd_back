@@ -119,7 +119,6 @@ class AuthService
             }
         }catch (\Exception $e) {
             DB::rollBack();
-            dd($e);
             return Response()->json(['message' => 'Ошибка сервера'], 500);
         }
     }

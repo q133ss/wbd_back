@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\TelegramController;
 
+use Illuminate\Contracts\Validation\Validator;
 use App\Rules\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -51,5 +52,13 @@ class RegisterRequest extends FormRequest
             'last_name.string' => 'Фамилия должна быть строкой',
             'last_name.max' => 'Фамилия не должно превышать 255 символов'
         ];
+    }
+
+    public function failedValidation(Validator $validator)
+    {
+        \Log::channel('tg')->error('Ошибка валидации Telegram RegisterRequest', [
+            'input' => $this->all(),           // входные данные
+            'errors' => $validator->errors(),  // ошибки валидации
+        ]);
     }
 }

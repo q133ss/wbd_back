@@ -202,16 +202,6 @@ class DatabaseSeeder extends Seeder
 
         // Все, что ниже можно смело удалять, если не нужно
 
-        $this->command->info('Создаем тестовый промокод');
-        Promocode::create([
-            'name'           => 'Тестовый промокод',
-            'promocode'      => 'test2025',
-            'start_date'     => now(),
-            'end_date'       => now()->addDays(30),
-            'buybacks_count' => 10,
-            'max_usage'      => 5,
-        ]);
-
         $this->command->info('Импортируем категории');
         $this->command->call('categories:import');
 
