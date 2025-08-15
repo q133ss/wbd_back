@@ -86,9 +86,9 @@ class ProductController extends Controller
 
         $adsArray = $ads->toArray();
         $maxPrice = Product::max('price');
-        $minPrice = Ad::min('price');
+        $minPrice = Ad::min('price_with_cashback');
         $adsArray['max_price'] = round($maxPrice, 2);
-        $adsArray['price_with_cashback'] = round($minPrice, 2);
+        $adsArray['min_price'] = round($minPrice, 2);
 
         return response()->json($adsArray);
     }
