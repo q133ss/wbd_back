@@ -42,23 +42,25 @@ class AdsService extends BaseService
                     ->first();
 
 
-                $newCount = $tariff->pivot?->products_count - 1;
-
                 $productIdsRaw = $tariff->pivot?->product_ids ?? '[]';
                 $productIds = is_array($productIdsRaw) ? $productIdsRaw : json_decode($productIdsRaw, true);
 
                 if(!in_array($data['product_id'], $productIds)){
-                    if ($tariff && $tariff->pivot?->products_count > 0) {
+                    $currentCount = $tariff->pivot?->products_count;
+
+                    if ($tariff && ($tariff->pivot?->products_count === null || $tariff->pivot->products_count > 0)) {
                         $productIds[] = $data['product_id'];
                         $user->tariffs()->updateExistingPivot($tariff->id, [
-                            'products_count' => $newCount,
+                            'products_count' => $currentCount === null
+                                ? null
+                                : max(0, $currentCount - 1), // не даём уйти в минус
                             'product_ids' => $productIds
                         ]);
                     }else{
                         return response()->json([
                             'status' => 'false',
                             'message' => 'Вы не можете создать объявлений более чем для '.$tariff->pivot?->product_ids.' товаров'
-                        ]);
+                        ], 401);
                     }
                 }
                 $data['status']  = true;
@@ -96,7 +98,11 @@ class AdsService extends BaseService
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->sendError('Произошла ошибка, попробуйте еще раз', $e->getCode());
+            \Log::error('Ошибка при создании объявления: ' . $e->getMessage(), [
+                'user_id' => auth('sanctum')->id(),
+                'data'    => $data
+            ]);
+            return $this->sendError('Произошла ошибка, попробуйте еще раз', 500);
         }
     }
 }
