@@ -318,4 +318,10 @@ class User extends Authenticatable
 
         return $query;
     }
+
+    // Тот, кто пригласил пользователя
+    public function refer()
+    {
+        return $this->belongsTo(User::class, 'referral_id', 'id');
+    }
 }

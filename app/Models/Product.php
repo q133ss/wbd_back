@@ -103,6 +103,18 @@ class Product extends Model
             );
     }
 
+    public function buybacks()
+    {
+        return $this->hasManyThrough(
+            Buyback::class,    // Целевая модель (выкупы)
+            Ad::class,         // Промежуточная модель (объявления)
+            'product_id',      // Внешний ключ в промежуточной модели (ads.product_id)
+            'ads_id',          // Внешний ключ в целевой модели (buybacks.ads_id)
+            'id',              // Локальный ключ в текущей модели (products.id)
+            'id'              // Локальный ключ в промежуточной модели (ads.id)
+        );
+    }
+
     public function toArray(): array
     {
         $data             = parent::toArray();

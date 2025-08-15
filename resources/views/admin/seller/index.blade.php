@@ -17,13 +17,7 @@
         <!-- Заголовок и кнопки -->
         <div class="card-header">
             <h5 class="mb-3">Продавцы</h5>
-            <div class="btn-group" role="group">
-                <a href="{{ route('admin.sellers.index') }}" class="btn btn-primary">Все продавцы</a>
-                <button type="button" class="btn btn-outline-secondary">Платежные операции</button>
-                <button type="button" class="btn btn-outline-secondary">Товары</button>
-                <button type="button" class="btn btn-outline-secondary">Объявления</button>
-                <button type="button" class="btn btn-outline-secondary">Выкупы</button>
-            </div>
+            @include('admin.seller.navbar')
         </div>
 
         <!-- Поиск -->
@@ -54,7 +48,7 @@
                     </thead>
                     <tbody>
                     @foreach($sellers as $seller)
-                        <tr>
+                        <tr onclick="location.href='{{ route('admin.sellers.show', $seller->id) }}'" style="cursor: pointer;">
                             <td>{{ $seller->id }}</td>
                             <td>{{ $seller->created_at->format('d.m.Y') }}</td>
                             <td>{{ $seller->name }}</td>
