@@ -17,4 +17,10 @@ class SellerProductController extends Controller
         $products = Product::withCount('ads','buybacks')->paginate();
         return view('admin.seller.products.index', compact('products'));
     }
+
+    public function delete(string $id)
+    {
+        Product::findOrFail($id)->delete();
+        return back()->withSucces('Товар удален');
+    }
 }

@@ -25,9 +25,9 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
         Route::get('/payments', [\App\Http\Controllers\Admin\PaymentsController::class, 'index'])->name('payments.index');
 
         Route::get('/seller/products', [\App\Http\Controllers\Admin\SellerProductController::class, 'index'])->name('products.index');
-        # TODO
         Route::delete('/seller/products/{id}', [\App\Http\Controllers\Admin\SellerProductController::class, 'delete'])->name('products.destroy');
         Route::get('/seller/ads', [\App\Http\Controllers\Admin\SellerAdController::class, 'index'])->name('ads.index');
+        Route::delete('/seller/ads/{id}', [\App\Http\Controllers\Admin\SellerAdController::class, 'delete'])->name('ads.destroy');
         Route::get('/seller/buybacks', [\App\Http\Controllers\Admin\SellerBuybackController::class, 'index'])->name('buybacks.index');
     });
 });
