@@ -42,6 +42,7 @@ Route::middleware([GuestOnly::class])->group(function () {
     Route::post('password/reset/check-code', [\App\Http\Controllers\AuthController::class, 'resetVerifyCode']);
     Route::post('password/reset', [\App\Http\Controllers\AuthController::class, 'reset']);
     Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
+    Route::post('register/password', [\App\Http\Controllers\AuthController::class, 'register']);
 });
 Route::get('/roles', [\App\Http\Controllers\AuthController::class, 'roles']);
 

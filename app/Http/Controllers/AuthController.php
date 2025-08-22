@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AuthController\CompleteRequest;
 use App\Http\Requests\AuthController\LoginRequest;
+use App\Http\Requests\AuthController\RegisterRequest;
 use App\Http\Requests\AuthController\ResetCheckCodeRequest;
 use App\Http\Requests\AuthController\ResetRequest;
 use App\Http\Requests\AuthController\ResetSendCodeRequest;
@@ -94,6 +95,17 @@ class AuthController extends Controller
         return response()->json([
             'user' => $user,
             'token' => $user->createToken('web')->plainTextToken,
+        ]);
+    }
+
+    public function register(RegisterRequest $request)
+    {
+        $user = User::create($request->validated());
+        $token = $user->createToken('web');
+
+        return response()->json([
+            'user'  => $user,
+            'token' => $token->plainTextToken,
         ]);
     }
 }
