@@ -3,9 +3,11 @@
 namespace App\Http\Requests\AuthController;
 
 use App\Models\Role;
+use App\Models\User;
 use App\Rules\PhoneNumber;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
@@ -27,13 +29,15 @@ class RegisterRequest extends FormRequest
         return [
             'phone' => [
                 'required',
-                'unique:users,phone',
-                new PhoneNumber()
+                new PhoneNumber(),
+                Rule::unique('users', 'phone')
+                    ->where(fn ($query) => $query->where('role_id', $this->role_id))
             ],
             'email' => [
                 'sometimes',
                 'email',
-                'unique:users,email'
+                Rule::unique('users', 'email')
+                    ->where(fn ($query) => $query->where('role_id', $this->role_id))
             ],
             'name' => 'required|string|max:255',
             'password' => 'required|string|min:8|confirmed',
