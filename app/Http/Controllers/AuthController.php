@@ -100,7 +100,9 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        $user = User::create($request->validated());
+        $data = $request->validated();
+        $data['is_configured'] = true;
+        $user = User::create($data);
         $token = $user->createToken('web');
 
         return response()->json([
