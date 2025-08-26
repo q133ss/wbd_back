@@ -34,10 +34,18 @@ class RegisterRequest extends FormRequest
                     ->where(fn ($query) => $query->where('role_id', $this->role_id))
             ],
             'email' => [
-                'sometimes',
-                'email',
-                Rule::unique('users', 'email')
-                    ->where(fn ($query) => $query->where('role_id', $this->role_id))
+                function(string $attribute, mixed $value, Closure $fail){
+                    // Проверяем уникальность только если email указан
+                    if (!empty($value)) {
+                        $exists = User::where('email', $value)
+                            ->where('role_id', $this->role_id)
+                            ->exists();
+                            
+                        if ($exists) {
+                            $fail('Пользователь с таким email уже существует');
+                        }
+                    }
+                }
             ],
             'name' => 'required|string|max:255',
             'password' => 'required|string|min:8|confirmed',
