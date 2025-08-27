@@ -63,7 +63,10 @@ class TelegramService
                     }
 
                     // регистрация через ТГ
+                    \Log::info('Start payload: ' . $startPayload);
+                    \Log::info("srt", [str_starts_with($startPayload, 'register')]);
                     if (str_starts_with($startPayload, 'register')) {
+                        \Log::info('Регистерация через ТГ');
                         // Отправляем клавиатуру для запроса контакта
                         $keyboard = [
                             'keyboard' => [
