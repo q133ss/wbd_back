@@ -92,7 +92,16 @@ class TelegramService
                     }
                 } else {
                     if (isset($update['message']['contact'])) {
-                        $phone = $update['message']['contact']['phone_number'];
+                        $phoneRaw = $update['message']['contact']['phone_number'];
+                        $digits = preg_replace('/\D/', '', $phoneRaw); // 79999999999
+                        // Форматируем в +7(999)999-99-99
+                        $phone = sprintf('+%s(%s)%s-%s-%s',
+                            substr($digits, 0, 1),      // 7
+                            substr($digits, 1, 3),      // 999
+                            substr($digits, 4, 3),      // 999
+                            substr($digits, 7, 2),      // 99
+                            substr($digits, 9, 2)       // 99
+                        );
                         $tgId  = $update['message']['from']['id'];
 
                         $firstName = $update['message']['from']['first_name'] ?? '';
