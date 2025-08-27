@@ -63,10 +63,7 @@ class TelegramService
                     }
 
                     // регистрация через ТГ
-                    \Log::info('Start payload: ' . $startPayload);
-                    \Log::info("srt", [str_starts_with($startPayload, 'register')]);
                     if (str_starts_with($startPayload, 'register')) {
-                        \Log::info('Регистерация через ТГ');
                         // Отправляем клавиатуру для запроса контакта
                         $keyboard = [
                             'keyboard' => [
@@ -83,7 +80,7 @@ class TelegramService
 
                         $this->sendMessage(
                             $chatId,
-                            "⚡ Мгновенная регистрация\n\nНажмите на кнопку «Отправить телефон» внизу экрана и получите логин и пароль.\n\nРегистрируясь, вы соглашаетесь с [политикой конфиденциальности](https://wbdiscount.pro/privacy) и [пользовательским соглашением](https://wbdiscount.pro/terms).",
+                            "⚡ Мгновенная регистрация\n\nНажмите на кнопку «Отправить телефон» внизу экрана и получите логин и пароль.\n\nРегистрируясь, вы соглашаетесь с <a href='https://wbdiscount.pro/privacy'>политикой конфиденциальности</a> и <a href='https://wbdiscount.pro/terms'>пользовательским соглашением</a>.",
                             $keyboard,
                             $forSeller
                         );
@@ -196,7 +193,7 @@ class TelegramService
         $data = [
             'chat_id'    => $chatId,
             'text'       => $escaped,
-            'parse_mode' => 'MarkdownV2',
+            'parse_mode' => 'HTML',
         ];
 
 //        if (!empty($keyboard)) {
