@@ -155,7 +155,7 @@ class TelegramService
                             $link = $forSeller ? 'https://wbdiscount.pro/seller/login' : 'https://wbdiscount.pro/login';
                             $this->sendMessage(
                                 $chatId,
-                                "🎉 Поздравляем с регистрацией!\n\nВаши данные:\nТелефон: <pre>`{$phone}`</pre>\nПароль: <pre>`{$passwordPlain}`</pre>\n\n🔗 <a href='{$link}'>Войти в кабинет</a>\n\nЕсли возникнут проблемы, <a href='https://wbdiscount.pro/dashboard/support'>напишите нам</a>.",
+                                "🎉 Поздравляем с регистрацией!\n\nВаши данные:\nТелефон: <pre>{$phone}</pre>\nПароль: <pre>{$passwordPlain}</pre>\n\n🔗 <a href='{$link}'>Войти в кабинет</a>\n\nЕсли возникнут проблемы, <a href='https://wbdiscount.pro/dashboard/support'>напишите нам</a>.",
                                 [],
                                 $forSeller
                             );
