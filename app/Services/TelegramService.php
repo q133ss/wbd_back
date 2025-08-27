@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\ReferralStat;
 use App\Models\Role;
+use App\Models\Tariff;
+use App\Models\Template;
 use App\Models\User;
 use CURLFile;
 use Illuminate\Support\Facades\Cache;
@@ -60,11 +62,108 @@ class TelegramService
                         }
                     }
 
+                    // регистрация через ТГ
+                    if (str_starts_with($startPayload, 'register')) {
+                        // Отправляем клавиатуру для запроса контакта
+                        $keyboard = [
+                            'keyboard' => [
+                                [
+                                    [
+                                        'text' => '📱 Поделиться контактом',
+                                        'request_contact' => true
+                                    ]
+                                ]
+                            ],
+                            'resize_keyboard' => true,
+                            'one_time_keyboard' => true
+                        ];
+
+                        $this->sendMessage(
+                            $chatId,
+                            "⚡ *Мгновенная регистрация*\n\nНажмите на кнопку *«Отправить телефон»* внизу экрана и получите логин и пароль.\n\nРегистрируясь, вы соглашаетесь с [политикой конфиденциальности](https://wbdiscount.pro/privacy) и [пользовательским соглашением](https://wbdiscount.pro/terms).",
+                            $keyboard,
+                            $forSeller
+                        );
+                    }
+
+
                     $this->startCommand($chatId, $startPayload, $forSeller);
 
                 } else {
                     if (isset($update['message']['contact'])) {
-                        $this->sendMessage($chatId, '✅Вы успешно поделились контактом!', [], $forSeller);
+                        $phone = $update['message']['contact']['phone_number'];
+                        $tgId  = $update['message']['from']['id'];
+
+                        $firstName = $update['message']['from']['first_name'] ?? '';
+                        $lastName  = $update['message']['from']['last_name'] ?? '';
+                        $username  = $update['message']['from']['username'] ?? null;
+
+                        $fullName = trim($firstName . ' ' . $lastName);
+
+                        // проверим, есть ли уже пользователь с таким telegram_id
+                        $user = User::where('telegram_id', $tgId)->first();
+
+                        if (!$user) {
+                            // Определяем роль
+                            $role = $forSeller
+                                ? Role::where('slug', 'seller')->first()
+                                : Role::where('slug', 'buyer')->first();
+
+                            // Достаём реферала из кеша (если был переход по ref)
+                            $refUserId = Cache::pull("ref_tg_{$chatId}");
+
+                            // Генерируем пароль
+                            $passwordPlain = Str::random(8);
+
+                            // Создаём юзера
+                            $user = User::create([
+                                'name'         => $fullName ?: ($username ? $username : 'tg_' . $tgId),
+                                'password'     => bcrypt($passwordPlain),
+                                'phone'        => $phone,
+                                'role_id'      => $role->id,
+                                'is_configured'=> true,
+                                'telegram_id'  => $tgId,
+                                'referral_id'  => $refUserId,
+                            ]);
+
+                            if($forSeller) {
+                                $tariff = Tariff::where('name', 'Пробный')->first();
+                                DB::table('user_tariff')->insert([
+                                    'user_id' => $user->id,
+                                    'tariff_id' => $tariff->id,
+                                    'end_date' => now()->addDays(3),
+                                    'products_count' => 10,
+                                    'variant_name' => '3 дня',
+                                    'duration_days' => 3,
+                                    'price_paid' => 0
+                                ]);
+
+                                $template = new Template();
+                                $template->createDefault($user->id);
+                            }
+                            // отправляем пользователю данные для входа
+                            $this->sendMessage(
+                                $chatId,
+                                "🎉 *Поздравляем с регистрацией!*\n\n*Ваши данные:*\nЛогин: `{$phone}`\nПароль: `{$passwordPlain}`\n\n🔗 [Войти в кабинет](" . ($forSeller ? "https://wbdiscount.pro/seller/login" : "https://wbdiscount.pro/buyer/login") . ")\n\nЕсли возникнут проблемы, [напишите нам](https://wbdiscount.pro/dashboard/support).",
+                                [],
+                                $forSeller
+                            );
+                            $this->sendMessage(
+                                $chatId,
+                                "🎁 *Подарок!*\n\nВам доступен *тестовый тариф* на 3 дня и *10 выкупов*. 🚀\n\nРазместите первый товар прямо сейчас, чтобы воспользоваться предложением.",
+                                [],
+                                $forSeller
+                            );
+                        } else {
+                            $this->sendMessage(
+                                $chatId,
+                                "⚠️ Вы уже зарегистрированы!",
+                                [],
+                                $forSeller
+                            );
+                        }
+
+                        //$this->sendMessage($chatId, '✅Вы успешно поделились контактом!', [], $forSeller);
                     } else {
                         $this->sendMessage($chatId, 'Неизвестная команда', [], $forSeller);
                     }
@@ -93,8 +192,33 @@ class TelegramService
             'parse_mode' => 'MarkdownV2',
         ];
 
+//        if (!empty($keyboard)) {
+//            $data['reply_markup'] = $keyboard; // Уже передаем готовую структуру клавиатуры
+//        }
+
+        // Скрытие web_app кнопок! Что бы верунть все назад - нужно убрать этот блок и раскоменить верхний
         if (!empty($keyboard)) {
-            $data['reply_markup'] = $keyboard; // Уже передаем готовую структуру клавиатуры
+            // Если это inline-клава с web_app → временно скрываем
+            if (isset($keyboard['inline_keyboard'])) {
+                $hasWebApp = false;
+                foreach ($keyboard['inline_keyboard'] as $row) {
+                    foreach ($row as $btn) {
+                        if (isset($btn['web_app'])) {
+                            $hasWebApp = true;
+                            break 2;
+                        }
+                    }
+                }
+
+                if ($hasWebApp) {
+                    // заменяем на удаление клавиатуры
+                    $data['reply_markup'] = ['remove_keyboard' => true];
+                } else {
+                    $data['reply_markup'] = $keyboard;
+                }
+            } else {
+                $data['reply_markup'] = $keyboard;
+            }
         }
 
         $token = $forSeller ? $this->token : $this->clientToken;
@@ -160,7 +284,6 @@ class TelegramService
                 $user->update(['telegram_id' => $chatId, 'tg_token' => null]);
 
                 $webAppUrl = config('app.web_app_url'). '?chat_id=' . $chatId;
-                \Log::info("wURL: ".$webAppUrl);
                 $keyboard = [
                     'inline_keyboard' => [
                         [
