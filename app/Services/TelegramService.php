@@ -80,7 +80,7 @@ class TelegramService
 
                         $this->sendMessage(
                             $chatId,
-                            "⚡ Мгновенная регистрация\n\nНажмите на кнопку «Отправить телефон» внизу экрана и получите логин и пароль.\n\nРегистрируясь, вы соглашаетесь с <a href='https://wbdiscount.pro/privacy'>политикой конфиденциальности</a> и <a href='https://wbdiscount.pro/terms'>пользовательским соглашением</a>.",
+                            "⚡ Мгновенная регистрация\n\nНажмите на кнопку «Отправить телефон» внизу экрана и получите логин и пароль.\n\nРегистрируясь, вы соглашаетесь с [политикой конфиденциальности](https://wbdiscount.pro/privacy) и [пользовательским соглашением](https://wbdiscount.pro/terms).",
                             $keyboard,
                             $forSeller
                         );
@@ -182,11 +182,13 @@ class TelegramService
     // Метод для отправки сообщения
     public function sendMessage($chatId, $text, array $keyboard = [], $forSeller = true): void {
         // Экранируем текст MarkdownV2 (если используете Markdown)
-        $escaped = preg_replace_callback(
-            '/[_\*\[\]\(\)~`>#\+\-=|{}\.\!]/',
-            fn($m) => '\\' . $m[0],
-            $text
-        );
+//        $escaped = preg_replace_callback(
+//            '/[_\*\[\]\(\)~`>#\+\-=|{}\.\!]/',
+//            fn($m) => '\\' . $m[0],
+//            $text
+//        );
+
+        $escaped = $text;
 
         $data = [
             'chat_id'    => $chatId,
