@@ -506,6 +506,25 @@ class WBService extends BaseService
     }
 
     /**
+     * Получает цену товара по его артикулу.
+     *
+     * @param string $product_id Артикул товара.
+     *
+     * @return mixed Возвращает цену товара, если она найдена, или null, если цена отсутствует.
+     *               В случае ошибки возвращает false.
+     */
+    public function getProductPrice(string $product_id): mixed
+    {
+        try {
+            $prepareData = $this->loadProductData($product_id);
+            $form = $this->formatProductData($prepareData);
+            return $form['price'] ?? null;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Возвращает товар и магазин
      * По артикулу из ВБ
      */

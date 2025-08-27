@@ -10,3 +10,7 @@ Schedule::call(function () {
     Artisan::call('verification:clear');
     Artisan::call('transaction:check');
 })->daily();
+
+Schedule::call(function () {
+    Artisan::call('product:sync-price');
+})->everySixHours();

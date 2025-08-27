@@ -151,3 +151,14 @@ Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class,
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
 
 Route::post('/telegram/user/{chat_id}', [\App\Http\Controllers\AuthController::class, 'userByTelegramId']);
+
+Route::get('/test', function () {
+    $service = new App\Services\WBService();
+    foreach (\App\Models\Product::all() as $product) {
+        $actualPrice = $service->getProductPrice($product->wb_id); // 4819
+        if($product->price != $actualPrice) {
+            $product->price = $actualPrice;
+            $product->save();
+        }
+    }
+});
