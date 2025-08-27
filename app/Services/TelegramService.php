@@ -155,7 +155,7 @@ class TelegramService
                             $link = $forSeller ? 'https://wbdiscount.pro/seller/login' : 'https://wbdiscount.pro/login';
                             $this->sendMessage(
                                 $chatId,
-                                "🎉 Поздравляем с регистрацией!\n\nВаши данные:\nЛогин: `{$phone}`\nПароль: `{$passwordPlain}`\n\n🔗 <a href='{$link}'>Войти в кабинет</a>\n\nЕсли возникнут проблемы, <a href='https://wbdiscount.pro/dashboard/support'>напишите нам</a>.",
+                                "🎉 Поздравляем с регистрацией!\n\nВаши данные:\nТелефон: <pre>`{$phone}`</pre>\nПароль: <pre>`{$passwordPlain}`</pre>\n\n🔗 <a href='{$link}'>Войти в кабинет</a>\n\nЕсли возникнут проблемы, <a href='https://wbdiscount.pro/dashboard/support'>напишите нам</a>.",
                                 [],
                                 $forSeller
                             );
@@ -190,18 +190,9 @@ class TelegramService
 
     // Метод для отправки сообщения
     public function sendMessage($chatId, $text, array $keyboard = [], $forSeller = true): void {
-        // Экранируем текст MarkdownV2 (если используете Markdown)
-//        $escaped = preg_replace_callback(
-//            '/[_\*\[\]\(\)~`>#\+\-=|{}\.\!]/',
-//            fn($m) => '\\' . $m[0],
-//            $text
-//        );
-
-        $escaped = $text;
-
         $data = [
             'chat_id'    => $chatId,
-            'text'       => $escaped,
+            'text'       => $text,
             'parse_mode' => 'HTML',
         ];
 
