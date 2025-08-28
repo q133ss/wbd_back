@@ -111,7 +111,7 @@ class TelegramService
                         $fullName = trim($firstName . ' ' . $lastName);
 
                         // проверим, есть ли уже пользователь с таким telegram_id
-                        $user = User::where('telegram_id', $tgId)->first();
+                        $user = User::where('telegram_id', $tgId)->where('phone', $phone)->first();
 
                         if (!$user) {
                             // Определяем роль
