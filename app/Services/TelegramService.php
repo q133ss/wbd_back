@@ -110,15 +110,17 @@ class TelegramService
 
                         $fullName = trim($firstName . ' ' . $lastName);
 
+                        // Определяем роль
+                        $role = $forSeller
+                            ? Role::where('slug', 'seller')->first()
+                            : Role::where('slug', 'buyer')->first();
+
                         // проверим, есть ли уже пользователь с таким telegram_id
-                        $user = User::where('telegram_id', $tgId)->where('phone', $phone)->first();
+                        $user = User::where('phone', $phone)
+                            ->where('role_id', $role->id)
+                            ->first();
 
                         if (!$user) {
-                            // Определяем роль
-                            $role = $forSeller
-                                ? Role::where('slug', 'seller')->first()
-                                : Role::where('slug', 'buyer')->first();
-
                             // Достаём реферала из кеша (если был переход по ref)
                             $refUserId = Cache::pull("ref_tg_{$chatId}");
 
@@ -166,6 +168,7 @@ class TelegramService
                                 $forSeller
                             );
                         } else {
+                            $user->update(['telegram_id' => $tgId]);
                             $this->sendMessage(
                                 $chatId,
                                 "⚠️ Вы уже зарегистрированы!",
