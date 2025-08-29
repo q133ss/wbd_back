@@ -506,19 +506,22 @@ class WBService extends BaseService
     }
 
     /**
-     * Получает цену товара по его артикулу.
+     * Получает цену и кол-во товара по его артикулу.
      *
      * @param string $product_id Артикул товара.
      *
-     * @return mixed Возвращает цену товара, если она найдена, или null, если цена отсутствует.
+     * @return mixed Возвращает цену и кол-во товара, если она найдена, или null, если цена отсутствует.
      *               В случае ошибки возвращает false.
      */
-    public function getProductPrice(string $product_id): mixed
+    public function getProductSync(string $product_id): mixed
     {
         try {
             $prepareData = $this->loadProductData($product_id);
             $form = $this->formatProductData($prepareData);
-            return $form['price'] ?? null;
+            return [
+                'price' => $form['price'] ?? null,
+                'quantity' => $prepareData['totalQuantity'] ?? null
+            ];
         } catch (\Exception $e) {
             return false;
         }

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Ad;
 use App\Models\Product;
 use App\Services\WBService;
 use Illuminate\Console\Command;
@@ -35,21 +36,29 @@ class ProductSyncPrice extends Command
         // Чанками, чтобы не грузить память
         Product::chunk(100, function ($products) use ($service) {
             $updates = [];
+            $inactiveIds = [];
 
             foreach ($products as $product) {
                 try {
-                    $actualPrice = $service->getProductPrice($product->wb_id);
+                    $syncData = $service->getProductSync($product->wb_id);
 
-                    if ($actualPrice !== null && $product->price != $actualPrice) {
+                    $actualPrice = $syncData['price'];
+
+                    if ($syncData['quantity'] == 0) {
+                        $inactiveIds[] = $product->id;
+                    }
+
+                    if ($actualPrice !== null && $product->price != $actualPrice || $product->quantity_available != $syncData['quantity']) {
                         $updates[] = [
                             'id' => $product->id,
                             'price' => $actualPrice,
+                            'quantity_available' => $syncData['quantity'],
                             'updated_at' => now(),
                         ];
                     }
                     sleep(1);
                 } catch (\Throwable $e) {
-                    Log::error("Ошибка получения цены для товара {$product->id}: {$e->getMessage()}");
+                    Log::error("Ошибка при синхронизации для товара {$product->id}: {$e->getMessage()}");
                 }
             }
 
@@ -57,6 +66,10 @@ class ProductSyncPrice extends Command
             if (!empty($updates)) {
                 $this->bulkUpdate($updates);
                 $this->info('Обновлено: ' . count($updates));
+            }
+
+            if (!empty($inactiveIds)) {
+                Ad::whereIn('product_id', $inactiveIds)->update(['status' => false]);
             }
         });
 
@@ -73,19 +86,25 @@ class ProductSyncPrice extends Command
         $ids = array_column($rows, 'id');
         $casePrice = "CASE id";
         $caseUpdated = "CASE id";
+        $caseQuantity = "CASE id"; // ✅ инициализация
 
         foreach ($rows as $row) {
-            $casePrice   .= " WHEN {$row['id']} THEN {$row['price']}";
-            $caseUpdated .= " WHEN {$row['id']} THEN '{$row['updated_at']}'";
+            $casePrice    .= " WHEN {$row['id']} THEN {$row['price']}";
+            $caseUpdated  .= " WHEN {$row['id']} THEN '{$row['updated_at']}'";
+            $caseQuantity .= " WHEN {$row['id']} THEN {$row['quantity_available']}";
         }
 
-        $casePrice   .= " END";
-        $caseUpdated .= " END";
+        $casePrice    .= " END";
+        $caseUpdated  .= " END";
+        $caseQuantity .= " END";
 
         $idsString = implode(',', $ids);
 
         DB::update("UPDATE {$table}
-            SET price = {$casePrice}, updated_at = {$caseUpdated}
-            WHERE id IN ({$idsString})");
+        SET price = {$casePrice},
+            updated_at = {$caseUpdated},
+            quantity_available = {$caseQuantity}
+        WHERE id IN ({$idsString})");
     }
+
 }
