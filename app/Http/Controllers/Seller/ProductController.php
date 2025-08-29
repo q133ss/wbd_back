@@ -26,7 +26,8 @@ class ProductController extends Controller
                 $q->select('id', 'ad_id', 'type');
             }])
             ->withFilter($request)
-            ->paginate();
+            ->orderBy('created_at', 'desc')
+            ->paginate(30);
 
         if ($products) {
             $products->getCollection()->transform(function ($product) {

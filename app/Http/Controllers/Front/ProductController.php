@@ -39,7 +39,7 @@ class ProductController extends Controller
             ->where('ads.status', true)
             ->withSorting($request);
 
-        $ads = $adsQuery->paginate(18);
+        $ads = $adsQuery->paginate(30);
 
         // 👇 Массовое логирование просмотров
         $user = auth()->user();

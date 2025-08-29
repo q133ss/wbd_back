@@ -54,7 +54,8 @@ class AdsController extends Controller
             ->withCount(['buybacks' => function ($query) {
                 $query->where('status', 'completed');
             }])
-            ->paginate();
+            ->orderBy('created_at', 'desc')
+            ->paginate(30);
 
         $ads->getCollection()->transform(function ($ad) {
             // Buybacks
