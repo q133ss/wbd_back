@@ -37,6 +37,7 @@
                         <th>ID</th>
                         <th>Дата регистрации</th>
                         <th>Имя</th>
+                        <th>Телефон</th>
                         <th>ИНН</th>
                         <th>Юр. лицо</th>
                         <th>Магазин</th>
@@ -52,6 +53,7 @@
                             <td>{{ $seller->id }}</td>
                             <td>{{ $seller->created_at->format('d.m.Y') }}</td>
                             <td>{{ $seller->name }}</td>
+                            <td>{{ $seller->phone }}</td>
                             <td>{{ $seller->shop->inn ?? '-' }}</td>
                             <td>{{ $seller->shop->legal_name ?? '-' }}</td>
                             <td>{{ $seller->shop->wb_name ?? '-' }}</td>

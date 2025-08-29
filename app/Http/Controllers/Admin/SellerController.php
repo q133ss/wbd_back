@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\SellerController\UpdateRequest;
 use App\Models\Ad;
 use App\Models\Buyback;
 use App\Models\Product;
@@ -58,6 +59,13 @@ class SellerController extends Controller
             ->count();
 
         return view('admin.seller.show', compact('user', 'buybacksProccess', 'buybackSuccess'));
+    }
+
+    public function update(UpdateRequest $request, string $id)
+    {
+        User::findOrFail($id)->update($request->validated());
+
+        return back()->with('success', 'Пользователь успешно обновлен');
     }
 
     public function delete(string $id)

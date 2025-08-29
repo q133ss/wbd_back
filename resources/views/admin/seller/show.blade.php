@@ -77,6 +77,14 @@
                 </div>
             </div>
 
+            <form action="{{route('admin.sellers.update', $user->id)}}" method="POST">
+                @csrf
+                @method('PATCH')
+                <label for="comment">Комментарий (видит только админ)</label>
+                <textarea name="comment" class="form-control" id="comment" cols="30" rows="10">{{$user->comment}}</textarea>
+                <button class="btn btn-primary mt-2" type="submit">Сохранить комментарий</button>
+            </form>
+
             <!-- Кнопки снизу слева -->
             <div class="mt-4 d-flex gap-2">
                 <a href="{{ route('admin.sellers.loginAs', $user->id) }}" class="btn btn-warning">

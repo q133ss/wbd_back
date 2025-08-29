@@ -34,7 +34,8 @@ class User extends Authenticatable
         'referral_id',
         'last_seen_at',
         'is_frozen',
-        'tg_token'
+        'tg_token',
+        'comment'
     ];
 
     /**
@@ -110,7 +111,8 @@ class User extends Authenticatable
             'role'          => $this->role,
             'is_online'     => $this->is_online,
             'last_seen_at'  => $this->last_seen_at,
-            'telegram_id'   => $this->telegram_id
+            'telegram_id'   => $this->telegram_id,
+            'comment'       => $this->comment
         ];
     }
 

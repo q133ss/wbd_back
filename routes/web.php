@@ -20,6 +20,7 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
     # TODO реализовать каким-то образом авторизацию для продавцов! Например сформировтьа ссылку с токеном и отправвить на фронт ссылку
     Route::get('/sellers/{id}/login', [\App\Http\Controllers\Admin\SellerController::class, 'loginAs'])->name('sellers.loginAs');
     Route::delete('/sellers/{id}', [\App\Http\Controllers\Admin\SellerController::class, 'delete'])->name('sellers.destroy');
+    Route::patch('/sellers/{id}', [\App\Http\Controllers\Admin\SellerController::class, 'update'])->name('sellers.update');
 
     Route::group(['prefix' => 'seller', 'as' => 'sellers.'], function () {
         Route::get('/payments', [\App\Http\Controllers\Admin\PaymentsController::class, 'index'])->name('payments.index');
