@@ -31,7 +31,8 @@ class ProductController extends Controller
             $adultRoot = Category::with('children')->where('name', 'Товары для взрослых')->first();
             return $adultRoot ? $this->getAllCategoryIds($adultRoot) : [];
         });
-        $adsQuery = Ad::with(['product'])
+        $adsQuery = Ad::select('ads.*')
+        ->with(['product'])
             ->whereDoesntHave('product', function ($query) use ($adultCategoryIds) {
                 $query->whereIn('products.category_id', $adultCategoryIds);
             })

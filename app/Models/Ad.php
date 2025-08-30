@@ -131,9 +131,9 @@ class Ad extends Model
 
         // Применяем сортировку
         if ($sortField === 'rating_product') {
-            // Рейтинг товара
             $query->leftJoin('products', 'ads.product_id', '=', 'products.id')
-                  ->orderBy('products.rating', $sortOrder);
+                ->addSelect('products.rating as product_rating')
+                ->orderBy('product_rating', $sortOrder);
         } elseif ($sortField === 'rating_seller') {
             // Рейтинг продавца
             $query->leftJoin('users', 'ads.user_id', '=', 'users.id')
