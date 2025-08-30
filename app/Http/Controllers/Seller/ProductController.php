@@ -30,7 +30,7 @@ class ProductController extends Controller
             ->withFilter($request);
 
         // сортируем только по "нормальным" полям
-        if (in_array($sortBy, ['id', 'name', 'created_at', 'updated_at', 'price'])) {
+        if (in_array($sortBy, ['id', 'name', 'created_at', 'updated_at', 'price', 'rating', 'quantity_available', 'category_id', 'status'])) {
             $products->orderBy($sortBy, $sortDir);
         } else {
             // иначе по умолчанию
