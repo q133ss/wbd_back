@@ -16,24 +16,33 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-
     public function index(Request $request)
     {
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortDir = $request->get('sort_dir', 'desc');
+
         $products = auth('sanctum')->user()->shop?->products()
             ->with(['ads.buybacks' => function ($q) {
                 $q->select('id', 'ads_id', 'status', 'product_price');
             }, 'ads.stats' => function ($q) {
                 $q->select('id', 'ad_id', 'type');
             }])
-            ->withFilter($request)
-            ->orderBy('created_at', 'desc')
-            ->paginate(30);
+            ->withFilter($request);
+
+        // сортируем только по "нормальным" полям
+        if (in_array($sortBy, ['id', 'name', 'created_at', 'updated_at', 'price'])) {
+            $products->orderBy($sortBy, $sortDir);
+        } else {
+            // иначе по умолчанию
+            $products->orderBy('created_at', 'desc');
+        }
+
+        $products = $products->paginate(30);
 
         if ($products) {
             $products->getCollection()->transform(function ($product) {
                 $ads = $product->ads;
 
-                // Инициализация счётчиков
                 $views = 0;
                 $clicks = 0;
                 $redemptionTotal = 0;
@@ -43,26 +52,20 @@ class ProductController extends Controller
 
                 foreach ($ads as $ad) {
                     $redemptionTotal += $ad->redemption_count ?? 0;
-
-                    // Подсчёт выкупов
                     $adBuybacks = $ad->buybacks ?? collect();
                     $completedBuybacks += $adBuybacks->whereIn('status', ['cashback_received', 'completed'])->count();
-
-                    $processingBuybacks = $adBuybacks->whereIn('status', ['pending', 'awaiting_receipt', 'on_confirmation', 'awaiting_payment_confirmation'])->count();
-                    // Сумма сделок по этому объявлению
+                    $processingBuybacks += $adBuybacks->whereIn('status', ['pending', 'awaiting_receipt', 'on_confirmation', 'awaiting_payment_confirmation'])->count();
                     $inDeal += $adBuybacks->sum('product_price');
 
-                    // Подсчёт просмотров и кликов
                     $stats = $ad->stats ?? collect();
                     $views += $stats->where('type', 'view')->count();
                     $clicks += $stats->where('type', 'click')->count();
                 }
 
-                // Вычисления
                 $ctr = $views > 0 ? round(($clicks / $views) * 100, 2) : 0;
                 $cr_percent = $clicks > 0 ? round(($completedBuybacks / $clicks) * 100, 2) : 0;
                 $cr = ceil($completedBuybacks / max($redemptionTotal, 1));
-                // Присваиваем в объект товара
+
                 $product->views = $views;
                 $product->clicks = $clicks;
                 $product->ctr = $ctr;
@@ -77,6 +80,13 @@ class ProductController extends Controller
 
                 return $product;
             });
+
+            // сортировка по вычисляемым полям уже после трансформации
+            if (!in_array($sortBy, ['id', 'name', 'created_at', 'updated_at', 'price'])) {
+                $products->setCollection(
+                    $products->getCollection()->sortBy($sortBy, SORT_REGULAR, $sortDir === 'desc')->values()
+                );
+            }
         }
 
         return response()->json($products);
