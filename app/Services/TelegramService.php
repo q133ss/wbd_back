@@ -108,7 +108,7 @@ class TelegramService
                     }
 
 
-                    if(!str_starts_with($startPayload, 'register')){
+                    if(!str_starts_with($startPayload, 'register') || !str_starts_with($startPayload, 'ref')){
                         $this->startCommand($chatId, $startPayload, $forSeller);
                     }
                 } else {
