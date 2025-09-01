@@ -351,16 +351,18 @@ class TelegramService
             // Создаем Sanctum токен для пользователя
             $webAppUrl = config('app.frontend_url'). '?chat_id=' . $chatId;
 
-            $message = "⚠️ Вы пока не зарегистрированы в системе. Для начала работы пройдите регистрацию на нашем сайте.";
+            $message = "⚠️ Вы пока не зарегистрированы в системе. Для начала работы пройдите регистрацию.";
             $keyboard = [
-                'inline_keyboard' => [
+                'keyboard' => [
                     [
                         [
-                            'text' => '🚀 Открыть приложение',
-                            'web_app' => ['url' => $webAppUrl]
+                            'text' => '📱 Зарегистрироваться',
+                            'request_contact' => true
                         ]
                     ]
                 ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true
             ];
             $this->sendMessage($chatId, $message, $keyboard, $forSeller);
         }
