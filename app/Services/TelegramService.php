@@ -149,6 +149,7 @@ class TelegramService
                             $passwordPlain = Str::random(8);
 
                             // Создаём юзера
+                            # TODO стата не учитывает!!!!!!!!!!!!!!!
                             $user = User::create([
                                 'name'         => $fullName ?: ($username ? $username : 'tg_' . $tgId),
                                 'password'     => bcrypt($passwordPlain),
@@ -158,6 +159,11 @@ class TelegramService
                                 'telegram_id'  => $tgId,
                                 'referral_id'  => $refUserId,
                             ]);
+
+                            ReferralStat::updateOrCreate(
+                                ['user_id' => $refUserId, 'type' => 'telegram'],
+                                ['registrations_count' => DB::raw('registrations_count + 1')]
+                            );
 
                             if($forSeller) {
                                 $tariff = Tariff::where('name', 'Пробный')->first();
