@@ -12,9 +12,13 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with('category')->paginate(20);
+        $products = Product::with('category')
+            ->withFilter($request)
+            ->paginate(20)
+            ->appends($request->query()); // чтобы пагинация сохраняла фильтры
+
         return view('admin.products', compact('products'));
     }
 }

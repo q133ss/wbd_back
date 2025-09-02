@@ -8,6 +8,32 @@
             <h5>Список продуктов</h5>
         </div>
         <div class="card-body">
+            <form class="mb-4" method="GET" action="{{ route('admin.products.index') }}">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" placeholder="Поиск по имени, описанию, цене" value="{{ request('search') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-control">
+                            <option value="">Все статусы</option>
+                            <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Активен</option>
+                            <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Неактивен</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="is_archived" class="form-control">
+                            <option value="">Все товары</option>
+                            <option value="1" {{ request('is_archived') === '1' ? 'selected' : '' }}>Архивные</option>
+                            <option value="0" {{ request('is_archived') === '0' ? 'selected' : '' }}>Не архивные</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary w-100" type="submit">Фильтровать</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="card-body">
             <table class="table table-hover">
                 <thead>
                 <tr>
