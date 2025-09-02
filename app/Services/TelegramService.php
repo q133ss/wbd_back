@@ -52,10 +52,12 @@ class TelegramService
                         if (User::where('id', $refUserId)->exists()) {
                             // Тип статистики по роли
 
-                            ReferralStat::updateOrCreate(
-                                ['user_id' => $refUserId, 'type' => 'telegram'],
-                                ['clicks_count' => DB::raw('clicks_count + 1')]
-                            );
+                            if($refUserId != null) {
+                                ReferralStat::updateOrCreate(
+                                    ['user_id' => $refUserId, 'type' => 'telegram'],
+                                    ['clicks_count' => DB::raw('clicks_count + 1')]
+                                );
+                            }
 
                             // Сохраняем в кеш, чтобы потом учесть регистрацию/пополнение
                             Cache::put("ref_tg_{$chatId}", $refUserId, now()->addDays(10));
