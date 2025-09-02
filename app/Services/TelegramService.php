@@ -180,26 +180,28 @@ class TelegramService
 
                                 $template = new Template();
                                 $template->createDefault($user->id);
-
-                                $chatIds = [
-                                    '461612832',
-                                    '277095550'
-                                ];
-                                foreach ($chatIds as $chatId) {
-                                    $telegramLink = "ID: {$user->telegram_id}";
-
-                                    $registrationDate = $user->created_at->format('d.m.Y H:i');
-
-                                    $message = "🆕 Новый продавец!\n\n" .
-                                        "ID: {$user->id}\n" .
-                                        "Дата регистрации: {$registrationDate}\n" .
-                                        "Telegram: {$telegramLink}\n" .
-                                        "Телефон: {$user->phone}\n" .
-                                        "Имя: {$user->name}";
-
-                                    $this->sendSystemMessage($chatId, $message);
-                                }
                             }
+
+                            $chatIds = [
+                                '461612832',
+                                '277095550'
+                            ];
+                            foreach ($chatIds as $chatId) {
+                                $telegramLink = "ID: {$user->telegram_id}";
+
+                                $registrationDate = $user->created_at->format('d.m.Y H:i');
+
+                                $message = "🆕 Новый пользователь!\n\n" .
+                                    "ID: {$user->id}\n" .
+                                    "Дата регистрации: {$registrationDate}\n" .
+                                    "Telegram: {$telegramLink}\n" .
+                                    "Телефон: {$user->phone}\n" .
+                                    "Роль: {$role->name}\n".
+                                    "Имя: {$user->name}";
+
+                                $this->sendSystemMessage($chatId, $message);
+                            }
+
                             // отправляем пользователю данные для входа
                             $link = $forSeller ? 'https://wbdiscount.pro/seller/login' : 'https://wbdiscount.pro/login';
                             $this->sendMessage(
