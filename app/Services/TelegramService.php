@@ -52,7 +52,8 @@ class TelegramService
                         if (User::where('id', $refUserId)->exists()) {
                             // Тип статистики по роли
 
-                            if($refUserId != null) {
+                            \Log::info("Stat: ".$refUserId);
+                            if($refUserId) {
                                 ReferralStat::updateOrCreate(
                                     ['user_id' => $refUserId, 'type' => 'telegram'],
                                     ['clicks_count' => DB::raw('clicks_count + 1')]
