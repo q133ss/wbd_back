@@ -153,7 +153,7 @@
                 </li>
 
                 <li class="menu-item">
-                    <a href="{{route('admin.index')}}" class="menu-link">
+                    <a href="{{route('admin.products.index')}}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-package"></i>
                         <div class="text-truncate" data-i18n="Basic">Товары</div>
                     </a>
@@ -168,7 +168,7 @@
 
                 <li class="menu-item">
                     <a href="{{route('admin.promocodes.index')}}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-cog"></i>
+                        <i class="menu-icon tf-icons bx bx-purchase-tag-alt"></i>
                         <div class="text-truncate" data-i18n="Basic">Промокоды</div>
                     </a>
                 </li>
