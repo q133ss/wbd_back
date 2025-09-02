@@ -162,10 +162,13 @@ class TelegramService
                                 'referral_id'  => $refUserId,
                             ]);
 
-                            ReferralStat::updateOrCreate(
-                                ['user_id' => $refUserId, 'type' => 'telegram'],
-                                ['registrations_count' => DB::raw('registrations_count + 1')]
-                            );
+                            \Log::info("Stat: ".$refUserId);
+                            if($refUserId){
+                                ReferralStat::updateOrCreate(
+                                    ['user_id' => $refUserId, 'type' => 'telegram'],
+                                    ['registrations_count' => DB::raw('registrations_count + 1')]
+                                );
+                            }
 
                             if($forSeller) {
                                 $tariff = Tariff::where('name', 'Пробный')->first();
