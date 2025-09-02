@@ -43,4 +43,6 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
         Route::delete('/{id}', [\App\Http\Controllers\Admin\BuyerController::class, 'destroy'])->name('destroy');
         Route::get('/buybacks/list', [\App\Http\Controllers\Admin\BuyerController::class, 'buybacks'])->name('buybacks.index');
     });
+
+    Route::resource('roles', App\Http\Controllers\Admin\RoleController::class);
 });
