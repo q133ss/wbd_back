@@ -40,7 +40,9 @@ class Buyback extends Model
                     return $query->whereAny([
                         'buybacks.id',
                         'buybacks.status',
-                        'buybacks.price',
+                        'buybacks.product_price',
+                        'buybacks.price_with_cashback',
+                        'buybacks.cashback_percentage',
                         'buybacks.created_at',
                     ], 'LIKE', '%'.$q.'%');
                 }

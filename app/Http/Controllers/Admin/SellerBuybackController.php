@@ -8,9 +8,11 @@ use Illuminate\Http\Request;
 
 class SellerBuybackController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $buybacks = Buyback::with('ad', 'ad.product')->paginate();
+        $buybacks = Buyback::withFilter($request)->paginate();
+
         return view('admin.seller.buybacks.index', compact('buybacks'));
     }
+
 }

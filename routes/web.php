@@ -41,7 +41,6 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
         Route::get('/{id}', [\App\Http\Controllers\Admin\BuyerController::class, 'show'])->name('show');
         Route::patch('/{id}', [\App\Http\Controllers\Admin\BuyerController::class, 'update'])->name('update');
         Route::delete('/{id}', [\App\Http\Controllers\Admin\BuyerController::class, 'destroy'])->name('destroy');
-        Route::get('/payments', [\App\Http\Controllers\Admin\BuyerController::class, 'payments'])->name('payments.index');
-        Route::get('/buybacks', [\App\Http\Controllers\Admin\BuyerController::class, 'buybacks'])->name('buybacks.index');
+        Route::get('/buybacks/list', [\App\Http\Controllers\Admin\BuyerController::class, 'buybacks'])->name('buybacks.index');
     });
 });

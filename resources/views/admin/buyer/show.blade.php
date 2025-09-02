@@ -30,21 +30,11 @@
                     <div class="label">ID пользователя:</div>
                     <div>{{ $user->id }}</div>
                 </div>
-                <div class="col-md-6">
-                    <div class="label">ИНН:</div>
-                    <div>{{ $user->shop->inn ?? '-' }}</div>
-                </div>
             </div>
 
             <!-- Две колонки с основной информацией -->
             <div class="row">
                 <div class="col-md-6">
-                    <div class="label">Наименование юр. лица:</div>
-                    <div>{{ $user->shop->legal_name ?? '-' }}</div>
-
-                    <div class="label mt-3">Название магазина:</div>
-                    <div>{{ $user->shop->wb_name ?? '-' }}</div>
-
                     <div class="label mt-3">Имя пользователя:</div>
                     <div>{{ $user->name }}</div>
 
@@ -58,9 +48,6 @@
                 <div class="col-md-6">
                     <div class="label">Дата регистрации:</div>
                     <div>{{ $user->created_at->format('d.m.Y') }}</div>
-
-                    <div class="label mt-3">Тариф:</div>
-                    <div>{{ $user->tariffs()->first()->name ?? '-' }}</div>
 
                     <div class="label mt-3">Выкупов в процессе:</div>
                     <div>{{ $buybacksProccess ?? 0 }}</div>
