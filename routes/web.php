@@ -48,4 +48,6 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
     Route::resource('promocodes', App\Http\Controllers\Admin\PromoCodeController::class);
     Route::get('/products', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('products.index');
     Route::resource('buybacks', App\Http\Controllers\Admin\BuybacksController::class)->only(['index', 'show']);
+    Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
+    Route::put('settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
 });
