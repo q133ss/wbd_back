@@ -47,4 +47,5 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
     Route::resource('roles', App\Http\Controllers\Admin\RoleController::class);
     Route::resource('promocodes', App\Http\Controllers\Admin\PromoCodeController::class);
     Route::get('/products', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('products.index');
+    Route::resource('buybacks', App\Http\Controllers\Admin\BuybacksController::class)->only(['index', 'show']);
 });
