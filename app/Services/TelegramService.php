@@ -149,7 +149,6 @@ class TelegramService
                             $passwordPlain = Str::random(8);
 
                             // Создаём юзера
-                            # TODO стата не учитывает!!!!!!!!!!!!!!!
                             $user = User::create([
                                 'name'         => $fullName ?: ($username ? $username : 'tg_' . $tgId),
                                 'password'     => bcrypt($passwordPlain),
@@ -179,6 +178,25 @@ class TelegramService
 
                                 $template = new Template();
                                 $template->createDefault($user->id);
+
+                                $chatIds = [
+                                    '461612832',
+                                    '277095550'
+                                ];
+                                foreach ($chatIds as $chatId) {
+                                    $telegramLink = "ID: {$user->telegram_id}";
+
+                                    $registrationDate = $user->created_at->format('d.m.Y H:i');
+
+                                    $message = "🆕 Новый продавец!\n\n" .
+                                        "ID: {$user->id}\n" .
+                                        "Дата регистрации: {$registrationDate}\n" .
+                                        "Telegram: {$telegramLink}\n" .
+                                        "Телефон: {$user->phone}\n" .
+                                        "Имя: {$user->name}";
+
+                                    $this->sendSystemMessage($chatId, $message);
+                                }
                             }
                             // отправляем пользователю данные для входа
                             $link = $forSeller ? 'https://wbdiscount.pro/seller/login' : 'https://wbdiscount.pro/login';
@@ -268,6 +286,58 @@ class TelegramService
         $response = curl_exec($ch);
         curl_close($ch);
     }
+
+    /**
+     * Отправка сообщения от системного бота
+     * @param $chatId
+     * @param $text
+     * @param array $keyboard
+     * @return void
+     */
+    public function sendSystemMessage($chatId, $text, array $keyboard = []): void
+    {
+        $data = [
+            'chat_id'    => $chatId,
+            'text'       => $text,
+            'parse_mode' => 'HTML',
+        ];
+
+        // Обработка клавиатуры (WebApp кнопки временно скрываем)
+        if (!empty($keyboard)) {
+            if (isset($keyboard['inline_keyboard'])) {
+                $hasWebApp = false;
+                foreach ($keyboard['inline_keyboard'] as $row) {
+                    foreach ($row as $btn) {
+                        if (isset($btn['web_app'])) {
+                            $hasWebApp = true;
+                            break 2;
+                        }
+                    }
+                }
+
+                if ($hasWebApp) {
+                    $data['reply_markup'] = ['remove_keyboard' => true];
+                } else {
+                    $data['reply_markup'] = $keyboard;
+                }
+            } else {
+                $data['reply_markup'] = $keyboard;
+            }
+        }
+
+        // Используем токен системного бота из .env
+        $token = env('TELEGRAM_SYSTEM_BOT_TOKEN');
+
+        $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+    }
+
 
     // Отправка файла
     public function sendFile($chatId, $filePath, $caption = '', $keyboard = []): void
