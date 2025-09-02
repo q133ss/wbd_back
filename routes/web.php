@@ -45,4 +45,5 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
     });
 
     Route::resource('roles', App\Http\Controllers\Admin\RoleController::class);
+    Route::resource('promocodes', App\Http\Controllers\Admin\PromoCodeController::class);
 });

@@ -167,6 +167,13 @@
                 </li>
 
                 <li class="menu-item">
+                    <a href="{{route('admin.promocodes.index')}}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-cog"></i>
+                        <div class="text-truncate" data-i18n="Basic">Промокоды</div>
+                    </a>
+                </li>
+
+                <li class="menu-item">
                     <a href="{{route('admin.index')}}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-cog"></i>
                         <div class="text-truncate" data-i18n="Basic">Настройки</div>
