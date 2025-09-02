@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Детали продавца')
+@section('title', 'Детали покупателя')
 
 @section('meta')
     <style>
@@ -17,9 +17,9 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-3">Информация о продавце</h5>
+            <h5 class="mb-3">Информация о покупателе</h5>
             <div class="btn-group" role="group">
-                <a href="{{ route('admin.sellers.index') }}" class="btn btn-primary">Все продавцы</a>
+                <a href="{{ route('admin.buyer.index') }}" class="btn btn-primary">Все покупатели</a>
             </div>
         </div>
 
@@ -77,12 +77,12 @@
                 </div>
             </div>
 
-            <form action="{{route('admin.sellers.update', $user->id)}}" method="POST">
+            <form action="{{route('admin.buyer.update', $user->id)}}" method="POST">
                 @csrf
                 @method('PATCH')
                 <label for="comment">Комментарий (видит только админ)</label>
                 <textarea name="comment" class="form-control" id="comment" cols="30" rows="10">{{$user->comment}}</textarea>
-                <button class="btn btn-primary mt-2" type="submit">Сохранить комментарий</button>
+                <button class="btn btn-primary mt-2" type="submit">Сохранить</button>
             </form>
 
             <!-- Кнопки снизу слева -->
@@ -90,12 +90,31 @@
                 <a href="{{ route('admin.loginAs', $user->id) }}" class="btn btn-warning">
                     Авторизоваться под пользователем
                 </a>
-                <form action="{{ route('admin.sellers.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Удалить пользователя?')">
+                <form action="{{ route('admin.buyer.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Удалить пользователя?')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger">Удалить пользователя</button>
                 </form>
+                @if($user->is_frozen)
+                    <button class="btn btn-success" onclick="unfrozen()">Разморозить пользователя</button>
+                    @else
+                    <button class="btn btn-dark" onclick="frozen()">Заморозить пользователя</button>
+                @endif
             </div>
         </div>
     </div>
+@endsection
+@section('scripts')
+    <script>
+        function unfrozen(){
+            if (confirm('Разморозить пользователя?')) {
+                location.href = '{{ route('admin.user.unfrozen', $user->id) }}'
+            }
+        }
+        function frozen(){
+            if (confirm('Заморозить пользователя?')) {
+                location.href = '{{ route('admin.user.frozen', $user->id) }}'
+            }
+        }
+    </script>
 @endsection

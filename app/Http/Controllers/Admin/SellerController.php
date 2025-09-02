@@ -95,4 +95,16 @@ class SellerController extends Controller
         }
 
     }
+
+    public function unfrozen(string $id)
+    {
+        User::findOrFail($id)->update(['is_frozen' => false]);
+        return back()->with('success', 'Пользователь успешно разморожен');
+    }
+
+    public function frozen(string $id)
+    {
+        User::findOrFail($id)->update(['is_frozen' => true]);
+        return back()->with('success', 'Пользователь успешно заморожен');
+    }
 }

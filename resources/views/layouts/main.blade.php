@@ -146,7 +146,7 @@
                 </li>
 
                 <li class="menu-item">
-                    <a href="{{route('admin.index')}}" class="menu-link">
+                    <a href="{{route('admin.buyer.index')}}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-user"></i>
                         <div class="text-truncate" data-i18n="Basic">Покупатели ({{$buyerCount}})</div>
                     </a>
