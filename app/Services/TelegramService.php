@@ -162,7 +162,6 @@ class TelegramService
                                 'referral_id'  => $refUserId,
                             ]);
 
-                            \Log::info("Stat: ".$refUserId);
                             if($refUserId){
                                 ReferralStat::updateOrCreate(
                                     ['user_id' => $refUserId, 'type' => 'telegram'],
@@ -186,26 +185,6 @@ class TelegramService
                                 $template->createDefault($user->id);
                             }
 
-                            $chatIds = [
-                                '461612832',
-                                '277095550'
-                            ];
-                            foreach ($chatIds as $chatId) {
-                                $telegramLink = "ID: {$user->telegram_id}";
-
-                                $registrationDate = $user->created_at->format('d.m.Y H:i');
-
-                                $message = "🆕 Новый пользователь!\n\n" .
-                                    "ID: {$user->id}\n" .
-                                    "Дата регистрации: {$registrationDate}\n" .
-                                    "Telegram: {$telegramLink}\n" .
-                                    "Телефон: {$user->phone}\n" .
-                                    "Роль: {$role->name}\n".
-                                    "Имя: {$user->name}";
-
-                                $this->sendSystemMessage($chatId, $message);
-                            }
-
                             // отправляем пользователю данные для входа
                             $link = $forSeller ? 'https://wbdiscount.pro/seller/login' : 'https://wbdiscount.pro/login';
                             $this->sendMessage(
@@ -221,6 +200,26 @@ class TelegramService
                                     [],
                                     $forSeller
                                 );
+                            }
+
+                            $systemChatIds = [
+                                '461612832',
+                                '277095550'
+                            ];
+                            foreach ($systemChatIds as $systemChatId) {
+                                $telegramLink = "ID: {$user->telegram_id}";
+
+                                $registrationDate = $user->created_at->format('d.m.Y H:i');
+
+                                $message = "🆕 Новый пользователь!\n\n" .
+                                    "ID: {$user->id}\n" .
+                                    "Дата регистрации: {$registrationDate}\n" .
+                                    "Telegram: {$telegramLink}\n" .
+                                    "Телефон: {$user->phone}\n" .
+                                    "Роль: {$role->name}\n".
+                                    "Имя: {$user->name}";
+
+                                $this->sendSystemMessage($systemChatId, $message);
                             }
                         } else {
                             $user->update(['telegram_id' => $tgId]);

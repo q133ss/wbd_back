@@ -38,8 +38,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 Route::middleware([GuestOnly::class])->group(function () {
-    Route::post('register/send-code', [\App\Http\Controllers\AuthController::class, 'sendCode']);
-    Route::post('register/verify-code', [\App\Http\Controllers\AuthController::class, 'verifyCode']);
+//    Route::post('register/send-code', [\App\Http\Controllers\AuthController::class, 'sendCode']);
+//    Route::post('register/verify-code', [\App\Http\Controllers\AuthController::class, 'verifyCode']);
     Route::post('password/reset/send-code', [\App\Http\Controllers\AuthController::class, 'resetSendCode']);
     Route::post('password/reset/check-code', [\App\Http\Controllers\AuthController::class, 'resetVerifyCode']);
     Route::post('password/reset', [\App\Http\Controllers\AuthController::class, 'reset']);
@@ -153,14 +153,3 @@ Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class,
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
 
 Route::post('/telegram/user/{chat_id}', [\App\Http\Controllers\AuthController::class, 'userByTelegramId']);
-
-Route::get('/test', function () {
-    $service = new App\Services\WBService();
-    foreach (\App\Models\Product::all() as $product) {
-        $actualPrice = $service->getProductPrice($product->wb_id); // 4819
-        if($product->price != $actualPrice) {
-            $product->price = $actualPrice;
-            $product->save();
-        }
-    }
-});
