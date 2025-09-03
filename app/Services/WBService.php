@@ -300,7 +300,8 @@ class WBService extends BaseService
             [3985, 4199, '23'],
             [4200, 4391, '24'],
             [4392, 4589, '25'],
-            [4590, PHP_INT_MAX, '26'], // catch-all для всех новых vol
+            [4590, 4978, '26'],
+            [4979, PHP_INT_MAX, '27']
         ];
 
         foreach ($ranges as [$min, $max, $host]) {
