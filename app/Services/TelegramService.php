@@ -203,11 +203,12 @@ class TelegramService
                             }
 
                             $systemChatIds = [
-                                '461612832',
-                                '277095550'
+                                '-4669669747'
                             ];
                             foreach ($systemChatIds as $systemChatId) {
-                                $telegramLink = "ID: {$user->telegram_id}";
+                                $telegramLink = $username
+                                    ? "https://t.me/{$username} (@" . $username . ")"
+                                    : "tg://user?id={$tgId}";;
 
                                 $registrationDate = $user->created_at->format('d.m.Y H:i');
 
