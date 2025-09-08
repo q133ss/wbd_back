@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
+use App\Models\Ad;
 use App\Models\Buyback;
 use App\Models\Review;
 use App\Models\User;
@@ -60,7 +61,8 @@ class SellerController extends Controller
         $userData['average_response_time']   = round($averageResponseTime / 60, 1) ?? 0; // Среднее время ответа в минутах
 
 
-        $userData['products']         = $user->shop?->products; // Товары
+        //$userData['products']         = $user->shop?->products; // Товары
+        $userData['products']         = Ad::where('user_id', $user->id)->with('product')->get(); // Товары;
         $userData['reviews_count']    = $user->reviews?->count(); // Кол-во отзывов
         // Получаем список адс и по ним отзывы
         $reviews = [];
