@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\AuthController;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ResetSendLinkRequest extends FormRequest
@@ -23,7 +24,20 @@ class ResetSendLinkRequest extends FormRequest
     {
         return [
             'for_seller' => 'required|boolean',
-            'phone'      => ['required', 'exists:users,phone']
+            'phone'      => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $role = $this->input('for_seller') ? 'seller' : 'buyer';
+                    $user = User::where('phone', $value)
+                        ->whereHas('role', function ($query) use ($role) {
+                            $query->where('slug', $role);
+                        })
+                        ->first();
+                    if (!$user) {
+                        $fail('Пользователь с таким номером не найден');
+                    }
+                }
+            ]
         ];
     }
 
