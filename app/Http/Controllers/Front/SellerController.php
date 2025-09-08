@@ -60,15 +60,7 @@ class SellerController extends Controller
         $userData['average_response_time']   = round($averageResponseTime / 60, 1) ?? 0; // Среднее время ответа в минутах
 
 
-        //$userData['products']         = $user->shop?->products; // Товары
-        $userData['products'] = $user->shop?->products()
-            ->with('ads')
-            ->whereHas('ads', function($query) {
-                $query->where('status', true);
-            })
-            ->get();
-
-
+        $userData['products']         = $user->shop?->products; // Товары
         $userData['reviews_count']    = $user->reviews?->count(); // Кол-во отзывов
         // Получаем список адс и по ним отзывы
         $reviews = [];
