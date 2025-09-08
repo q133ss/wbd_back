@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
@@ -117,12 +118,13 @@ class CategoryController extends Controller
         return $ids;
     }
 
-    public function indexProducts(string $id)
+    public function indexProducts(Request $request, string $id)
     {
         $page = request('page', 1); // учитываем пагинацию
-        $cacheKey = "category_{$id}_ads_page_{$page}";
+        $filterHash = md5(serialize($request->all()));
+        $cacheKey = "category_{$id}_ads_page_{$page}_filters_{$filterHash}";
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($id) {
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($id, $request) {
             // 1. Найти категорию
             $category = Category::with('children')->findOrFail($id);
 
@@ -137,6 +139,7 @@ class CategoryController extends Controller
             return Ad::whereIn('product_id', $productIds)
                 ->where('status', true)
                 ->with('product')
+                ->withFilter($request)
                 ->paginate(18);
         });
     }
