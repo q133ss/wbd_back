@@ -103,13 +103,18 @@ class AuthController extends Controller
     // Отправляет ссылку в ТГ
     public function resetSendLink(ResetSendLinkRequest $request)
     {
-        $user = User::where('phone', $request->phone)->first();
+        $role = $this->input('for_seller') ? 'seller' : 'buyer';
+        $user = User::where('phone', $request->phone)
+            ->whereHas('role', function ($query) use ($role) {
+                $query->where('slug', $role);
+            })
+            ->first();
 
         $updated = $user->update([
             'reset_token' => Str::random(10),
         ]);
 
-        $this->telegramService->sendMessage($user->telegram_id, "Для сброса пароля перейдите по ссылке: " . env('FRONTEND_URL') . "/forgot-password?token=" . $user->reset_token, [], $request->for_seller);
+        $this->telegramService->sendMessage($user->telegram_id, "Для сброса пароля перейдите по ссылке: " . env('FRONTEND_URL') . "/forgot-password?role=$role&token=" . $user->reset_token, [], $request->for_seller);
         return response()->json(['message' => 'Ссылка отправлена в Telegram.']);
     }
 
