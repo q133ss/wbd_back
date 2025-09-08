@@ -103,7 +103,7 @@ class AuthController extends Controller
     // Отправляет ссылку в ТГ
     public function resetSendLink(ResetSendLinkRequest $request)
     {
-        $role = $this->input('for_seller') ? 'seller' : 'buyer';
+        $role = $request->for_seller ? 'seller' : 'buyer';
         $user = User::where('phone', $request->phone)
             ->whereHas('role', function ($query) use ($role) {
                 $query->where('slug', $role);
