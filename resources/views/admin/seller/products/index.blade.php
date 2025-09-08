@@ -79,7 +79,7 @@
 
             <!-- Пагинация -->
             <div class="mt-3">
-                {{ $products->links() }}
+                {{ $products->links('inc.pagination') }}
             </div>
         </div>
     </div>

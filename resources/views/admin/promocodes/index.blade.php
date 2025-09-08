@@ -73,7 +73,7 @@
 
             <!-- Пагинация -->
             <div class="mt-3">
-                {{ $promocodes->links() }}
+                {{ $promocodes->links('inc.pagination') }}
             </div>
         </div>
     </div>

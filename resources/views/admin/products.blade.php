@@ -71,7 +71,7 @@
                 </tbody>
             </table>
 
-            {{ $products->links() }}
+            {{ $products->links('inc.pagination') }}
         </div>
     </div>
 @endsection

@@ -62,7 +62,7 @@
 
             <!-- Пагинация -->
             <div class="mt-3">
-                {{ $roles->links() }}
+                {{ $roles->links('inc.pagination') }}
             </div>
         </div>
     </div>
