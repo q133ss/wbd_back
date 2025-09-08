@@ -14,7 +14,7 @@ class BuyerController extends Controller
 {
     public function index(Request $request)
     {
-        $buyers = User::where('role_id', Role::where('slug', 'buyer')->pluck('id')->first())->withFilter($request)->with('buybacks')->paginate(1);
+        $buyers = User::where('role_id', Role::where('slug', 'buyer')->pluck('id')->first())->withFilter($request)->with('buybacks')->paginate();
         return view('admin.buyer.index', compact('buyers'));
     }
 
