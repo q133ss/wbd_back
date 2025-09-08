@@ -38,11 +38,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 Route::middleware([GuestOnly::class])->group(function () {
-//    Route::post('register/send-code', [\App\Http\Controllers\AuthController::class, 'sendCode']);
-//    Route::post('register/verify-code', [\App\Http\Controllers\AuthController::class, 'verifyCode']);
-    Route::post('password/reset/send-code', [\App\Http\Controllers\AuthController::class, 'resetSendCode']);
-    Route::post('password/reset/check-code', [\App\Http\Controllers\AuthController::class, 'resetVerifyCode']);
-    Route::post('password/reset', [\App\Http\Controllers\AuthController::class, 'reset']);
+    Route::post('/password/reset/send-link', [\App\Http\Controllers\AuthController::class, 'resetSendLink'])->where('type', 'seller|buyer');
+    Route::post('/password/reset', [\App\Http\Controllers\AuthController::class, 'resetPassword']);
+
     Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
     Route::post('register/password', [\App\Http\Controllers\AuthController::class, 'register']);
 });

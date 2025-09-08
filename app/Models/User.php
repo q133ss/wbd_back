@@ -35,7 +35,8 @@ class User extends Authenticatable
         'last_seen_at',
         'is_frozen',
         'tg_token',
-        'comment'
+        'comment',
+        'reset_token'
     ];
 
     /**
