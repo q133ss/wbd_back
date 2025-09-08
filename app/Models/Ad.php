@@ -253,6 +253,8 @@ class Ad extends Model
         $data['price_without_cashback'] = $this->getPriceWithoutCashback();
         $data['seller_rating']          = $this->user?->getRating();
         $data['buybacks_count'] = $this->buybacks()->whereIn('status', ['cashback_received', 'completed'])->count();
+        $data['price_with_cashback'] = round($this->price_with_cashback, 2);
+        $data['cashback_percentage'] = round($this->cashback_percentage, 2);
         return $data;
     }
 }
