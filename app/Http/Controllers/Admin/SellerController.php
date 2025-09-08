@@ -24,7 +24,7 @@ class SellerController extends Controller
             ->paginate();
 
         $sellers->getCollection()->transform(function ($seller) {
-            $seller->products_count = $seller->shop ? $seller->shop->products->count() : 0;
+            $seller->products_count = $seller->shop ? $seller->shop?->products->count() : 0;
             $seller->ads_count = $seller->shop
                 ? $seller->shop->products->sum(fn($product) => $product->ads->count())
                 : 0;
@@ -47,7 +47,7 @@ class SellerController extends Controller
             ->whereHas('role', fn($q) => $q->where('slug', 'seller'))
             ->findOrFail($id);
 
-        $adsIds = Ad::whereIn('product_id', Product::where('shop_id', $user->shop->id)->pluck('id')->all())
+        $adsIds = Ad::whereIn('product_id', Product::where('shop_id', $user->shop?->id)->pluck('id')->all())
             ->pluck('id')
             ->all();
 
@@ -78,11 +78,11 @@ class SellerController extends Controller
             DB::table('user_tariff')->where('user_id', $user->id)->delete();
 
             if ($user->shop) {
-                $user->shop->products()->each(function ($product) {
+                $user->shop?->products()->each(function ($product) {
                     $product->ads()->delete();
                     $product->delete();
                 });
-                $user->shop->delete();
+                $user->shop?->delete();
             }
 
             $user->delete();
