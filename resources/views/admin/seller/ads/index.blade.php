@@ -71,7 +71,7 @@
             </div>
 
             <div class="mt-3">
-                {{ $ads->links() }}
+                {{ $ads->links('inc.pagination') }}
             </div>
         </div>
     </div>

@@ -56,7 +56,7 @@
             </table>
 
             <div class="mt-3">
-                {{ $buybacks->links() }}
+                {{ $buybacks->links('inc.pagination') }}
             </div>
         </div>
     </div>
