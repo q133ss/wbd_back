@@ -2,7 +2,6 @@
 
 use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 
 // Проблемные артикулы
 
@@ -99,7 +98,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     // Список товаров и объявлений для фильтрации в транзакциях
-    Route::get('{type}/transactions-list', [\App\Http\Controllers\Seller\ProductController::class, 'list'])->where('type', 'ads|products');;
+    Route::get('{type}/transactions-list', [\App\Http\Controllers\Seller\ProductController::class, 'list'])->where('type', 'ads|products');
 
     // Чат
     Route::get('/chat/status-list', [\App\Http\Controllers\Buyer\OrderController::class, 'orderStatusList']);
@@ -127,13 +126,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::get('/seller/{id}', [\App\Http\Controllers\Front\SellerController::class, 'show']);
 Route::get('/buyer/{id}', [\App\Http\Controllers\Front\BuyerController::class, 'show']);
 
-
 // Telegram webhook
 Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramController::class, 'handle']);
 Route::post('/telegram/client/handle', [\App\Http\Controllers\TelegramController::class, 'handleClient']);
 
 // Реферальная ссылка
 Route::post('/referral/{id}', [\App\Http\Controllers\ReferralController::class, 'store']);
+
+// UTM-метки
+Route::post('/utm', [\App\Http\Controllers\UtmController::class, 'store']);
 
 // Вебхуки CloudPayments
 Route::post('/payment/handle/pay', [\App\Http\Controllers\PaymentController::class, 'handlePay']);

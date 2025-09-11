@@ -74,11 +74,16 @@ class AuthService
 
             if ($verification->exists()) {
                 $data = [
-                    'phone' => $phone,
+                    'phone'    => $phone,
                     'password' => '-',
-                    'name' => '-',
-                    'role_id' => $role_id,
+                    'name'     => '-',
+                    'role_id'  => $role_id,
                 ];
+
+                $utm = Cache::get("utm_{$ip}");
+                if ($utm) {
+                    $data = array_merge($data, $utm);
+                }
 
                 $ref = Cache::get("ref_{$ip}");
                 if ($ref != null) {
@@ -93,16 +98,16 @@ class AuthService
                 $verification->delete();
 
                 // Создаем пробный тариф для продавца
-                if($role_id == Role::where('slug', 'seller')->pluck('id')->first()){
+                if ($role_id == Role::where('slug', 'seller')->pluck('id')->first()) {
                     $tariff = \App\Models\Tariff::where('name', 'Пробный')->first();
                     DB::table('user_tariff')->insert([
-                        'user_id' => $user->id,
-                        'tariff_id' => $tariff->id,
-                        'end_date' => now()->addDays(3),
+                        'user_id'        => $user->id,
+                        'tariff_id'      => $tariff->id,
+                        'end_date'       => now()->addDays(3),
                         'products_count' => 10,
-                        'variant_name' => '3 дня',
-                        'duration_days' => 3,
-                        'price_paid' => 0
+                        'variant_name'   => '3 дня',
+                        'duration_days'  => 3,
+                        'price_paid'     => 0,
                     ]);
                 }
 
@@ -111,14 +116,15 @@ class AuthService
                 DB::commit();
 
                 return [
-                    'user' => $user,
+                    'user'  => $user,
                     'token' => $token->plainTextToken,
                 ];
             } else {
                 return Response()->json(['message' => 'Неверный код'], 401);
             }
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
+
             return Response()->json(['message' => 'Ошибка сервера'], 500);
         }
     }
