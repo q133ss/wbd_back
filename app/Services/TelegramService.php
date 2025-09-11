@@ -109,6 +109,32 @@ class TelegramService
                             $forSeller
                         );
                     }
+                    if (str_starts_with($startPayload, 'utm')) {
+                        $utmToken = str_replace('utm', '', $startPayload);
+                        if ($utm = Cache::pull("utm_{$utmToken}")) {
+                            Cache::put("utm_tg_{$chatId}", $utm, now()->addDays(10));
+                        }
+
+                        $keyboard = [
+                            'keyboard' => [
+                                [
+                                    [
+                                        'text' => '📱 Поделиться контактом',
+                                        'request_contact' => true
+                                    ]
+                                ]
+                            ],
+                            'resize_keyboard' => true,
+                            'one_time_keyboard' => true
+                        ];
+
+                        $this->sendMessage(
+                            $chatId,
+                            "⚡ Мгновенная регистрация\n\nНажмите на кнопку «Поделиться контактом» внизу экрана и получите логин и пароль.\n\nРегистрируясь, вы соглашаетесь с <a href='https://wbdiscount.pro/privacy'>политикой конфиденциальности</a> и <a href='https://wbdiscount.pro/terms'>пользовательским соглашением</a>.",
+                            $keyboard,
+                            $forSeller
+                        );
+                    }
 
 
                     if(!str_starts_with($startPayload, 'register') || !str_starts_with($startPayload, 'ref')){
@@ -167,6 +193,10 @@ class TelegramService
                                     ['user_id' => $refUserId, 'type' => 'telegram'],
                                     ['registrations_count' => DB::raw('registrations_count + 1')]
                                 );
+                            }
+
+                            if ($utm = Cache::pull("utm_tg_{$chatId}")) {
+                                $user->update($utm);
                             }
 
                             if($forSeller) {
