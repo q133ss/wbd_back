@@ -23,9 +23,25 @@
         <!-- Поиск -->
         <div class="card-body">
             <form class="mb-4">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Поиск по продавцам..." name="search">
-                    <button class="btn btn-outline-primary" type="submit">Найти</button>
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" placeholder="Поиск по продавцам..." name="search" value="{{ request('search') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" placeholder="Источник" name="utm_source" value="{{ request('utm_source') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" placeholder="Кампания" name="utm_campaign" value="{{ request('utm_campaign') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" class="form-control" name="date_from" value="{{ request('date_from') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" class="form-control" name="date_to" value="{{ request('date_to') }}">
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-outline-primary w-100" type="submit">Найти</button>
+                    </div>
                 </div>
             </form>
 
@@ -38,6 +54,9 @@
                         <th>Дата регистрации</th>
                         <th>Имя</th>
                         <th>Телефон</th>
+                        <th>Источник</th>
+                        <th>Тип трафика</th>
+                        <th>Кампания</th>
                         <th>ИНН</th>
                         <th>Юр. лицо</th>
                         <th>Магазин</th>
@@ -54,6 +73,9 @@
                             <td>{{ $seller->created_at->format('d.m.Y') }}</td>
                             <td>{{ $seller->name }}</td>
                             <td>{{ $seller->phone }}</td>
+                            <td>{{ $seller->utm_source ?? '-' }}</td>
+                            <td>{{ $seller->utm_medium ?? '-' }}</td>
+                            <td>{{ $seller->utm_campaign ?? '-' }}</td>
                             <td>{{ $seller->shop->inn ?? '-' }}</td>
                             <td>{{ $seller->shop->legal_name ?? '-' }}</td>
                             <td>{{ $seller->shop->wb_name ?? '-' }}</td>

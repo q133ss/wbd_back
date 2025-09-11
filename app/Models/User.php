@@ -36,7 +36,12 @@ class User extends Authenticatable
         'is_frozen',
         'tg_token',
         'comment',
-        'reset_token'
+        'reset_token',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'utm_content',
+        'utm_term',
     ];
 
     /**
@@ -113,7 +118,12 @@ class User extends Authenticatable
             'is_online'     => $this->is_online,
             'last_seen_at'  => $this->last_seen_at,
             'telegram_id'   => $this->telegram_id,
-            'comment'       => $this->comment
+            'comment'       => $this->comment,
+            'utm_source'    => $this->utm_source,
+            'utm_medium'    => $this->utm_medium,
+            'utm_campaign'  => $this->utm_campaign,
+            'utm_content'   => $this->utm_content,
+            'utm_term'      => $this->utm_term,
         ];
     }
 
@@ -247,12 +257,10 @@ class User extends Authenticatable
 
     /**
      * Возвращет статус онлайна
-     * @return bool
      */
     public function getIsOnlineAttribute(): bool
     {
-        return $this->last_seen_at &&
-            $this->last_seen_at > now()->subMinutes(3);
+        return $this->last_seen_at && $this->last_seen_at > now()->subMinutes(3);
     }
 
     public function paymentMethod()
@@ -263,14 +271,13 @@ class User extends Authenticatable
     /**
      * Получает токен пользователя (из кэша или создает новый)
      *
-     * @param int $ttlDays Время жизни токена в кэше (дней)
-     * @return string
+     * @param  int  $ttlDays  Время жизни токена в кэше (дней)
      */
     public function getToken(int $ttlDays = 30): string
     {
         $cacheKey = "user_token_{$this->id}";
 
-        return Cache::remember($cacheKey, now()->addDays($ttlDays), function() {
+        return Cache::remember($cacheKey, now()->addDays($ttlDays), function () {
             return $this->createToken('api-token')->plainTextToken;
         });
     }
@@ -294,6 +301,7 @@ class User extends Authenticatable
 
     /**
      * Проверяет, есть-ли подписка
+     *
      * @return bool
      */
     public function checkTariff()
@@ -317,6 +325,22 @@ class User extends Authenticatable
 
         if ($request->has('role_id')) {
             $query->where('role_id', $request->input('role_id'));
+        }
+
+        if ($request->filled('utm_source')) {
+            $query->where('utm_source', $request->input('utm_source'));
+        }
+
+        if ($request->filled('utm_campaign')) {
+            $query->where('utm_campaign', $request->input('utm_campaign'));
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
         }
 
         return $query;
