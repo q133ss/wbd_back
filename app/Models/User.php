@@ -36,7 +36,12 @@ class User extends Authenticatable
         'is_frozen',
         'tg_token',
         'comment',
-        'reset_token'
+        'reset_token',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'utm_content',
+        'utm_term'
     ];
 
     /**
