@@ -44,76 +44,7 @@ class TelegramService
 
                 if (strpos($text, '/start') === 0) {
                     $startPayload = trim(str_replace('/start', '', $text));
-
-                    // Обработка реферального клика
-                    if (str_starts_with($startPayload, 'ref')) {
-                        $refUserId = (int) str_replace('ref', '', $startPayload);
-
-                        if (User::where('id', $refUserId)->exists()) {
-                            // Тип статистики по роли
-
-                            \Log::info("Stat: ".$refUserId);
-                            if($refUserId) {
-                                ReferralStat::updateOrCreate(
-                                    ['user_id' => $refUserId, 'type' => 'telegram'],
-                                    ['clicks_count' => DB::raw('clicks_count + 1')]
-                                );
-                            }
-
-                            // Сохраняем в кеш, чтобы потом учесть регистрацию/пополнение
-                            Cache::put("ref_tg_{$chatId}", $refUserId, now()->addDays(10));
-                        }
-
-                        // ⚡ Сразу запускаем моментальную регистрацию
-                        $keyboard = [
-                            'keyboard' => [
-                                [
-                                    [
-                                        'text' => '📱 Поделиться контактом',
-                                        'request_contact' => true
-                                    ]
-                                ]
-                            ],
-                            'resize_keyboard' => true,
-                            'one_time_keyboard' => true
-                        ];
-
-                        $this->sendMessage(
-                            $chatId,
-                            "⚡ Мгновенная регистрация\n\nНажмите на кнопку «Поделиться контактом» внизу экрана и получите логин и пароль.\n\nРегистрируясь, вы соглашаетесь с <a href='https://wbdiscount.pro/privacy'>политикой конфиденциальности</a> и <a href='https://wbdiscount.pro/terms'>пользовательским соглашением</a>.",
-                            $keyboard,
-                            $forSeller
-                        );
-                    }
-
-                    // регистрация через ТГ
-                    if (str_starts_with($startPayload, 'register')) {
-                        // Отправляем клавиатуру для запроса контакта
-                        $keyboard = [
-                            'keyboard' => [
-                                [
-                                    [
-                                        'text' => '📱 Поделиться контактом',
-                                        'request_contact' => true
-                                    ]
-                                ]
-                            ],
-                            'resize_keyboard' => true,
-                            'one_time_keyboard' => true
-                        ];
-
-                        $this->sendMessage(
-                            $chatId,
-                            "⚡ Мгновенная регистрация\n\nНажмите на кнопку «Поделиться контактом» внизу экрана и получите логин и пароль.\n\nРегистрируясь, вы соглашаетесь с <a href='https://wbdiscount.pro/privacy'>политикой конфиденциальности</a> и <a href='https://wbdiscount.pro/terms'>пользовательским соглашением</a>.",
-                            $keyboard,
-                            $forSeller
-                        );
-                    }
-
-
-                    if(!str_starts_with($startPayload, 'register') || !str_starts_with($startPayload, 'ref')){
-                        $this->startCommand($chatId, $startPayload, $forSeller);
-                    }
+                    $this->handleStartPayload($chatId, $startPayload, $forSeller);
                 } else {
                     if (isset($update['message']['contact'])) {
                         $phoneRaw = $update['message']['contact']['phone_number'];
@@ -167,6 +98,10 @@ class TelegramService
                                     ['user_id' => $refUserId, 'type' => 'telegram'],
                                     ['registrations_count' => DB::raw('registrations_count + 1')]
                                 );
+                            }
+
+                            if ($utm = Cache::pull("utm_tg_{$chatId}")) {
+                                $user->update($utm);
                             }
 
                             if($forSeller) {
@@ -376,6 +311,64 @@ class TelegramService
 
         $response = curl_exec($ch);
         curl_close($ch);
+    }
+
+    private function handleStartPayload($chatId, string $startPayload, bool $forSeller): void
+    {
+        $parts = array_filter(explode('_', $startPayload));
+        $shouldRegister = false;
+
+        foreach ($parts as $part) {
+            if (str_starts_with($part, 'ref')) {
+                $refUserId = (int) str_replace('ref', '', $part);
+                if (User::where('id', $refUserId)->exists()) {
+                    \Log::info("Stat: " . $refUserId);
+                    ReferralStat::updateOrCreate(
+                        ['user_id' => $refUserId, 'type' => 'telegram'],
+                        ['clicks_count' => DB::raw('clicks_count + 1')]
+                    );
+                    Cache::put("ref_tg_{$chatId}", $refUserId, now()->addDays(10));
+                }
+                $shouldRegister = true;
+            }
+
+            if (str_starts_with($part, 'utm')) {
+                $utmToken = str_replace('utm', '', $part);
+                if ($utm = Cache::pull("utm_{$utmToken}")) {
+                    Cache::put("utm_tg_{$chatId}", $utm, now()->addDays(10));
+                }
+                $shouldRegister = true;
+            }
+
+            if (str_starts_with($part, 'register')) {
+                $shouldRegister = true;
+            }
+        }
+
+        if ($shouldRegister) {
+            $keyboard = [
+                'keyboard' => [
+                    [
+                        [
+                            'text' => '📱 Поделиться контактом',
+                            'request_contact' => true
+                        ]
+                    ]
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true
+            ];
+
+            $this->sendMessage(
+                $chatId,
+                "⚡ Мгновенная регистрация\n\nНажмите на кнопку «Поделиться контактом» внизу экрана и получите логин" .
+                " и пароль.\n\nРегистрируясь, вы соглашаетесь с <a href='https://wbdiscount.pro/privacy'>политикой конфиденциальности</a> и <a href='https://wbdiscount.pro/terms'>пользовательским соглашением</a>.",
+                $keyboard,
+                $forSeller
+            );
+        } else {
+            $this->startCommand($chatId, $startPayload, $forSeller);
+        }
     }
 
     // Команда /start

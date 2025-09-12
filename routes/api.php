@@ -135,6 +135,9 @@ Route::post('/telegram/client/handle', [\App\Http\Controllers\TelegramController
 // Реферальная ссылка
 Route::post('/referral/{id}', [\App\Http\Controllers\ReferralController::class, 'store']);
 
+// Сохранение UTM-меток
+Route::post('/utm', [\App\Http\Controllers\UtmController::class, 'store']);
+
 // Вебхуки CloudPayments
 Route::post('/payment/handle/pay', [\App\Http\Controllers\PaymentController::class, 'handlePay']);
 Route::post('/payment/handle/fail', [\App\Http\Controllers\PaymentController::class, 'handleFail']);
