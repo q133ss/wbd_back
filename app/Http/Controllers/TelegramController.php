@@ -99,6 +99,10 @@ class TelegramController extends Controller
             ]);
         }
 
+        if ($utm = Cache::pull("utm_tg_{$telegramId}")) {
+            $user->update($utm);
+        }
+
         $token = $user->createToken('web');
 
         return response()->json([

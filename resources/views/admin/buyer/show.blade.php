@@ -43,6 +43,15 @@
 
                     <div class="label mt-3">Email:</div>
                     <div>{{ $user->email }}</div>
+
+                    <div class="label mt-3">UTM (Source):</div>
+                    <div>{{ $user->utm_source ?? '-' }}</div>
+
+                    <div class="label mt-3">UTM (Medium):</div>
+                    <div>{{ $user->utm_medium ?? '-' }}</div>
+
+                    <div class="label mt-3">UTM (Campaign):</div>
+                    <div>{{ $user->utm_campaign ?? '-' }}</div>
                 </div>
 
                 <div class="col-md-6">
