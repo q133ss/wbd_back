@@ -22,6 +22,16 @@ class UtmController extends Controller
 
         Cache::put("utm_{$token}", $data, now()->addDay());
 
-        return response()->json(['token' => $token]);
+        $botUsername = config('services.telegram.client_username');
+        $start = 'utm' . $token;
+
+        if ($ref = $request->get('ref')) {
+            $start .= '_ref' . (int) $ref;
+        }
+
+        return response()->json([
+            'token' => $token,
+            'telegram_url' => "https://t.me/{$botUsername}?start={$start}",
+        ]);
     }
 }
