@@ -30,12 +30,14 @@ class AppServiceProvider extends ServiceProvider
             return new ConcreteTelegramSessionGuard($provider, $app['request']);
         });
 
-        // Доступ к логам только для админа
-        LogViewer::auth(function ($request) {
-            return $request->user()
-                && in_array($request->user()->email, [
-                    'admin@email.net',
-                ]);
-        });
+        if (class_exists(LogViewer::class)) {
+            // Доступ к логам только для админа
+            LogViewer::auth(function ($request) {
+                return $request->user()
+                    && in_array($request->user()->email, [
+                        'admin@email.net',
+                    ]);
+            });
+        }
     }
 }
