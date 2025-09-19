@@ -7,6 +7,7 @@ use App\Models\FrozenBalance;
 use App\Models\Product;
 use App\Models\Tariff;
 use App\Models\Transaction;
+use App\Services\AutopostingService;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
 
@@ -92,6 +93,10 @@ class AdsService extends BaseService
 //            ]);
 
             DB::commit();
+
+            if ($ad->status) {
+                (new AutopostingService())->publishAd($ad->loadMissing('product'));
+            }
 
             return Response()->json([
                 'ads'  => $ad->load('product', 'shop')
