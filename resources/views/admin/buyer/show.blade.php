@@ -83,7 +83,7 @@
 
             <!-- Кнопки снизу слева -->
             <div class="mt-4 d-flex gap-2">
-                <a href="{{ route('admin.loginAs', $user->id) }}" class="btn btn-warning">
+                <a href="{{ route('admin.loginAs', $user->id) }}" class="btn btn-warning" target="_blank" rel="noopener">
                     Авторизоваться под пользователем
                 </a>
                 <form action="{{ route('admin.buyer.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Удалить пользователя?')">
