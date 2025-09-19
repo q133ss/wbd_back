@@ -9,6 +9,7 @@ use App\Models\Buyback;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\UserDeletionService;
 use Illuminate\Http\Request;
 
 class BuyerController extends Controller
@@ -52,6 +53,22 @@ class BuyerController extends Controller
         $buybacks = Buyback::withFilter($request)->paginate();
 
         return view('admin.buyer.buybacks', compact('buybacks'));
+    }
+
+    public function destroy(string $id, UserDeletionService $userDeletionService)
+    {
+        try {
+            $user = User::whereHas('role', fn($q) => $q->where('slug', 'buyer'))
+                ->findOrFail($id);
+
+            $userDeletionService->delete($user);
+
+            return redirect()->route('admin.buyer.index')->with('success', 'Пользователь удален успешно!');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->route('admin.buyer.index')->with('error', 'Ошибка при удалении пользователя: ' . $e->getMessage());
+        }
     }
 
 }
