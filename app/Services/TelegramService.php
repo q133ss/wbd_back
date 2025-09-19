@@ -10,6 +10,7 @@ use App\Models\User;
 use CURLFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -85,7 +86,7 @@ class TelegramService
                             // Создаём юзера
                             $user = User::create([
                                 'name'         => $fullName ?: ($username ? $username : 'tg_' . $tgId),
-                                'password'     => bcrypt($passwordPlain),
+                                'password'     => Hash::make($passwordPlain),
                                 'phone'        => $phone,
                                 'role_id'      => $role->id,
                                 'is_configured'=> true,
