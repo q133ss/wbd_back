@@ -8,8 +8,8 @@ use App\Models\Ad;
 use App\Models\Buyback;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\UserDeletionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class SellerController extends Controller
 {
@@ -68,29 +68,17 @@ class SellerController extends Controller
         return back()->with('success', 'Пользователь успешно обновлен');
     }
 
-    public function delete(string $id)
+    public function delete(string $id, UserDeletionService $userDeletionService)
     {
-        DB::beginTransaction();
         try {
             $user = User::whereHas('role', fn($q) => $q->where('slug', 'seller'))
                 ->findOrFail($id);
 
-            DB::table('user_tariff')->where('user_id', $user->id)->delete();
-
-            if ($user->shop) {
-                $user->shop?->products()->each(function ($product) {
-                    $product->ads()->delete();
-                    $product->delete();
-                });
-                $user->shop?->delete();
-            }
-
-            $user->delete();
-            DB::commit();
+            $userDeletionService->delete($user);
 
             return redirect()->route('admin.sellers.index')->with('success', 'Продавец удален успешно!');
         }catch (\Throwable $e) {
-            DB::rollBack();
+            report($e);
             return redirect()->route('admin.sellers.index')->with('error', 'Ошибка при удалении продавца: ' . $e->getMessage());
         }
 
