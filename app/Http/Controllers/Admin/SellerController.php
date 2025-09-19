@@ -6,10 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SellerController\UpdateRequest;
 use App\Models\Ad;
 use App\Models\Buyback;
+use App\Models\ImpersonationToken;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\UserDeletionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SellerController extends Controller
 {
@@ -94,5 +98,52 @@ class SellerController extends Controller
     {
         User::findOrFail($id)->update(['is_frozen' => true]);
         return back()->with('success', 'Пользователь успешно заморожен');
+    }
+
+    public function loginAs(string $id)
+    {
+        $admin = Auth::user();
+        $user = User::findOrFail($id);
+
+        if ($user->role?->slug === 'admin') {
+            return back()->with('error', 'Нельзя авторизоваться под администратором');
+        }
+
+        $frontendUrl = config('app.frontend_url');
+
+        if (blank($frontendUrl)) {
+            return back()->with('error', 'Не настроен адрес фронтенда для авторизации');
+        }
+
+        $expiresAt = now()->addMinutes(5);
+
+        ImpersonationToken::query()
+            ->where('admin_id', $admin->id)
+            ->where('user_id', $user->id)
+            ->whereNull('used_at')
+            ->delete();
+
+        $plainToken = Str::random(64);
+
+        $impersonation = ImpersonationToken::query()->create([
+            'admin_id' => $admin->id,
+            'user_id' => $user->id,
+            'token_hash' => hash('sha256', $plainToken),
+            'expires_at' => $expiresAt,
+        ]);
+
+        Log::info('Admin impersonation token created', [
+            'impersonation_id' => $impersonation->id,
+            'admin_id' => $admin->id,
+            'user_id' => $user->id,
+            'expires_at' => $expiresAt->toIso8601String(),
+        ]);
+
+        $redirectUrl = rtrim($frontendUrl, '/').'/impersonation?'.http_build_query([
+            'impersonation_token' => $plainToken,
+            'user' => $user->id,
+        ]);
+
+        return redirect()->away($redirectUrl);
     }
 }

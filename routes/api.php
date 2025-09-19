@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ImpersonationController;
 use App\Http\Middleware\GuestOnly;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -43,6 +44,7 @@ Route::middleware([GuestOnly::class])->group(function () {
 
     Route::post('login', [\App\Http\Controllers\AuthController::class, 'login']);
     Route::post('register/password', [\App\Http\Controllers\AuthController::class, 'register']);
+    Route::post('impersonation/exchange', [ImpersonationController::class, 'exchange'])->name('impersonation.exchange');
 });
 Route::get('/roles', [\App\Http\Controllers\AuthController::class, 'roles']);
 
