@@ -95,7 +95,7 @@ class AdsService extends BaseService
             DB::commit();
 
             if ($ad->status) {
-                app(AutopostingService::class)->publishAd($ad->loadMissing('product'));
+                (new AutopostingService())->publishAd($ad->loadMissing('product'));
             }
 
             return Response()->json([

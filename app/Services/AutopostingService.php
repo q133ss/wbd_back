@@ -97,7 +97,7 @@ class AutopostingService
     protected function buildMessage(Ad $ad, AutopostSetting $settings): string
     {
         $lines = [];
-        $lines[] = '<b>'.e($ad->name).'</b>';
+        $lines[] = '<b>'.e($ad->product?->name).'</b>';
 
         if ($settings->show_price) {
             $lines[] = 'Цена: '.number_format((float) $ad->price_with_cashback, 2, '.', ' ').' ₽';
@@ -146,7 +146,7 @@ class AutopostingService
         $base = rtrim(config('app.frontend_url') ?? config('app.url'), '/');
         $productId = $ad->product?->id ?? $ad->product_id;
 
-        return $base.'/product/'.$productId;
+        return $base.'/products/'.$productId;
     }
 
     protected function getPhotoUrl(Ad $ad): ?string
