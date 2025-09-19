@@ -174,6 +174,13 @@
                 </li>
 
                 <li class="menu-item">
+                    <a href="{{route('admin.autoposting.index')}}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-send"></i>
+                        <div class="text-truncate" data-i18n="Basic">Автопостинг</div>
+                    </a>
+                </li>
+
+                <li class="menu-item">
                     <a href="{{route('admin.settings.index')}}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-cog"></i>
                         <div class="text-truncate" data-i18n="Basic">Настройки</div>

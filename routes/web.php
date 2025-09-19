@@ -50,4 +50,6 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
     Route::resource('buybacks', App\Http\Controllers\Admin\BuybacksController::class)->only(['index', 'show']);
     Route::get('settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::put('settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
+    Route::get('/autoposting', [\App\Http\Controllers\Admin\AutopostingController::class, 'index'])->name('autoposting.index');
+    Route::put('/autoposting', [\App\Http\Controllers\Admin\AutopostingController::class, 'update'])->name('autoposting.update');
 });

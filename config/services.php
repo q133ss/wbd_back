@@ -47,6 +47,8 @@ return [
         'username' => env('TELEGRAM_BOT_USERNAME'),
         'client_token' => env('TELEGRAM_CLIENT_TOKEN'),
         'client_username' => env('TELEGRAM_CLIENT_USERNAME'),
+        'autopost_token' => env('TELEGRAM_AUTOPOST_BOT_TOKEN'),
+        'autopost_chat_id' => env('TELEGRAM_AUTOPOST_CHAT_ID', '-3026543670'),
     ],
 
     'cloudpayments' => [
