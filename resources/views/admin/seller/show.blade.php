@@ -104,7 +104,27 @@
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger">Удалить пользователя</button>
                 </form>
+                @if($user->is_frozen)
+                    <button class="btn btn-success" onclick="unfrozen()">Разморозить пользователя</button>
+                @else
+                    <button class="btn btn-dark" onclick="frozen()">Заморозить пользователя</button>
+                @endif
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        function unfrozen() {
+            if (confirm('Разморозить пользователя?')) {
+                location.href = '{{ route('admin.user.unfrozen', $user->id) }}'
+            }
+        }
+        function frozen() {
+            if (confirm('Заморозить пользователя?')) {
+                location.href = '{{ route('admin.user.frozen', $user->id) }}'
+            }
+        }
+    </script>
 @endsection
