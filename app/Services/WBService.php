@@ -344,31 +344,81 @@ class WBService extends BaseService
      */
     private function makeCategory(array $product): mixed
     {
-        $id = $product['id'] ?? null;
+        $categoryId = $this->resolveCategoryFromArray($product);
 
-        $pathData = $this->generatePathData($id);
-        $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$id}/info/ru/card.json";
-        \Log::info('CardURL: '.$cardUrl);
-        $cardResponse = Http::get($cardUrl);
-
-        if (!$cardResponse->successful()) {
-            throw new \Exception("Failed to fetch card data");
+        if ($categoryId) {
+            return $categoryId;
         }
 
-        $subcategoryName = $cardResponse->json()['subj_name'] ?? null; // Дочерняя категория
-        $categoryName = $cardResponse->json()['subj_root_name'] ?? null; // Родительская категория
+        $productId = $product['id'] ?? null;
 
-        if (!empty($subcategoryName)) {
-            $finalCategory = $subcategoryName;
-        } elseif (!empty($categoryName)) {
-            $finalCategory = $categoryName;
-        } else {
-            $finalCategory = 'Без категории';
+        if (!$productId) {
+            return null;
         }
 
-        return Category::where('name', $finalCategory)
-            ->pluck('id')
-            ->first();
+        try {
+            $pathData = $this->generatePathData($productId);
+            $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$productId}/info/ru/card.json";
+            $cardResponse = Http::get($cardUrl);
+
+            if (!$cardResponse->successful()) {
+                return null;
+            }
+
+            return $this->resolveCategoryFromArray($cardResponse->json());
+        } catch (\Throwable $exception) {
+            Log::warning('Не удалось определить категорию товара', [
+                'product_id' => $productId,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    private function resolveCategoryFromArray(array $data): ?int
+    {
+        $idCandidates = [
+            $data['subjectParentId'] ?? null,
+            $data['parent_subject_id'] ?? null,
+            $data['subj_parent_id'] ?? null,
+            $data['subj_root_id'] ?? null,
+            $data['subj_id'] ?? null,
+            $data['subjectId'] ?? null,
+        ];
+
+        foreach ($idCandidates as $candidate) {
+            if (!$candidate) {
+                continue;
+            }
+
+            $category = Category::find($candidate);
+
+            if ($category) {
+                return $category->id;
+            }
+        }
+
+        $nameCandidates = [
+            $data['subjectParentName'] ?? null,
+            $data['subj_root_name'] ?? null,
+            $data['subjectName'] ?? null,
+            $data['subj_name'] ?? null,
+        ];
+
+        foreach ($nameCandidates as $name) {
+            if (empty($name)) {
+                continue;
+            }
+
+            $categoryId = Category::where('name', $name)->value('id');
+
+            if ($categoryId) {
+                return $categoryId;
+            }
+        }
+
+        return null;
     }
 
     /**
