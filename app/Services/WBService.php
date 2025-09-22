@@ -399,22 +399,98 @@ class WBService extends BaseService
             }
         }
 
-        $nameCandidates = [
+        $rootNameCandidates = array_values(array_unique(array_filter([
+            $data['subj_root_name'] ?? null,
+            $data['root_subject_name'] ?? null,
+        ])));
+
+        $leafNameCandidates = array_values(array_unique(array_filter([
+            $data['subjectName'] ?? null,
+            $data['subj_name'] ?? null,
+        ])));
+
+        $parentNameCandidates = array_values(array_unique(array_filter([
+            $data['subjectParentName'] ?? null,
+            $data['parent_subject_name'] ?? null,
+        ])));
+
+        foreach ($rootNameCandidates as $rootName) {
+            $rootCategory = $this->findRootCategoryByName($rootName);
+
+            if (! $rootCategory) {
+                continue;
+            }
+
+            $matchedCategory = $this->findCategoryUnderRoot($rootCategory, $leafNameCandidates);
+
+            if ($matchedCategory) {
+                return $matchedCategory->id;
+            }
+
+            $matchedCategory = $this->findCategoryUnderRoot($rootCategory, $parentNameCandidates);
+
+            if ($matchedCategory) {
+                return $matchedCategory->id;
+            }
+
+            return $rootCategory->id;
+        }
+
+        $nameCandidates = array_values(array_unique(array_filter([
             $data['subjectParentName'] ?? null,
             $data['subj_root_name'] ?? null,
             $data['subjectName'] ?? null,
             $data['subj_name'] ?? null,
-        ];
+        ])));
 
         foreach ($nameCandidates as $name) {
-            if (empty($name)) {
+            $categories = Category::where('name', $name)->get();
+
+            if ($categories->count() === 1) {
+                return $categories->first()->id;
+            }
+        }
+
+        return null;
+    }
+
+    private function findRootCategoryByName(string $name): ?Category
+    {
+        $categories = Category::where('name', $name)->get();
+
+        if ($categories->isEmpty()) {
+            return null;
+        }
+
+        return $categories->firstWhere('parent_id', null) ?? $categories->first();
+    }
+
+    private function findCategoryUnderRoot(Category $rootCategory, array $names): ?Category
+    {
+        foreach ($names as $name) {
+            $categories = Category::where('name', $name)->get();
+
+            if ($categories->isEmpty()) {
                 continue;
             }
 
-            $categoryId = Category::where('name', $name)->value('id');
+            $matching = [];
 
-            if ($categoryId) {
-                return $categoryId;
+            foreach ($categories as $category) {
+                $ancestors = $category->getAllAncestorIds();
+
+                if ($category->id === $rootCategory->id || $ancestors->contains($rootCategory->id)) {
+                    $matching[] = [
+                        'category' => $category,
+                        'depth'    => $ancestors->count(),
+                    ];
+                }
+            }
+
+            if (! empty($matching)) {
+                usort($matching, static fn (array $first, array $second) => $second['depth'] <=> $first['depth']);
+
+                return $matching[0]['category'];
             }
         }
 
