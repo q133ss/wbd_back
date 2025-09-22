@@ -387,6 +387,11 @@ class WBService extends BaseService
             $data['subjectId'] ?? null,
         ];
 
+        $context = [
+            'wb_id'         => $data['id'] ?? $data['nm_id'] ?? $data['nmId'] ?? null,
+            'id_candidates' => array_values(array_filter($idCandidates)),
+        ];
+
         foreach ($idCandidates as $candidate) {
             if (!$candidate) {
                 continue;
@@ -395,6 +400,11 @@ class WBService extends BaseService
             $category = Category::find($candidate);
 
             if ($category) {
+                Log::debug('WB category resolved by id', $context + [
+                    'resolved_category_id' => $category->id,
+                    'resolved_category_name' => $category->name,
+                ]);
+
                 return $category->id;
             }
         }
@@ -414,25 +424,48 @@ class WBService extends BaseService
             $data['parent_subject_name'] ?? null,
         ])));
 
+        $context['root_names'] = $rootNameCandidates;
+        $context['leaf_names'] = $leafNameCandidates;
+        $context['parent_names'] = $parentNameCandidates;
+
         foreach ($rootNameCandidates as $rootName) {
             $rootCategory = $this->findRootCategoryByName($rootName);
 
             if (! $rootCategory) {
+                Log::debug('WB category root name not found locally', $context + [
+                    'searched_root_name' => $rootName,
+                ]);
                 continue;
             }
 
             $matchedCategory = $this->findCategoryUnderRoot($rootCategory, $leafNameCandidates);
 
             if ($matchedCategory) {
+                Log::debug('WB category resolved by leaf under root', $context + [
+                    'resolved_category_id' => $matchedCategory->id,
+                    'resolved_category_name' => $matchedCategory->name,
+                    'root_category_id' => $rootCategory->id,
+                    'root_category_name' => $rootCategory->name,
+                ]);
                 return $matchedCategory->id;
             }
 
             $matchedCategory = $this->findCategoryUnderRoot($rootCategory, $parentNameCandidates);
 
             if ($matchedCategory) {
+                Log::debug('WB category resolved by parent under root', $context + [
+                    'resolved_category_id' => $matchedCategory->id,
+                    'resolved_category_name' => $matchedCategory->name,
+                    'root_category_id' => $rootCategory->id,
+                    'root_category_name' => $rootCategory->name,
+                ]);
                 return $matchedCategory->id;
             }
 
+            Log::debug('WB category fallback to root', $context + [
+                'root_category_id' => $rootCategory->id,
+                'root_category_name' => $rootCategory->name,
+            ]);
             return $rootCategory->id;
         }
 
@@ -446,12 +479,86 @@ class WBService extends BaseService
         foreach ($nameCandidates as $name) {
             $categories = Category::where('name', $name)->get();
 
-            if ($categories->count() === 1) {
-                return $categories->first()->id;
+            if ($categories->isEmpty()) {
+                Log::debug('WB category name not found locally', $context + [
+                    'searched_name' => $name,
+                ]);
+                continue;
             }
+
+            $scored = [];
+
+            foreach ($categories as $category) {
+                $ancestorNames = $this->getCategoryAncestorNames($category);
+                $matches = array_intersect($ancestorNames, $nameCandidates);
+                $score = count($matches);
+
+                if ($category->parent_id === null) {
+                    // Prefer top-level matches when possible.
+                    $score += 10;
+                }
+
+                $scored[] = [
+                    'category' => $category,
+                    'score' => $score,
+                    'ancestor_names' => $ancestorNames,
+                    'matched_ancestors' => array_values($matches),
+                ];
+            }
+
+            usort($scored, static function (array $left, array $right): int {
+                if ($left['score'] === $right['score']) {
+                    return count($right['ancestor_names']) <=> count($left['ancestor_names']);
+                }
+
+                return $right['score'] <=> $left['score'];
+            });
+
+            $best = $scored[0];
+
+            if ($best['score'] === 0 && $best['category']->parent_id !== null) {
+                Log::debug('WB category candidate skipped due to missing ancestry context', $context + [
+                    'candidate_category_id' => $best['category']->id,
+                    'candidate_category_name' => $best['category']->name,
+                    'ancestor_names' => $best['ancestor_names'],
+                ]);
+
+                continue;
+            }
+
+            Log::debug('WB category resolved by name candidate', $context + [
+                'resolved_category_id' => $best['category']->id,
+                'resolved_category_name' => $best['category']->name,
+                'matched_ancestors' => $best['matched_ancestors'],
+            ]);
+
+            return $best['category']->id;
         }
 
+        Log::debug('WB category resolution failed', $context + [
+            'name_candidates' => $nameCandidates,
+        ]);
+
         return null;
+    }
+
+    private function getCategoryAncestorNames(Category $category): array
+    {
+        $names = [];
+        $parentId = $category->parent_id;
+
+        while ($parentId) {
+            $parent = Category::select('id', 'name', 'parent_id')->find($parentId);
+
+            if (! $parent) {
+                break;
+            }
+
+            $names[] = $parent->name;
+            $parentId = $parent->parent_id;
+        }
+
+        return $names;
     }
 
     private function findRootCategoryByName(string $name): ?Category
