@@ -380,9 +380,11 @@ class WBService extends BaseService
     {
         $idCandidates = [
             $data['subjectParentId'] ?? null,
+            $data['parentSubjectId'] ?? null,
             $data['parent_subject_id'] ?? null,
             $data['subj_parent_id'] ?? null,
             $data['subj_root_id'] ?? null,
+            $data['subjectRootId'] ?? null,
             $data['subj_id'] ?? null,
             $data['subjectId'] ?? null,
         ];
@@ -412,15 +414,18 @@ class WBService extends BaseService
         $rootNameCandidates = array_values(array_unique(array_filter([
             $data['subj_root_name'] ?? null,
             $data['root_subject_name'] ?? null,
+            $data['subjectRootName'] ?? null,
         ])));
 
         $leafNameCandidates = array_values(array_unique(array_filter([
             $data['subjectName'] ?? null,
             $data['subj_name'] ?? null,
+            $data['subject_name'] ?? null,
         ])));
 
         $parentNameCandidates = array_values(array_unique(array_filter([
             $data['subjectParentName'] ?? null,
+            $data['parentSubjectName'] ?? null,
             $data['parent_subject_name'] ?? null,
         ])));
 
@@ -471,9 +476,13 @@ class WBService extends BaseService
 
         $nameCandidates = array_values(array_unique(array_filter([
             $data['subjectParentName'] ?? null,
+            $data['parentSubjectName'] ?? null,
             $data['subj_root_name'] ?? null,
+            $data['root_subject_name'] ?? null,
+            $data['subjectRootName'] ?? null,
             $data['subjectName'] ?? null,
             $data['subj_name'] ?? null,
+            $data['subject_name'] ?? null,
         ])));
 
         foreach ($nameCandidates as $name) {
