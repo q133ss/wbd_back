@@ -8,6 +8,7 @@ use App\Models\Ad;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -662,25 +663,17 @@ class WBService extends BaseService
 
     private function fetchSitePathNamesFromApi(string $productId, array $data): array
     {
-        $subjectId = $data['subjectId'] ?? $data['subj_id'] ?? $data['subject_id'] ?? null;
-        $kindId = $data['kindId'] ?? $data['kind_id'] ?? null;
-        $brandId = $data['brandId'] ?? $data['brand_id'] ?? null;
-
-        $query = array_filter([
-            'subject' => $subjectId,
-            'kind'    => $kindId,
-            'brand'   => $brandId,
-            'lang'    => 'ru',
-        ], static fn ($value) => $value !== null);
+        $query = $this->buildSitePathQueryParameters($data);
 
         try {
-            $response = Http::get("https://www.wildberries.ru/webapi/product/{$productId}/data", $query);
+            $response = $this->wildberriesSitePathRequest()
+                ->get("https://www.wildberries.ru/webapi/product/{$productId}/data", $query);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::debug('WB category site path request failed', [
-                    'wb_id'    => $productId,
-                    'status'   => $response->status(),
-                    'query'    => $query,
+                    'wb_id'  => $productId,
+                    'status' => $response->status(),
+                    'query'  => $query,
                 ]);
 
                 return [];
@@ -693,11 +686,11 @@ class WBService extends BaseService
                 $names = $this->extractNamesFromSitePath(data_get($payload, 'data.sitePath'));
             }
 
-            if (!empty($names)) {
+            if (! empty($names)) {
                 Log::debug('WB category site path fetched', [
-                    'wb_id'            => $productId,
-                    'site_path_names'  => $names,
-                    'query'            => $query,
+                    'wb_id'           => $productId,
+                    'site_path_names' => $names,
+                    'query'           => $query,
                 ]);
             }
 
@@ -706,10 +699,103 @@ class WBService extends BaseService
             Log::debug('WB category site path fetch failed', [
                 'wb_id'     => $productId,
                 'exception' => $exception->getMessage(),
+                'query'     => $query,
             ]);
 
             return [];
         }
+    }
+
+    private function buildSitePathQueryParameters(array $data): array
+    {
+        $subjectId = $this->extractNumericValue($data, [
+            'subjectId',
+            'subject_id',
+            'subj_id',
+            'subjId',
+            'data.subjectId',
+            'data.subject_id',
+            'data.subj_id',
+            'data.products.0.subjectId',
+            'data.products.0.subject_id',
+            'data.products.0.subj_id',
+            'value.data.subjectId',
+            'value.data.subject_id',
+            'value.data.subj_id',
+        ]);
+
+        $kindId = $this->extractNumericValue($data, [
+            'kindId',
+            'kind_id',
+            'kind',
+            'data.kindId',
+            'data.kind_id',
+            'data.kind',
+            'data.products.0.kindId',
+            'data.products.0.kind_id',
+            'data.products.0.kind',
+            'value.data.kindId',
+            'value.data.kind_id',
+            'value.data.kind',
+        ]);
+
+        $brandId = $this->extractNumericValue($data, [
+            'brandId',
+            'brand_id',
+            'data.brandId',
+            'data.brand_id',
+            'data.products.0.brandId',
+            'data.products.0.brand_id',
+            'value.data.brandId',
+            'value.data.brand_id',
+        ]);
+
+        return array_filter([
+            'subject' => $subjectId,
+            'kind'    => $kindId,
+            'brand'   => $brandId,
+            'lang'    => 'ru',
+        ], static fn ($value) => $value !== null);
+    }
+
+    private function extractNumericValue(array $data, array $paths): ?int
+    {
+        foreach ($paths as $path) {
+            $value = data_get($data, $path);
+
+            if ($value === null) {
+                continue;
+            }
+
+            if (is_numeric($value)) {
+                return (int) $value;
+            }
+
+            if (is_string($value)) {
+                $trimmed = trim($value);
+
+                if ($trimmed === '') {
+                    continue;
+                }
+
+                if (is_numeric($trimmed)) {
+                    return (int) $trimmed;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function wildberriesSitePathRequest(): PendingRequest
+    {
+        return Http::withHeaders([
+            'Accept'             => 'application/json, text/plain, */*',
+            'Accept-Language'    => 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Referer'            => 'https://www.wildberries.ru/',
+            'User-Agent'         => 'Mozilla/5.0 (compatible; wbd-service/1.0)',
+            'X-Requested-With'   => 'XMLHttpRequest',
+        ])->retry(3, 250);
     }
 
     private function findCategoryBySitePathNames(array $names): ?Category
