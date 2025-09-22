@@ -394,6 +394,12 @@ class WBService extends BaseService
             'id_candidates' => array_values(array_filter($idCandidates)),
         ];
 
+        $sitePathNames = $this->getSitePathNames($data, $context['wb_id'] ?? null);
+
+        if (!empty($sitePathNames)) {
+            $context['site_path_names'] = $sitePathNames;
+        }
+
         foreach ($idCandidates as $candidate) {
             if (!$candidate) {
                 continue;
@@ -428,6 +434,37 @@ class WBService extends BaseService
             $data['parentSubjectName'] ?? null,
             $data['parent_subject_name'] ?? null,
         ])));
+
+        if (!empty($sitePathNames)) {
+            $rootNameCandidates = array_values(array_unique(array_merge([
+                $sitePathNames[0],
+            ], $rootNameCandidates)));
+
+            $leafName = $sitePathNames[count($sitePathNames) - 1];
+            $leafNameCandidates = array_values(array_unique(array_merge($leafNameCandidates, [
+                $leafName,
+            ])));
+
+            $ancestorNames = array_slice($sitePathNames, 0, -1);
+
+            if (!empty($ancestorNames)) {
+                $parentNameCandidates = array_values(array_unique(array_merge(
+                    $parentNameCandidates,
+                    $ancestorNames,
+                )));
+            }
+
+            $sitePathCategory = $this->findCategoryBySitePathNames($sitePathNames);
+
+            if ($sitePathCategory) {
+                Log::debug('WB category resolved by site path', $context + [
+                    'resolved_category_id' => $sitePathCategory->id,
+                    'resolved_category_name' => $sitePathCategory->name,
+                ]);
+
+                return $sitePathCategory->id;
+            }
+        }
 
         $context['root_names'] = $rootNameCandidates;
         $context['leaf_names'] = $leafNameCandidates;
@@ -568,6 +605,146 @@ class WBService extends BaseService
         }
 
         return $names;
+    }
+
+    private function getSitePathNames(array $data, ?string $productId): array
+    {
+        $paths = [
+            data_get($data, 'sitePath'),
+            data_get($data, 'data.sitePath'),
+            data_get($data, 'value.data.sitePath'),
+        ];
+
+        foreach ($paths as $path) {
+            $names = $this->extractNamesFromSitePath($path);
+
+            if (!empty($names)) {
+                return $names;
+            }
+        }
+
+        if (!$productId) {
+            return [];
+        }
+
+        return $this->fetchSitePathNamesFromApi($productId, $data);
+    }
+
+    private function extractNamesFromSitePath($sitePath): array
+    {
+        if (!is_array($sitePath)) {
+            return [];
+        }
+
+        $names = [];
+
+        foreach ($sitePath as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+
+            $name = $node['name'] ?? null;
+            $id = $node['id'] ?? null;
+
+            if (!is_string($name) || trim($name) === '') {
+                continue;
+            }
+
+            if ($id !== null && (int) $id <= 0) {
+                continue;
+            }
+
+            $names[] = $name;
+        }
+
+        return $names;
+    }
+
+    private function fetchSitePathNamesFromApi(string $productId, array $data): array
+    {
+        $subjectId = $data['subjectId'] ?? $data['subj_id'] ?? $data['subject_id'] ?? null;
+        $kindId = $data['kindId'] ?? $data['kind_id'] ?? null;
+        $brandId = $data['brandId'] ?? $data['brand_id'] ?? null;
+
+        $query = array_filter([
+            'subject' => $subjectId,
+            'kind'    => $kindId,
+            'brand'   => $brandId,
+            'lang'    => 'ru',
+        ], static fn ($value) => $value !== null);
+
+        try {
+            $response = Http::get("https://www.wildberries.ru/webapi/product/{$productId}/data", $query);
+
+            if (!$response->successful()) {
+                Log::debug('WB category site path request failed', [
+                    'wb_id'    => $productId,
+                    'status'   => $response->status(),
+                    'query'    => $query,
+                ]);
+
+                return [];
+            }
+
+            $payload = $response->json();
+            $names = $this->extractNamesFromSitePath(data_get($payload, 'value.data.sitePath'));
+
+            if (empty($names)) {
+                $names = $this->extractNamesFromSitePath(data_get($payload, 'data.sitePath'));
+            }
+
+            if (!empty($names)) {
+                Log::debug('WB category site path fetched', [
+                    'wb_id'            => $productId,
+                    'site_path_names'  => $names,
+                    'query'            => $query,
+                ]);
+            }
+
+            return $names;
+        } catch (\Throwable $exception) {
+            Log::debug('WB category site path fetch failed', [
+                'wb_id'     => $productId,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return [];
+        }
+    }
+
+    private function findCategoryBySitePathNames(array $names): ?Category
+    {
+        if (empty($names)) {
+            return null;
+        }
+
+        $currentMatches = Category::where('name', $names[0])
+            ->whereNull('parent_id')
+            ->get();
+
+        if ($currentMatches->isEmpty()) {
+            $currentMatches = Category::where('name', $names[0])->get();
+        }
+
+        if ($currentMatches->isEmpty()) {
+            return null;
+        }
+
+        $lastMatches = $currentMatches;
+
+        foreach (array_slice($names, 1) as $name) {
+            $candidateMatches = Category::where('name', $name)
+                ->whereIn('parent_id', $lastMatches->pluck('id')->all())
+                ->get();
+
+            if ($candidateMatches->isEmpty()) {
+                break;
+            }
+
+            $lastMatches = $candidateMatches;
+        }
+
+        return $lastMatches->first();
     }
 
     private function findRootCategoryByName(string $name): ?Category
