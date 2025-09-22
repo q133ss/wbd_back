@@ -663,47 +663,88 @@ class WBService extends BaseService
 
     private function fetchSitePathNamesFromApi(string $productId, array $data): array
     {
-        $query = $this->buildSitePathQueryParameters($data);
+        $cacheKey = "wb_site_path_names_{$productId}";
 
-        try {
-            $response = $this->wildberriesSitePathRequest()
-                ->get("https://www.wildberries.ru/webapi/product/{$productId}/data", $query);
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
 
-            if (! $response->successful()) {
-                Log::debug('WB category site path request failed', [
-                    'wb_id'  => $productId,
-                    'status' => $response->status(),
-                    'query'  => $query,
-                ]);
+        $queries = [];
+        $initialQuery = $this->buildSitePathQueryParameters($data);
 
-                return [];
-            }
+        if (!empty($initialQuery)) {
+            $queries[] = $initialQuery;
+        }
 
-            $payload = $response->json();
-            $names = $this->extractNamesFromSitePath(data_get($payload, 'value.data.sitePath'));
+        $subjectFallback = array_filter([
+            'subject' => $initialQuery['subject'] ?? null,
+            'lang'    => 'ru',
+        ], static fn ($value) => $value !== null);
 
-            if (empty($names)) {
-                $names = $this->extractNamesFromSitePath(data_get($payload, 'data.sitePath'));
-            }
+        if (!empty($subjectFallback) && !in_array($subjectFallback, $queries, true)) {
+            $queries[] = $subjectFallback;
+        }
 
-            if (! empty($names)) {
+        $langOnly = ['lang' => 'ru'];
+
+        if (!in_array($langOnly, $queries, true)) {
+            $queries[] = $langOnly;
+        }
+
+        foreach ($queries as $index => $query) {
+            try {
+                $response = $this->wildberriesSitePathRequest($productId)
+                    ->get("https://www.wildberries.ru/webapi/product/{$productId}/data", $query);
+
+                if (! $response->successful()) {
+                    Log::debug('WB category site path request failed', [
+                        'wb_id'   => $productId,
+                        'status'  => $response->status(),
+                        'query'   => $query,
+                        'attempt' => $index + 1,
+                    ]);
+
+                    continue;
+                }
+
+                $payload = $response->json();
+                $names = $this->extractNamesFromSitePath(data_get($payload, 'value.data.sitePath'));
+
+                if (empty($names)) {
+                    $names = $this->extractNamesFromSitePath(data_get($payload, 'data.sitePath'));
+                }
+
+                if (empty($names)) {
+                    Log::debug('WB category site path missing names', [
+                        'wb_id'   => $productId,
+                        'query'   => $query,
+                        'attempt' => $index + 1,
+                    ]);
+
+                    continue;
+                }
+
                 Log::debug('WB category site path fetched', [
                     'wb_id'           => $productId,
                     'site_path_names' => $names,
                     'query'           => $query,
+                    'attempt'         => $index + 1,
+                ]);
+
+                Cache::put($cacheKey, $names, now()->addHours(6));
+
+                return $names;
+            } catch (\Throwable $exception) {
+                Log::debug('WB category site path fetch failed', [
+                    'wb_id'     => $productId,
+                    'exception' => $exception->getMessage(),
+                    'query'     => $query,
+                    'attempt'   => $index + 1,
                 ]);
             }
-
-            return $names;
-        } catch (\Throwable $exception) {
-            Log::debug('WB category site path fetch failed', [
-                'wb_id'     => $productId,
-                'exception' => $exception->getMessage(),
-                'query'     => $query,
-            ]);
-
-            return [];
         }
+
+        return [];
     }
 
     private function buildSitePathQueryParameters(array $data): array
@@ -787,15 +828,31 @@ class WBService extends BaseService
         return null;
     }
 
-    private function wildberriesSitePathRequest(): PendingRequest
+    private function wildberriesSitePathRequest(?string $productId = null): PendingRequest
     {
+        $referer = 'https://www.wildberries.ru/';
+
+        if ($productId) {
+            $referer = "https://www.wildberries.ru/catalog/{$productId}/detail.aspx";
+        }
+
         return Http::withHeaders([
-            'Accept'             => 'application/json, text/plain, */*',
-            'Accept-Language'    => 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Referer'            => 'https://www.wildberries.ru/',
-            'User-Agent'         => 'Mozilla/5.0 (compatible; wbd-service/1.0)',
-            'X-Requested-With'   => 'XMLHttpRequest',
-        ])->retry(3, 250);
+            'Accept'              => 'application/json, text/plain, */*',
+            'Accept-Encoding'     => 'gzip, deflate, br',
+            'Accept-Language'     => 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Cache-Control'       => 'no-cache',
+            'Origin'              => 'https://www.wildberries.ru',
+            'Pragma'              => 'no-cache',
+            'Referer'             => $referer,
+            'Sec-Fetch-Dest'      => 'empty',
+            'Sec-Fetch-Mode'      => 'cors',
+            'Sec-Fetch-Site'      => 'same-origin',
+            'Sec-Ch-Ua'           => '"Chromium";v="124", "Not.A/Brand";v="8"',
+            'Sec-Ch-Ua-Mobile'    => '?0',
+            'Sec-Ch-Ua-Platform'  => '"Windows"',
+            'User-Agent'          => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'X-Requested-With'    => 'XMLHttpRequest',
+        ])->acceptJson()->timeout(10)->retry(3, 500);
     }
 
     private function findCategoryBySitePathNames(array $names): ?Category
