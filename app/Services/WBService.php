@@ -344,12 +344,6 @@ class WBService extends BaseService
      */
     private function makeCategory(array $product): mixed
     {
-        $categoryId = $this->resolveCategoryFromArray($product);
-
-        if ($categoryId) {
-            return $categoryId;
-        }
-
         $productId = $product['id'] ?? null;
 
         if (!$productId) {
@@ -357,15 +351,13 @@ class WBService extends BaseService
         }
 
         try {
-            $pathData = $this->generatePathData($productId);
-            $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$productId}/info/ru/card.json";
-            $cardResponse = Http::get($cardUrl);
+//            $pathData = $this->generatePathData($productId);
+//            $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$productId}/info/ru/card.json";
 
-            if (!$cardResponse->successful()) {
-                return null;
-            }
+            // subject - $cardUrl['data']['subject_id'] --- 76!!!
+            // kind = 2 ПОХУЙ
 
-            return $this->resolveCategoryFromArray($cardResponse->json());
+            // https://www.wildberries.ru/webapi/product/270498380/data?subject=76&kind=2&brand=679693&lang=ru
         } catch (\Throwable $exception) {
             Log::warning('Не удалось определить категорию товара', [
                 'product_id' => $productId,
@@ -374,51 +366,6 @@ class WBService extends BaseService
 
             return null;
         }
-    }
-
-    private function resolveCategoryFromArray(array $data): ?int
-    {
-        $idCandidates = [
-            $data['subjectParentId'] ?? null,
-            $data['parent_subject_id'] ?? null,
-            $data['subj_parent_id'] ?? null,
-            $data['subj_root_id'] ?? null,
-            $data['subj_id'] ?? null,
-            $data['subjectId'] ?? null,
-        ];
-
-        foreach ($idCandidates as $candidate) {
-            if (!$candidate) {
-                continue;
-            }
-
-            $category = Category::find($candidate);
-
-            if ($category) {
-                return $category->id;
-            }
-        }
-
-        $nameCandidates = [
-            $data['subjectParentName'] ?? null,
-            $data['subj_root_name'] ?? null,
-            $data['subjectName'] ?? null,
-            $data['subj_name'] ?? null,
-        ];
-
-        foreach ($nameCandidates as $name) {
-            if (empty($name)) {
-                continue;
-            }
-
-            $categoryId = Category::where('name', $name)->value('id');
-
-            if ($categoryId) {
-                return $categoryId;
-            }
-        }
-
-        return null;
     }
 
     /**
