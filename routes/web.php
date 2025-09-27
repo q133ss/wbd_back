@@ -57,6 +57,7 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
     Route::prefix('telegram-users')->name('telegram-users.')->group(function () {
         Route::get('/', [TelegramUserController::class, 'index'])->name('index');
         Route::post('/refresh', [TelegramUserController::class, 'refresh'])->name('refresh');
+        Route::post('/install', [TelegramUserController::class, 'installDependencies'])->name('install');
         Route::get('/all', [TelegramUserController::class, 'downloadAll'])->name('all');
         Route::get('/new', [TelegramUserController::class, 'downloadNew'])->name('new');
     });
