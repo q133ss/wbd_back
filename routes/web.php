@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\TelegramUserController;
 
 Route::get('/login', function () {
     return view('admin.login');
@@ -52,4 +53,11 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
     Route::put('settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
     Route::get('/autoposting', [\App\Http\Controllers\Admin\AutopostingController::class, 'index'])->name('autoposting.index');
     Route::put('/autoposting', [\App\Http\Controllers\Admin\AutopostingController::class, 'update'])->name('autoposting.update');
+
+    Route::prefix('telegram-users')->name('telegram-users.')->group(function () {
+        Route::get('/', [TelegramUserController::class, 'index'])->name('index');
+        Route::post('/refresh', [TelegramUserController::class, 'refresh'])->name('refresh');
+        Route::get('/all', [TelegramUserController::class, 'downloadAll'])->name('all');
+        Route::get('/new', [TelegramUserController::class, 'downloadNew'])->name('new');
+    });
 });
