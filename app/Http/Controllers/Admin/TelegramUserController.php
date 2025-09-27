@@ -48,6 +48,40 @@ class TelegramUserController extends Controller
             ->with('success', 'Список пользователей TG успешно обновлён.');
     }
 
+    public function installDependencies(): RedirectResponse
+    {
+        $process = new Process([
+            self::PYTHON_COMMAND,
+            '-m',
+            'pip',
+            'install',
+            '--no-cache-dir',
+            'telethon',
+            'pandas',
+        ]);
+
+        try {
+            $process->setTimeout(300);
+            $process->run();
+
+            if (! $process->isSuccessful()) {
+                throw new ProcessFailedException($process);
+            }
+        } catch (\Throwable $exception) {
+            Log::error('Не удалось установить зависимости для TG', [
+                'exception' => $exception,
+            ]);
+
+            return redirect()
+                ->route('admin.telegram-users.index')
+                ->with('error', 'Не удалось установить зависимости. Проверьте логи для подробностей.');
+        }
+
+        return redirect()
+            ->route('admin.telegram-users.index')
+            ->with('success', 'Зависимости для TG успешно установлены.');
+    }
+
     public function downloadAll(): RedirectResponse|BinaryFileResponse
     {
         return $this->downloadFile(self::ALL_MEMBERS_FILE, 'all_members.csv');
