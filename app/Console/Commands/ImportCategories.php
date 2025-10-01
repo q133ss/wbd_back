@@ -47,7 +47,7 @@ class ImportCategories extends Command
             return Command::FAILURE;
         }
 
-        Category::query()->delete();
+        Category::truncate();
 
         $this->importCategories($categories);
         $this->info('Категории успешно импортированы.');
@@ -61,19 +61,17 @@ class ImportCategories extends Command
             $nodes = $category['nodes'] ?? ($category['childs'] ?? []);
             $nodes = is_array($nodes) ? $nodes : [];
 
-            $newCategory = Category::updateOrCreate(
-                ['id' => $category['id']],
-                [
-                    'name' => $category['name'] ?? null,
-                    'parent_id' => $parentId,
-                    'url' => $category['url'] ?? null,
-                    'shard_key' => $category['shardKey'] ?? null,
-                    'raw_query' => $category['rawQuery'] ?? null,
-                    'query' => $category['query'] ?? null,
-                    'children_only' => $category['childrenOnly'] ?? false,
-                    'nodes' => $nodes,
-                ]
-            );
+            $newCategory = Category::create([
+                'id' => $category['id'],
+                'name' => $category['name'] ?? null,
+                'parent_id' => $parentId,
+                'url' => $category['url'] ?? null,
+                'shard_key' => $category['shardKey'] ?? null,
+                'raw_query' => $category['rawQuery'] ?? null,
+                'query' => $category['query'] ?? null,
+                'children_only' => $category['childrenOnly'] ?? false,
+                'nodes' => $nodes,
+            ]);
 
             if (! empty($nodes)) {
                 $this->importCategories($nodes, $newCategory->id);
