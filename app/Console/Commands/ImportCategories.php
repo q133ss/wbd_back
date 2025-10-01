@@ -60,6 +60,10 @@ class ImportCategories extends Command
         foreach ($categories as $category) {
             $nodes = $category['nodes'] ?? ($category['childs'] ?? []);
             $nodes = is_array($nodes) ? $nodes : [];
+            $childNodeIds = array_values(array_filter(array_map(
+                static fn ($node) => $node['id'] ?? null,
+                $nodes
+            )));
 
             $newCategory = Category::create([
                 'id' => $category['id'],
@@ -70,7 +74,7 @@ class ImportCategories extends Command
                 'raw_query' => $category['rawQuery'] ?? null,
                 'query' => $category['query'] ?? null,
                 'children_only' => $category['childrenOnly'] ?? false,
-                'nodes' => $nodes,
+                'nodes' => $childNodeIds ?: null,
             ]);
 
             if (! empty($nodes)) {
