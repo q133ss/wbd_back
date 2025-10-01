@@ -9,6 +9,11 @@ class Category extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'children_only' => 'boolean',
+        'nodes' => 'array',
+    ];
+
     public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Category::class, 'parent_id');

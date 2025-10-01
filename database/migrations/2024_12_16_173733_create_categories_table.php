@@ -14,6 +14,12 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('url')->nullable();
+            $table->string('shard_key')->nullable();
+            $table->string('raw_query')->nullable();
+            $table->string('query')->nullable();
+            $table->boolean('children_only')->default(false);
+            $table->json('nodes')->nullable();
             $table->foreignId('parent_id')->nullable()->constrained('categories')->onDelete('cascade');
             $table->timestamps();
         });
