@@ -23,28 +23,61 @@ class CategoryController extends Controller
 
     public function index()
     {
+        $categoryIds = [
+            6994,
+            1,
+            2192,
+            16107,
+            115,
+            17006,
+            214,
+            306,
+            5380,
+            6119,
+            481,
+            5486,
+            519,
+            543,
+            131111,
+            904,
+            566,
+            629,
+            10296,
+            4863,
+            784,
+            62057,
+            295,
+            4830,
+            1023,
+            131081,
+            62813,
+            131450,
+            130624
+        ];
 
-        return Cache::remember('categories_index', 600, function () {
-            $categories = Category::with(['img', 'children', 'children.products', 'products']) // рекурсивно подгружаем
-            ->whereNull('parent_id')
-                ->whereNotIn('id', ['1234', '1235', '1237', '131841', '131925'])
-                ->get();
+        return Category::with(['img'])->whereIn('id', $categoryIds)->get();
 
-            // Фильтруем категории без товаров
-            $categories = $categories->filter(function ($category) {
-                return $this->countProductsWithChildren($category) > 0;
-            });
-
-            $adultCategory = Category::where('name', 'Товары для взрослых')->first();
-            $adultCategoryIds = $this->getAllCategoryIds($adultCategory);
-
-            $categoryProductCounts = $this->getProductsCount($categories);
-
-            return collect($categoryProductCounts)->map(function ($category) use ($adultCategoryIds) {
-                $category['requires_age_confirmation'] = in_array($category['category_id'], $adultCategoryIds);
-                return $category;
-            })->values();
-        });
+//        return Cache::remember('categories_index', 600, function () {
+//            $categories = Category::with(['img', 'children', 'children.products', 'products']) // рекурсивно подгружаем
+//            ->whereNull('parent_id')
+//                ->whereNotIn('id', ['1234', '1235', '1237', '131841', '131925'])
+//                ->get();
+//
+//            // Фильтруем категории без товаров
+//            $categories = $categories->filter(function ($category) {
+//                return $this->countProductsWithChildren($category) > 0;
+//            });
+//
+//            $adultCategory = Category::where('name', 'Товары для взрослых')->first();
+//            $adultCategoryIds = $this->getAllCategoryIds($adultCategory);
+//
+//            $categoryProductCounts = $this->getProductsCount($categories);
+//
+//            return collect($categoryProductCounts)->map(function ($category) use ($adultCategoryIds) {
+//                $category['requires_age_confirmation'] = in_array($category['category_id'], $adultCategoryIds);
+//                return $category;
+//            })->values();
+//        });
     }
 
     public function indexSubCategory(string $id)

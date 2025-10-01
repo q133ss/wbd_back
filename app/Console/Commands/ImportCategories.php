@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Category;
+use App\Models\File;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
@@ -57,6 +58,41 @@ class ImportCategories extends Command
 
     private function importCategories(array $categories, $parentId = null)
     {
+        $imgCategories = [
+            'Автотовары',
+            'Аксессуары',
+            'Акции',
+            'Бытовая техника',
+            'Детям',
+            'Для ремонта',
+            'Дом',
+            'Женщинам',
+            'Здоровье',
+            'Зоотовары',
+            'Игрушки',
+            'Канцтовары',
+            'Книги',
+            'Красота',
+            'Культурный код',
+            'Мебель',
+            'Мужчинам',
+            'Обувь',
+            'Продукты',
+            'Сад и дача',
+            'Спорт',
+            'Товары для взрослых',
+            'Цветы',
+            'Школа',
+            'Электроника',
+            'Ювелирные изделия',
+            'Лекарственные препараты',
+            'Грузовая доставка',
+            'Цифровые товары',
+            'Сделано в России',
+            'Экспресс',
+            'Транспортные средства'
+        ];
+
         foreach ($categories as $category) {
             $nodes = $category['nodes'] ?? ($category['childs'] ?? []);
             $nodes = is_array($nodes) ? $nodes : [];
@@ -76,6 +112,17 @@ class ImportCategories extends Command
                 'children_only' => $category['childrenOnly'] ?? false,
                 'nodes' => $childNodeIds ?: null,
             ]);
+
+            if($parentId == null){
+                if(in_array($category['name'], $imgCategories)){
+                    File::create([
+                        'src' => 'images/categories/'.$category['name'].'.jpg',
+                        'fileable_type' => 'App\Models\Category',
+                        'fileable_id' => $newCategory->id,
+                        'category' => 'img'
+                    ]);
+                }
+            }
 
             if (! empty($nodes)) {
                 $this->importCategories($nodes, $newCategory->id);

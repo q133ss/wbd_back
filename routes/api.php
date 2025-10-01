@@ -156,3 +156,50 @@ Route::get('/sitemap-generate', [\App\Http\Controllers\SitemapController::class,
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'show']);
 
 Route::post('/telegram/user/{chat_id}', [\App\Http\Controllers\AuthController::class, 'userByTelegramId']);
+
+Route::get('zz', function (){
+    $imgCategories = [
+        'Автотовары',
+        'Аксессуары',
+        'Акции',
+        'Бытовая техника',
+        'Детям',
+        'Для ремонта',
+        'Дом',
+        'Женщинам',
+        'Здоровье',
+        'Зоотовары',
+        'Игрушки',
+        'Канцтовары',
+        'Книги',
+        'Красота',
+        'Культурный код',
+        'Мебель',
+        'Мужчинам',
+        'Обувь',
+        'Продукты',
+        'Сад и дача',
+        'Спорт',
+        'Товары для взрослых',
+        'Цветы',
+        'Школа',
+        'Электроника',
+        'Ювелирные изделия',
+        'Лекарственные препараты',
+        'Грузовая доставка',
+        'Цифровые товары',
+        'Сделано в России',
+        'Экспресс',
+        'Транспортные средства'
+    ];
+
+    $ids = [];
+
+    foreach ($imgCategories as $cat){
+        $c = App\Models\Category::where('name', 'like', '%'.$cat.'%')->first();
+        if($c) {
+            $ids[] = $c->id;
+        }
+    }
+    return $ids;
+});

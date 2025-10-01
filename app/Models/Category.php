@@ -19,10 +19,20 @@ class Category extends Model
         return $this->belongsTo(Category::class, 'parent_id');
     }
 
-    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function getChildrenAttribute()
     {
-        return $this->hasMany(Category::class, 'parent_id');
+        if (empty($this->nodes)) {
+            return collect();
+        }
+
+        return Category::whereIn('id', $this->nodes)->get();
     }
+
+//    public function children()
+//    {
+//        return $this->hasMany(Category::class, 'id', 'id')
+//            ->whereIn('id', $this->nodes ?? []);
+//    }
 
     public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
