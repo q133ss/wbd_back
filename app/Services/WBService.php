@@ -342,7 +342,7 @@ class WBService extends BaseService
     /**
      * Ищет категорию и возвращает ее
      */
-    private function makeCategory(array $product): mixed
+    private function makeCategory(array $product)
     {
         $productId = $product['id'] ?? null;
 
