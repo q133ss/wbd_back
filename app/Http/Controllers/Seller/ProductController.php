@@ -31,13 +31,13 @@ class ProductController extends Controller
 
         // сортируем только по "нормальным" полям
         if (in_array($sortBy, ['id', 'name', 'created_at', 'updated_at', 'price', 'rating', 'quantity_available', 'category_id', 'status'])) {
-            $products->orderBy($sortBy, $sortDir);
+            $products?->orderBy($sortBy, $sortDir);
         } else {
             // иначе по умолчанию
-            $products->orderBy('created_at', 'desc');
+            $products?->orderBy('created_at', 'desc');
         }
 
-        $products = $products->paginate(30);
+        $products = $products?->paginate(30);
 
         if ($products) {
             $products->getCollection()->transform(function ($product) {
@@ -154,8 +154,8 @@ class ProductController extends Controller
 
                 if ($allInactive) {
                     return response()->json([
-                       'message' => 'Нельзя активировать товары, у которых нет активных объявлений',
-                       'status'  => false
+                        'message' => 'Нельзя активировать товары, у которых нет активных объявлений',
+                        'status'  => false
                     ], 400);
                 }
 
