@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Category;
-use Illuminate\Console\Command;
 use App\Models\File;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
 class ImportCategories extends Command
@@ -28,16 +28,32 @@ class ImportCategories extends Command
      */
     public function handle()
     {
-        $url      = 'https://static-basket-01.wbbasket.ru/vol0/data/main-menu-ru-ru-v3.json';
-        $response = Http::get($url);
+        $url = 'https://catalog.wb.ru/menu/v12/api?appType=1&lang=ru&locale=ru';
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'User-Agent' => 'Mozilla/5.0 (compatible; WBD-Category-Importer/1.0)',
+        ])->get($url);
 
-        if ($response->successful()) {
-            $categories = $response->json();
-            $this->importCategories($categories);
-            $this->info('Категории успешно импортированы.');
-        } else {
+        if (! $response->successful()) {
             $this->error('Не удалось загрузить данные из API.');
+
+            return Command::FAILURE;
         }
+
+        $categories = $response->json('data');
+
+        if (! is_array($categories)) {
+            $this->error('Неверный формат данных, полученных из API.');
+
+            return Command::FAILURE;
+        }
+
+        Category::truncate();
+
+        $this->importCategories($categories);
+        $this->info('Категории успешно импортированы.');
+
+        return Command::SUCCESS;
     }
 
     private function importCategories(array $categories, $parentId = null)
@@ -76,14 +92,26 @@ class ImportCategories extends Command
             'Экспресс',
             'Транспортные средства'
         ];
+
         foreach ($categories as $category) {
-            $newCategory = Category::updateOrCreate(
-                ['id' => $category['id']],
-                [
-                    'name'      => $category['name'],
-                    'parent_id' => $parentId,
-                ]
-            );
+            $nodes = $category['nodes'] ?? ($category['childs'] ?? []);
+            $nodes = is_array($nodes) ? $nodes : [];
+            $childNodeIds = array_values(array_filter(array_map(
+                static fn ($node) => $node['id'] ?? null,
+                $nodes
+            )));
+
+            $newCategory = Category::create([
+                'id' => $category['id'],
+                'name' => $category['name'] ?? null,
+                'parent_id' => $parentId,
+                'url' => $category['url'] ?? null,
+                'shard_key' => $category['shardKey'] ?? null,
+                'raw_query' => $category['rawQuery'] ?? null,
+                'query' => $category['query'] ?? null,
+                'children_only' => $category['childrenOnly'] ?? false,
+                'nodes' => $childNodeIds ?: null,
+            ]);
 
             if($parentId == null){
                 if(in_array($category['name'], $imgCategories)){
@@ -96,8 +124,8 @@ class ImportCategories extends Command
                 }
             }
 
-            if (isset($category['childs'])) {
-                $this->importCategories($category['childs'], $newCategory->id);
+            if (! empty($nodes)) {
+                $this->importCategories($nodes, $newCategory->id);
             }
         }
     }

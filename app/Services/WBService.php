@@ -351,13 +351,12 @@ class WBService extends BaseService
         }
 
         try {
-//            $pathData = $this->generatePathData($productId);
-//            $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$productId}/info/ru/card.json";
+            $pathData = $this->generatePathData($productId);
+            $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$productId}/info/ru/card.json";
+            $cardResponse = Http::retry(3, 100)->get($cardUrl);
 
-            // subject - $cardUrl['data']['subject_id'] --- 76!!!
-            // kind = 2 ПОХУЙ
-
-            // https://www.wildberries.ru/webapi/product/270498380/data?subject=76&kind=2&brand=679693&lang=ru
+            $subjName = $cardResponse->json()['subj_name'];
+            return Category::where('name', 'LIKE', '%'.$subjName.'%')->pluck('id')->first();
         } catch (\Throwable $exception) {
             Log::warning('Не удалось определить категорию товара', [
                 'product_id' => $productId,
