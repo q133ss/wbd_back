@@ -21,94 +21,102 @@ class CategoryController extends Controller
         return $count;
     }
 
+    /**
+     * Собираем все id из nodes (включая вложенные).
+     */
+    private function collectAllNodes($category, $allCategories)
+    {
+        $result = collect($category->nodes ?? []);
+
+        foreach ($category->nodes ?? [] as $childId) {
+            $child = $allCategories->get($childId);
+            if ($child) {
+                $result = $result->merge($this->collectAllNodes($child, $allCategories));
+            }
+        }
+
+        return $result;
+    }
+
     public function index()
     {
+        # TODO доделать отображение и выложить!
         $categoryIds = [
             6994,
-            1,
-            2192,
-            16107,
-            115,
-            17006,
-            214,
-            306,
-            5380,
-            6119,
-            481,
-            5486,
-            519,
-            543,
-            131111,
-            904,
-            566,
-            629,
-            10296,
-            4863,
-            784,
-            62057,
-            295,
-            4830,
-            1023,
-            131081,
-            62813,
-            131450,
-            130624
+              1,
+              2192,
+              16107,
+              115,
+              17006,
+              258,
+              306,
+              10326,
+              6119,
+              481,
+              5486,
+              519,
+              543,
+              131111,
+              8421,
+              566,
+              629,
+              10296,
+              4863,
+              784,
+              62057,
+              131286,
+              4830,
+              1023,
+              131840,
+              62813,
+              131450,
+              130624,
         ];
 
-        return Category::with(['img'])->whereIn('id', $categoryIds)->get();
+        return Category::with(['img'])->whereIn('id', $categoryIds)->get()->map(function ($category) {
+            $allCategories = Category::all()->keyBy('id');
+            $nodes = $this->collectAllNodes($category, $allCategories)->unique()->values();
+            $allProducts = Product::whereIn('category_id', $nodes)->pluck('id')->all();
 
-//        return Cache::remember('categories_index', 600, function () {
-//            $categories = Category::with(['img', 'children', 'children.products', 'products']) // рекурсивно подгружаем
-//            ->whereNull('parent_id')
-//                ->whereNotIn('id', ['1234', '1235', '1237', '131841', '131925'])
-//                ->get();
-//
-//            // Фильтруем категории без товаров
-//            $categories = $categories->filter(function ($category) {
-//                return $this->countProductsWithChildren($category) > 0;
-//            });
-//
-//            $adultCategory = Category::where('name', 'Товары для взрослых')->first();
-//            $adultCategoryIds = $this->getAllCategoryIds($adultCategory);
-//
-//            $categoryProductCounts = $this->getProductsCount($categories);
-//
-//            return collect($categoryProductCounts)->map(function ($category) use ($adultCategoryIds) {
-//                $category['requires_age_confirmation'] = in_array($category['category_id'], $adultCategoryIds);
-//                return $category;
-//            })->values();
-//        });
+            # TODO не отображает товары
+            $adCount = Ad::whereIn('product_id', $allProducts)
+                ->where('status', true)
+                ->count();
+
+            return [
+                'category_id' => $category->id,
+                'category_name' => $category->name,
+                'product_count' => $adCount,
+                'img' => $category->img,
+            ];
+        });
     }
+
 
     public function indexSubCategory(string $id)
     {
-        $cacheKey = 'categories_sub_' . $id;
+        $cacheKey = 'sub_categories_' . $id;
+        return Cache::remember($cacheKey, now()->addYear(), function () use ($id) {
+            $categories = Category::where('parent_id', $id)->get();
+            $allCategories = Category::all()->keyBy('id');
 
-        $categoriesData = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($id) {
-            $categories = Category::with('children')->where('parent_id', $id)->get();
+            return $categories->map(function ($category) use ($allCategories) {
+                $nodes = $this->collectAllNodes($category, $allCategories)->unique()->values();
 
-            return $categories->map(function ($category) {
-                // 1. Собрать ID всех потомков
-                $descendantIds = $category->getAllDescendantIds();
-                $allCategoryIds = $descendantIds->push($category->id);
+                $allProducts = Product::whereIn('category_id', $nodes)->pluck('id')->all();
 
-                // 2. Получить ID всех продуктов в этих категориях
-                $productIds = \App\Models\Product::whereIn('category_id', $allCategoryIds)->pluck('id');
-
-                // 3. Посчитать активные объявления
-                $adCount = \App\Models\Ad::whereIn('product_id', $productIds)
+                # TODO не отображает товары
+                $adCount = Ad::whereIn('product_id', $allProducts)
                     ->where('status', true)
                     ->count();
 
                 return [
-                    'category_id' => $category->id,
+                    'category_id'   => $category->id,
                     'category_name' => $category->name,
                     'product_count' => $adCount,
                 ];
             });
         });
-
-        return $categoriesData;
     }
 
     private function getProductsCount($categories)

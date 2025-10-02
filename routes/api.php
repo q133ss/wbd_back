@@ -193,13 +193,22 @@ Route::get('zz', function (){
         'Транспортные средства'
     ];
 
-    $ids = [];
+//    $cats = [];
+//    foreach ($imgCategories as $category) {
+//        $c = App\Models\Category::where('name', $category)->first();
+//        if($c) {
+//            array_push($cats, $c->id);
+//        }
+//    }
+    $cats = [];
 
-    foreach ($imgCategories as $cat){
-        $c = App\Models\Category::where('name', 'like', '%'.$cat.'%')->first();
-        if($c) {
-            $ids[] = $c->id;
+    foreach ($imgCategories as $name){
+        $c = \App\Models\Category::where('name', $name)->first();
+        if($c){
+            $cats[$c->id] = $c->name;
         }
     }
-    return $ids;
+
+
+    dd($cats);
 });
