@@ -62,3 +62,10 @@ Route::middleware(['auth', 'is.admin'])->name('admin.')->group(function () {
         Route::get('/new', [TelegramUserController::class, 'downloadNew'])->name('new');
     });
 });
+
+
+Route::get('zz', function(){
+    $s = new \App\Services\WBService();
+    $a = $s->syncProductCategories();
+    dd($a);
+});

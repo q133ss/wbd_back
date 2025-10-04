@@ -735,4 +735,47 @@ class WBService extends BaseService
             return $this->sendResponse($response);
         }
     }
+
+
+    // Синхронизирует категории для всех товаров
+    public function syncProductCategories()
+    {
+        \Log::info("🔄 Запуск синхронизации категорий товаров");
+
+        // можно использовать chunk для экономии памяти
+        Product::chunk(100, function ($products) {
+            foreach ($products as $product) {
+                try {
+                    $currentCategoryId = $product->category_id;
+                    $productModify = $product->toArray();
+                    $productModify['id'] = $product->wb_id; // ВАЖНО: для makeCategory нужен id из WB
+                    $newCategoryId = $this->makeCategory($productModify);
+
+                    // Если удалось определить категорию и она отличается
+                    if ($newCategoryId && $newCategoryId != $currentCategoryId) {
+                        $oldCategory = $currentCategoryId ? "old: {$currentCategoryId}" : "old: null";
+                        \Log::info("📦 Обновляем категорию товара ID {$product->id} ({$oldCategory} → new: {$newCategoryId})");
+
+                        $product->update(['category_id' => $newCategoryId]);
+                    }
+
+                    // Ничего не найдено
+                    if (!$newCategoryId) {
+                        \Log::warning("⚠️ Не удалось определить категорию для товара ID {$product->id}");
+                    }
+
+                } catch (\Throwable $e) {
+                    \Log::error("❌ Ошибка при обновлении категории для товара ID {$product->id}", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+
+                // Небольшая пауза, чтобы не спамить API
+                usleep(500000); // 0.5 сек
+            }
+        });
+
+        return "VSE!✅";
+        \Log::info("✅ Синхронизация категорий завершена");
+    }
 }
