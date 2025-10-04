@@ -351,12 +351,56 @@ class WBService extends BaseService
         }
 
         try {
-            $pathData = $this->generatePathData($productId);
-            $cardUrl = "https://basket-{$pathData['host']}.wbbasket.ru/vol{$pathData['vol']}/part{$pathData['part']}/{$productId}/info/ru/card.json";
-            $cardResponse = Http::retry(3, 100)->get($cardUrl);
+            // 1️⃣ Запрос к нашему Flask API
+            $apiUrl = "http://185.225.34.172:8080/run?product_id={$productId}";
+            $response = Http::timeout(90)->get($apiUrl);
 
-            $subjName = $cardResponse->json()['subj_name'];
-            return Category::where('name', 'LIKE', '%'.$subjName.'%')->pluck('id')->first();
+            if (!$response->ok()) {
+                throw new \Exception("Flask API ответил статус {$response->status()}");
+            }
+
+            $json = $response->json();
+            if (!isset($json['data']['value']['data']['sitePath'])) {
+                throw new \Exception("В ответе отсутствует sitePath");
+            }
+
+            $sitePath = $json['data']['value']['data']['sitePath'];
+
+            // 2️⃣ Берём id в обратном порядке, исключая последний элемент (бренд)
+            $sitePathIds = array_column($sitePath, 'id');
+            $sitePathNames = array_column($sitePath, 'name');
+
+            // Лог для отладки (можно потом убрать)
+            Log::info('WB sitePath', [
+                'product_id' => $productId,
+                'ids' => $sitePathIds,
+                'names' => $sitePathNames,
+            ]);
+
+            // 3️⃣ Перебираем с конца, но не берём id = 0 (бренд)
+            $reversed = array_reverse($sitePath);
+            foreach ($reversed as $index => $path) {
+                $catId = $path['id'] ?? null;
+                $catName = $path['name'] ?? null;
+                $key = $path['xshardKey'] ?? null;
+
+                if ($catId && $catId != 0) {
+                    $category = Category::where('id', $catId)->orWhere('shard_key', $key)->first();
+                    if ($category) {
+                        Log::info("✅ Найдена категория для товара {$productId}", [
+                            'category_id' => $category->id,
+                            'wb_id' => $catId,
+                            'name' => $catName,
+                        ]);
+                        return $category->id;
+                    }
+                }
+            }
+
+            // Если ничего не найдено — вернём null
+            Log::warning("⚠️ Категория не найдена для товара {$productId}");
+            return null;
+
         } catch (\Throwable $exception) {
             Log::warning('Не удалось определить категорию товара', [
                 'product_id' => $productId,
